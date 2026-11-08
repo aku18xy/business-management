@@ -71,6 +71,7 @@ export const PosTerminalPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [lastReceipt, setLastReceipt] = useState(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [mobileCartOpen, setMobileCartOpen] = useState(false);
 
   // Cashier Lock Screen State
   const [isLocked, setIsLocked] = useState(false);
@@ -206,6 +207,7 @@ export const PosTerminalPage = () => {
 
     setLastReceipt(receipt);
     setCheckoutModal(false);
+    setMobileCartOpen(false);
     setCashTendered('');
     setDiscountPercent(0);
   };
@@ -258,111 +260,123 @@ export const PosTerminalPage = () => {
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col bg-slate-950 text-slate-100 select-none">
       {/* =========================================================================
-          1. KIOSK TERMINAL TOP NAVIGATION BAR
+          1. KIOSK TERMINAL TOP NAVIGATION BAR (RESPONSIVE)
           ========================================================================= */}
-      <header className="h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between gap-3 shrink-0 z-20">
+      <header className="h-14 bg-slate-900 border-b border-slate-800 px-2.5 sm:px-4 flex items-center justify-between gap-2 shrink-0 z-20">
         {/* Left: Terminal Info */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             onClick={() => navigateToPath('/')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition"
+            className="p-1.5 sm:px-3 sm:py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition flex items-center gap-1.5 shrink-0"
             title="Return to Business Management Platform"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Exit to BMS</span>
           </button>
 
-          <div className="h-5 w-px bg-slate-800" />
-
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow shadow-indigo-600/30">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow shadow-indigo-600/30 shrink-0">
               <Store className="w-4 h-4" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-white tracking-wide">
-                  NexusPOS Terminal
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-bold text-white tracking-wide truncate">
+                  NexusPOS
                 </span>
-                <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">
+                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  REG-01 • ONLINE
+                  REG-01
                 </span>
               </div>
-              <span className="text-[10px] text-slate-400 hidden md:inline">
-                {selectedBranch?.name || 'Flagship Megastore'} • Currency: USD ($)
+              <span className="text-[10px] text-slate-400 hidden md:inline truncate">
+                {selectedBranch?.name || 'Flagship Megastore'} • USD ($)
               </span>
             </div>
           </div>
         </div>
 
         {/* Center: Shift & Drawer Quick Pill */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
           {posShift?.isOpen ? (
             <button
               onClick={() => setReconcileModal(true)}
-              className="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 flex items-center gap-2 text-xs transition"
+              className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 flex items-center gap-1.5 text-xs transition"
               title="Click to view drawer balance & cash drops"
             >
-              <Coins className="w-3.5 h-3.5 text-amber-400" />
-              <span className="text-slate-400 hidden sm:inline">Drawer Cash:</span>
-              <span className="font-mono font-bold text-emerald-400">
+              <Coins className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="text-slate-400 hidden md:inline">Drawer:</span>
+              <span className="font-mono font-bold text-emerald-400 text-xs">
                 {formatMoney(shiftExpectedCash)}
               </span>
             </button>
           ) : (
             <button
               onClick={() => setOpenShiftModal(true)}
-              className="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center gap-2 text-xs font-bold animate-pulse"
+              className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center gap-1 text-[11px] sm:text-xs font-bold"
             >
-              <AlertTriangle className="w-3.5 h-3.5" />
-              <span>Shift Closed — Open Register</span>
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate max-w-[85px] sm:max-w-none">Open Shift</span>
             </button>
           )}
 
           {heldCarts.length > 0 && (
-            <div className="px-2.5 py-1.5 rounded-xl bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-xs font-bold flex items-center gap-1.5">
-              <span>{heldCarts.length} Held Cart{heldCarts.length > 1 ? 's' : ''}</span>
+            <div className="hidden sm:flex px-2 py-1 rounded-xl bg-indigo-500/20 border border-indigo-500/40 text-indigo-300 text-xs font-bold items-center gap-1">
+              <span>{heldCarts.length} Held</span>
             </div>
           )}
         </div>
 
-        {/* Right: Actions, Cashier Badge & Fullscreen */}
-        <div className="flex items-center gap-2">
-          {/* Quick Shift Button */}
+        {/* Right: Actions, Cashier Badge & Cart Toggle */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Quick Shift Button (Desktop only) */}
           <button
             onClick={() => {
               if (posShift?.isOpen) setCashDropModal(true);
               else setOpenShiftModal(true);
             }}
-            className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 hidden lg:flex items-center gap-1.5 transition"
+            className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 hidden xl:flex items-center gap-1.5 transition"
           >
             <ArrowDownToLine className="w-3.5 h-3.5 text-amber-400" />
             <span>Vault Drop</span>
           </button>
 
-          {/* Returns & Void */}
+          {/* Returns & Void (Desktop only) */}
           <button
             onClick={() => setReturnModal(true)}
-            className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 hidden lg:flex items-center gap-1.5 transition"
+            className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 hidden xl:flex items-center gap-1.5 transition"
           >
             <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
-            <span>Returns (FR-803)</span>
+            <span>Returns</span>
           </button>
 
           {/* Cashier Lock / Switch */}
           <button
             onClick={() => setIsLocked(true)}
-            className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 flex items-center gap-1.5 transition"
+            className="p-1.5 sm:px-3 sm:py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 flex items-center gap-1.5 transition"
             title="Lock Countertop Terminal with Cashier PIN"
           >
             <Lock className="w-3.5 h-3.5 text-indigo-400" />
             <span className="hidden sm:inline">{currentUser?.name || 'Cashier'}</span>
           </button>
 
-          {/* Fullscreen Button */}
+          {/* Mobile Cart Toggle Button (Mobile only) */}
+          <button
+            onClick={() => setMobileCartOpen(!mobileCartOpen)}
+            className="relative p-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white lg:hidden transition flex items-center justify-center shadow"
+            title="Toggle Order Cart"
+          >
+            <ShoppingCart className="w-4 h-4" />
+            {totalCartUnits > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-emerald-400 text-slate-950 font-bold font-mono text-[10px] flex items-center justify-center shadow">
+                {totalCartUnits}
+              </span>
+            )}
+          </button>
+
+          {/* Fullscreen Button (hidden on mobile) */}
           <button
             onClick={toggleFullscreen}
-            className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition"
+            className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 hidden sm:flex transition"
             title="Toggle Countertop Kiosk Fullscreen (F11)"
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -373,18 +387,18 @@ export const PosTerminalPage = () => {
       {/* =========================================================================
           2. MAIN TERMINAL WORKSPACE (CATALOG LEFT + CART RIGHT)
           ========================================================================= */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative">
         {/* LEFT COLUMN: PRODUCT TOUCH CATALOG */}
-        <section className="flex-1 flex flex-col min-w-0 bg-slate-950/60 p-3.5 overflow-hidden">
+        <section className="flex-1 flex flex-col min-w-0 bg-slate-950/60 p-2.5 sm:p-3.5 overflow-hidden">
           {/* Search & Filter Bar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-3 shrink-0">
+          <div className="flex items-center gap-2 mb-2 sm:mb-3 shrink-0">
             {/* Instant Search / Barcode auto-focus */}
             <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder="Scan Barcode or Search SKU / Product Name... [F2]"
+                placeholder="Search products or scan... [F2]"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
@@ -393,9 +407,9 @@ export const PosTerminalPage = () => {
                     setSearchQuery('');
                   }
                 }}
-                className="w-full pl-10 pr-24 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-indigo-500 transition shadow-inner font-mono"
+                className="w-full pl-9 pr-3 sm:pr-24 py-2 sm:py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-white placeholder-slate-500 text-xs sm:text-sm focus:outline-none focus:border-indigo-500 transition shadow-inner font-mono"
               />
-              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] text-slate-500 font-mono px-2 py-0.5 rounded bg-slate-800 border border-slate-700">
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 hidden sm:flex items-center gap-1 text-[10px] text-slate-500 font-mono px-2 py-0.5 rounded bg-slate-800 border border-slate-700">
                 <Barcode className="w-3 h-3 text-indigo-400" />
                 <span>SCAN READY</span>
               </div>
@@ -404,15 +418,16 @@ export const PosTerminalPage = () => {
             {/* Quick Shift Reconciliation trigger button */}
             <button
               onClick={() => setReconcileModal(true)}
-              className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+              className="px-2.5 py-2 sm:px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-semibold flex items-center justify-center gap-1.5 transition shrink-0"
+              title="Open Shift Z-Report [F8]"
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-              <span>Z-Report [F8]</span>
+              <span className="hidden sm:inline">Z-Report [F8]</span>
             </button>
           </div>
 
           {/* Category Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 shrink-0 scrollbar-thin">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 shrink-0 scrollbar-none">
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -430,7 +445,7 @@ export const PosTerminalPage = () => {
           </div>
 
           {/* Product Grid */}
-          <div className="flex-1 overflow-y-auto pr-1 mt-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 content-start">
+          <div className="flex-1 overflow-y-auto pr-1 mt-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-2.5 content-start">
             {filteredCatalog.map((product) => {
               const inCartQty = posCart.find(c => c.id === product.id)?.qty || 0;
               const isLowStock = product.stock < 10;
@@ -441,7 +456,7 @@ export const PosTerminalPage = () => {
                   key={product.id}
                   disabled={isOutOfStock}
                   onClick={() => addToCart(product)}
-                  className={`group relative rounded-2xl p-3 text-left border flex flex-col justify-between transition-all active:scale-[0.98] ${
+                  className={`group relative rounded-2xl p-2.5 sm:p-3 text-left border flex flex-col justify-between transition-all active:scale-[0.98] ${
                     isOutOfStock
                       ? 'bg-slate-900/30 border-slate-900 opacity-50 cursor-not-allowed'
                       : inCartQty > 0
@@ -478,17 +493,17 @@ export const PosTerminalPage = () => {
 
                   {/* Bottom: Price & Stock */}
                   <div className="flex items-end justify-between gap-1 pt-1 border-t border-slate-800/60">
-                    <span className="text-sm font-mono font-bold text-emerald-400">
+                    <span className="text-xs sm:text-sm font-mono font-bold text-emerald-400">
                       {formatMoney(product.price)}
                     </span>
-                    <span className={`text-[10px] font-mono ${
+                    <span className={`text-[9px] sm:text-[10px] font-mono truncate ${
                       isOutOfStock
                         ? 'text-rose-400'
                         : isLowStock
                         ? 'text-amber-400 font-bold'
                         : 'text-slate-500'
                     }`}>
-                      {isOutOfStock ? 'OUT OF STOCK' : `${product.stock} in stock`}
+                      {isOutOfStock ? 'OUT' : `${product.stock} in stock`}
                     </span>
                   </div>
                 </button>
@@ -503,13 +518,52 @@ export const PosTerminalPage = () => {
               </div>
             )}
           </div>
+
+          {/* MOBILE STICKY BOTTOM CART BAR */}
+          <div className="pt-2 bg-slate-950/80 border-t border-slate-800/80 lg:hidden shrink-0">
+            <button
+              onClick={() => setMobileCartOpen(true)}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold shadow-xl shadow-indigo-600/30 transition active:scale-[0.98]"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="relative">
+                  <ShoppingCart className="w-5 h-5" />
+                  {totalCartUnits > 0 && (
+                    <span className="absolute -top-2 -right-2 px-1.5 py-0.2 bg-emerald-400 text-slate-950 rounded-full text-[10px] font-black font-mono shadow">
+                      {totalCartUnits}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs">
+                  {totalCartUnits > 0 ? `${totalCartUnits} Item${totalCartUnits > 1 ? 's' : ''} in Cart` : 'Tap to View Cart'}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 font-mono text-sm font-extrabold text-white">
+                <span>{formatMoney(cartTotal)}</span>
+                <span className="text-indigo-200 text-base font-sans">→</span>
+              </div>
+            </button>
+          </div>
         </section>
 
-        {/* RIGHT COLUMN: REAL-TIME CART & TENDER */}
-        <aside className="w-80 md:w-96 lg:w-[420px] bg-slate-900 border-l border-slate-800 flex flex-col justify-between shrink-0 z-10 shadow-2xl">
+        {/* RIGHT COLUMN: REAL-TIME CART & TENDER (DESKTOP SIDEBAR + MOBILE SLIDE-OVER MODAL) */}
+        <aside
+          className={`
+            fixed inset-0 z-40 bg-slate-900 flex flex-col justify-between shadow-2xl transition-transform duration-300
+            lg:static lg:z-auto lg:translate-x-0 lg:w-96 xl:w-[420px] lg:border-l lg:border-slate-800 lg:shrink-0
+            ${mobileCartOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
+          `}
+        >
           {/* Cart Header */}
           <div className="p-3.5 border-b border-slate-800 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => setMobileCartOpen(false)}
+                className="lg:hidden p-1.5 -ml-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition"
+                title="Back to Catalog"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </button>
               <ShoppingCart className="w-4 h-4 text-indigo-400" />
               <h3 className="font-bold text-white text-sm">Active Order Cart</h3>
               <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-bold">
