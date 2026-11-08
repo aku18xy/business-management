@@ -2,6 +2,9 @@
   "version": 2,
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/plan", "destination": "/plan/index.html" },
+    { "source": "/plan/(.*)", "destination": "/plan/$1" },
+    { "source": "/assets/(.*)", "destination": "/assets/$1" },
+    { "source": "/((?!assets|plan|.*\\.[a-zA-Z0-9]+$).*)", "destination": "/index.html" }
   ]
 }

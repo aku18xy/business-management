@@ -18,10 +18,21 @@ import {
 } from 'lucide-react';
 
 export const Dashboard = () => {
-  const { kpis, currentOrg, selectedBranch, approvals, handleApprovalAction, userPermissions, setActiveTab } = useApp();
+  const { kpis, currentOrg, selectedBranch, approvals, handleApprovalAction, userPermissions, setActiveTab, posOrders } = useApp();
   const [dateRange, setDateRange] = useState('MTD');
 
   const pendingApprovals = approvals.filter(a => a.status === 'Pending');
+
+  // Dynamically compute chart data including real-time POS sales
+  const liveChartData = [
+    ...REVENUE_CHART_DATA,
+    {
+      month: "Nov (Live)",
+      revenue: 295000 + (kpis.revenue.posContribution || 0),
+      expenses: 146000,
+      profit: 149000 + Math.round((kpis.revenue.posContribution || 0) * 0.38)
+    }
+  ];
 
   return (
     <div className="space-y-6">
@@ -62,7 +73,7 @@ export const Dashboard = () => {
       {/* KPI Metric Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Monthly Revenue */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
+        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition relative overflow-hidden">
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <span className="text-xs font-medium uppercase tracking-wider">Gross Revenue ({dateRange})</span>
             <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
@@ -70,13 +81,25 @@ export const Dashboard = () => {
             </div>
           </div>
           <div className="text-2xl font-black text-white tracking-tight">
-            ${kpis.revenue.value.toLocaleString()}
+            ${kpis.revenue.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-emerald-400 mt-2 font-medium">
-            <ArrowUpRight className="w-3.5 h-3.5" />
-            <span>{kpis.revenue.change}</span>
-            <span className="text-slate-500">{kpis.revenue.period}</span>
-          </div>
+          
+          {kpis.revenue.posContribution > 0 ? (
+            <div className="flex items-center gap-1.5 text-[11px] text-emerald-400 mt-2 font-medium bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-2 py-1">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span>+${kpis.revenue.posContribution.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} from POS</span>
+              <span className="text-emerald-300/70">({kpis.revenue.posOrdersCount} sales)</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-xs text-emerald-400 mt-2 font-medium">
+              <ArrowUpRight className="w-3.5 h-3.5" />
+              <span>{kpis.revenue.change}</span>
+              <span className="text-slate-500">{kpis.revenue.period}</span>
+            </div>
+          )}
         </div>
 
         {/* Metric 2: Net Operating Profit */}
@@ -88,7 +111,7 @@ export const Dashboard = () => {
             </div>
           </div>
           <div className="text-2xl font-black text-white tracking-tight">
-            ${kpis.netProfit.value.toLocaleString()}
+            ${kpis.netProfit.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div className="flex items-center gap-1.5 text-xs text-emerald-400 mt-2 font-medium">
             <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 font-bold">
@@ -107,11 +130,11 @@ export const Dashboard = () => {
             </div>
           </div>
           <div className="text-2xl font-black text-white tracking-tight">
-            ${kpis.cashflow.cashOnHand.toLocaleString()}
+            ${kpis.cashflow.cashOnHand.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div className="flex items-center justify-between text-xs text-slate-400 mt-2">
             <span>AR: <strong className="text-amber-400">${kpis.cashflow.receivables.toLocaleString()}</strong></span>
-            <span>Runway: <strong className="text-purple-400">{kpis.cashflow.runwayMonths} mos</strong></span>
+            <span>POS Inflow: <strong className="text-purple-400">+${kpis.cashflow.posCashCollected?.toFixed(0) || 0}</strong></span>
           </div>
         </div>
 
@@ -158,20 +181,25 @@ export const Dashboard = () => {
           </div>
 
           {/* Simple custom SVG chart for zero-dependency reliability */}
-          <div className="h-64 w-full flex items-end gap-4 pt-6 px-2">
-            {REVENUE_CHART_DATA.map((item, idx) => {
-              const maxVal = 300000;
-              const revHeight = (item.revenue / maxVal) * 100;
-              const expHeight = (item.expenses / maxVal) * 100;
+          <div className="h-64 w-full flex items-end gap-3 pt-6 px-2">
+            {liveChartData.map((item, idx) => {
+              const maxVal = 320000;
+              const revHeight = Math.min(100, (item.revenue / maxVal) * 100);
+              const expHeight = Math.min(100, (item.expenses / maxVal) * 100);
+              const isLive = item.month.includes('Live');
 
               return (
                 <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group">
                   <div className="text-[10px] font-mono text-slate-400 opacity-0 group-hover:opacity-100 transition mb-1">
                     ${Math.round(item.revenue / 1000)}k
                   </div>
-                  <div className="w-full flex items-end justify-center gap-1.5 h-48 bg-slate-950/40 rounded-xl p-1.5 border border-slate-800/60">
+                  <div className={`w-full flex items-end justify-center gap-1.5 h-48 rounded-xl p-1.5 border transition ${
+                    isLive ? 'bg-indigo-950/40 border-indigo-500/40 ring-1 ring-indigo-500/30' : 'bg-slate-950/40 border-slate-800/60'
+                  }`}>
                     <div
-                      className="w-1/2 bg-gradient-to-t from-indigo-600 to-indigo-400 rounded-lg transition-all duration-300 group-hover:brightness-110"
+                      className={`w-1/2 rounded-lg transition-all duration-300 group-hover:brightness-110 ${
+                        isLive ? 'bg-gradient-to-t from-emerald-600 to-indigo-500' : 'bg-gradient-to-t from-indigo-600 to-indigo-400'
+                      }`}
                       style={{ height: `${revHeight}%` }}
                       title={`Revenue: $${item.revenue.toLocaleString()}`}
                     ></div>
@@ -181,7 +209,11 @@ export const Dashboard = () => {
                       title={`Expenses: $${item.expenses.toLocaleString()}`}
                     ></div>
                   </div>
-                  <span className="text-xs font-semibold text-slate-400 mt-2">{item.month}</span>
+                  <span className={`text-[11px] font-semibold mt-2 text-center whitespace-nowrap ${
+                    isLive ? 'text-indigo-400 font-bold' : 'text-slate-400'
+                  }`}>
+                    {item.month}
+                  </span>
                 </div>
               );
             })}
@@ -256,6 +288,58 @@ export const Dashboard = () => {
               Audit Log <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* POS Telemetry Stream: Real-Time Sales Inflow */}
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs font-mono uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                Integration: MOD-08 ↔ EXEC-DASH
+              </span>
+              <span className="text-xs font-mono text-indigo-400">Ledger Stream</span>
+            </div>
+            <h3 className="text-base font-bold text-white">Point of Sale Live Revenue Stream</h3>
+            <p className="text-xs text-slate-400">
+              Transactions from retail and branch POS registers automatically roll up into Executive Cockpit revenue and cash-on-hand.
+            </p>
+          </div>
+          <button
+            onClick={() => setActiveTab('pos')}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition self-start sm:self-auto shadow-sm"
+          >
+            Launch POS Terminal →
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {posOrders.slice(0, 3).map((order) => (
+            <div
+              key={order.id}
+              className="bg-slate-950/70 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between hover:border-slate-700 transition"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-mono text-xs text-indigo-400 font-bold">{order.orderNumber}</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    {order.status}
+                  </span>
+                </div>
+                <div className="text-lg font-black text-white mb-1">
+                  ${order.total.toFixed(2)}
+                </div>
+                <p className="text-xs text-slate-400 line-clamp-1">
+                  {order.items.map(i => `${i.qty}x ${i.name}`).join(', ')}
+                </p>
+              </div>
+              <div className="flex items-center justify-between text-[11px] text-slate-500 pt-3 mt-3 border-t border-slate-800/60">
+                <span>{order.cashier}</span>
+                <span className="font-mono text-slate-400">{order.paymentMethod}</span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

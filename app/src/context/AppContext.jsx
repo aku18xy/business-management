@@ -263,6 +263,53 @@ export const AppProvider = ({ children }) => {
     return newOrder;
   };
 
+  // ==========================================
+  // REAL-TIME EXECUTIVE TELEMETRY SYNTHESIS
+  // POS orders and inventory reflect live in Cockpit KPIs
+  // ==========================================
+  const posSalesTotal = posOrders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
+  const posSalesSubtotal = posOrders.reduce((sum, order) => sum + (Number(order.subtotal) || 0), 0);
+  const posSalesTax = posOrders.reduce((sum, order) => sum + (Number(order.tax) || 0), 0);
+
+  // Dynamic gross revenue = baseline revenue + real-time POS receipts
+  const dynamicRevenueValue = INITIAL_KPIS.revenue.value + posSalesTotal;
+
+  // Dynamic net operating profit = baseline net profit + estimated 38% gross margin on POS sales
+  const dynamicNetProfitValue = INITIAL_KPIS.netProfit.value + Math.round(posSalesSubtotal * 0.38);
+
+  // Dynamic liquidity = baseline cash on hand + collected POS receipts
+  const dynamicCashOnHand = INITIAL_KPIS.cashflow.cashOnHand + posSalesTotal;
+
+  // Real-time inventory alerts derived from current POS catalog stock
+  const dynamicLowStockCount = posCatalog.filter(p => p.stock < 15).length;
+  const dynamicCriticalCount = posCatalog.filter(p => p.stock < 5).length;
+
+  const dynamicKpis = {
+    ...INITIAL_KPIS,
+    revenue: {
+      ...INITIAL_KPIS.revenue,
+      value: dynamicRevenueValue,
+      posContribution: posSalesTotal,
+      posOrdersCount: posOrders.length,
+      baseline: INITIAL_KPIS.revenue.value
+    },
+    netProfit: {
+      ...INITIAL_KPIS.netProfit,
+      value: dynamicNetProfitValue,
+    },
+    cashflow: {
+      ...INITIAL_KPIS.cashflow,
+      cashOnHand: dynamicCashOnHand,
+      posCashCollected: posSalesTotal
+    },
+    inventoryAlerts: {
+      ...INITIAL_KPIS.inventoryAlerts,
+      lowStockCount: dynamicLowStockCount,
+      criticalCount: dynamicCriticalCount,
+      totalSKUs: posCatalog.length
+    }
+  };
+
   const userPermissions = ROLE_PERMISSIONS[currentUser.role] || ROLE_PERMISSIONS.Staff;
 
   return (
@@ -285,7 +332,7 @@ export const AppProvider = ({ children }) => {
         setActiveTab,
         commandOpen,
         setCommandOpen,
-        kpis: INITIAL_KPIS,
+        kpis: dynamicKpis,
         allUsers: INITIAL_USERS,
         // Phase 2 exports
         customers,
@@ -302,7 +349,8 @@ export const AppProvider = ({ children }) => {
         updateCartQty,
         clearCart,
         completeCheckout,
-        posOrders
+        posOrders,
+        posSalesTotal
       }}
     >
       {children}
