@@ -840,7 +840,7 @@ export const PosTerminalPage = () => {
           4. CHECKOUT MODAL
           ========================================================================= */}
       {checkoutModal && (
-        <div className="fixed inset-0 z-40 bg-black/80 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
           <div className="max-w-md w-full glass-panel rounded-2xl p-6 border border-slate-700 space-y-4">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <div>
@@ -1010,12 +1010,14 @@ export const PosTerminalPage = () => {
           6. SHIFT DRAWER & Z-REPORT MODAL (FR-802)
           ========================================================================= */}
       {reconcileModal && (
-        <div className="fixed inset-0 z-40 bg-black/80 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
           <div className="max-w-md w-full glass-panel rounded-2xl p-6 border border-slate-700 space-y-4">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <div>
-                <h3 className="text-base font-bold text-white">Register Shift Drawer & Z-Report</h3>
-                <span className="text-xs text-slate-400">Register ID: REG-01 • Cashier: Elena Rostova</span>
+                <h3 className="text-base font-bold text-white">Register Shift Drawer & Z-Report (FR-802)</h3>
+                <span className="text-xs text-slate-400">
+                  {posShift?.registerId || 'REG-01-FLAGSHIP'} • Cashier: {posShift?.cashier || currentUser.name}
+                </span>
               </div>
               <button onClick={() => setReconcileModal(false)} className="text-slate-400 hover:text-white">✕</button>
             </div>
@@ -1039,34 +1041,285 @@ export const PosTerminalPage = () => {
               </div>
             </div>
 
+            {/* Quick action to record mid-shift vault drop */}
+            <div className="flex items-center justify-between text-xs pt-1">
+              <span className="text-slate-400">Excess cash in drawer?</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setReconcileModal(false);
+                  setCashDropModal(true);
+                }}
+                className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold border border-amber-500/40 flex items-center gap-1.5 transition"
+              >
+                <ArrowDownToLine className="w-3.5 h-3.5" />
+                <span>Record Vault Cash Drop</span>
+              </button>
+            </div>
+
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Actual Counted Physical Cash in Drawer</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs text-slate-400 font-medium">Actual Counted Physical Cash in Drawer</label>
+                <button
+                  type="button"
+                  onClick={() => setCountedCashInput(shiftExpectedCash.toFixed(2))}
+                  className="text-[10px] text-emerald-400 hover:underline font-mono"
+                >
+                  Count Exact Expected
+                </button>
+              </div>
               <input
                 type="number"
                 step="0.01"
                 placeholder={shiftExpectedCash.toFixed(2)}
                 value={countedCashInput}
                 onChange={(e) => setCountedCashInput(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-sm font-bold"
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-sm font-bold focus:outline-none focus:border-indigo-500"
+              />
+
+              {countedCashInput && (
+                <div className="flex justify-between items-center text-xs pt-2">
+                  <span className="text-slate-400">Reconciliation Variance:</span>
+                  <span className={`font-mono font-bold ${
+                    Number(countedCashInput) === shiftExpectedCash
+                      ? 'text-emerald-400'
+                      : Number(countedCashInput) > shiftExpectedCash
+                      ? 'text-indigo-400'
+                      : 'text-rose-400'
+                  }`}>
+                    {Number(countedCashInput) - shiftExpectedCash >= 0 ? '+' : ''}
+                    {formatMoney(Number(countedCashInput) - shiftExpectedCash)} (
+                    {Number(countedCashInput) === shiftExpectedCash ? 'Balanced' : Number(countedCashInput) > shiftExpectedCash ? 'Overage' : 'Shortage'})
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">Closing Notes / Discrepancy Explanation</label>
+              <input
+                type="text"
+                placeholder="All coin rolls counted. Verified bills against tape..."
+                value={reconcileNotes}
+                onChange={(e) => setReconcileNotes(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
               <button
                 onClick={() => setReconcileModal(false)}
                 className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold"
               >
-                Close
+                Cancel
               </button>
               <button
                 onClick={() => {
-                  const actual = Number(countedCashInput) || shiftExpectedCash;
-                  closeRegisterShift({ actualCounted: actual, notes: reconcileNotes });
+                  const actual = countedCashInput !== '' ? Number(countedCashInput) : shiftExpectedCash;
+                  const summary = closeRegisterShift({ countedCash: actual, notes: reconcileNotes });
                   setReconcileModal(false);
+                  setCountedCashInput('');
+                  setReconcileNotes('');
+                  if (summary) setSelectedShiftReport(summary);
                 }}
                 className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow"
               >
-                Reconcile & Close Shift
+                Reconcile & Print Z-Report
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          OPEN REGISTER SHIFT MODAL (FR-802)
+          ========================================================================= */}
+      {openShiftModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              openRegisterShift({
+                openingFloat: openFloatInput,
+                notes: openNotes,
+                registerId: openRegisterId
+              });
+              setOpenShiftModal(false);
+            }}
+            className="max-w-md w-full glass-panel rounded-2xl p-6 border border-slate-700 space-y-4 shadow-2xl"
+          >
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Unlock className="w-5 h-5 text-emerald-400" />
+                <h3 className="text-base font-bold text-white">Open Register Shift (Set Float)</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpenShiftModal(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-400">
+              Verify starting coins and cash bills in the register drawer before opening shift for trade.
+            </p>
+
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">Register Station</label>
+              <select
+                value={openRegisterId}
+                onChange={(e) => setOpenRegisterId(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
+              >
+                <option value="REG-01-FLAGSHIP">REG-01-FLAGSHIP (Main Counter)</option>
+                <option value="REG-02-EXPRESS">REG-02-EXPRESS (Express Lane)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-300 block mb-1 font-bold">Opening Cash Float ($ USD) *</label>
+              <div className="relative">
+                <span className="absolute left-3 top-2 text-slate-400 font-bold">$</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  required
+                  value={openFloatInput}
+                  onChange={(e) => setOpenFloatInput(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-7 pr-3 py-2 text-white font-mono font-bold text-sm"
+                />
+              </div>
+
+              {/* Quick Float Presets */}
+              <div className="flex gap-1.5 pt-1.5">
+                {['150.00', '250.00', '300.00', '500.00'].map((val) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setOpenFloatInput(val)}
+                    className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs font-bold transition"
+                  >
+                    ${val}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">Cashier On Duty</label>
+              <input
+                type="text"
+                disabled
+                value={currentUser?.name || 'Cashier'}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-400 font-medium"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs text-slate-400 block mb-1">Opening Shift Notes</label>
+              <input
+                type="text"
+                value={openNotes}
+                onChange={(e) => setOpenNotes(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
+                placeholder="Counted cash drawer and verified rolled coin tubes..."
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setOpenShiftModal(false)}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/30 transition flex items-center gap-1.5"
+              >
+                <Unlock className="w-3.5 h-3.5" />
+                <span>Open Register & Trade</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* =========================================================================
+          OFFICIAL Z-REPORT MODAL (FR-802)
+          ========================================================================= */}
+      {selectedShiftReport && (
+        <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4">
+          <div className="max-w-sm w-full bg-white text-slate-900 rounded-2xl p-6 shadow-2xl font-mono text-xs space-y-4">
+            <div className="text-center border-b border-dashed border-slate-300 pb-3">
+              <span className="text-[10px] tracking-widest text-slate-500 block">*** DAILY REGISTER CLOSEOUT ***</span>
+              <h2 className="text-base font-bold font-sans tracking-wide mt-0.5">OFFICIAL Z-REPORT</h2>
+              <p className="text-[10px] text-slate-600">{selectedBranch?.name || 'Flagship Megastore'}</p>
+              <p className="text-[10px] text-slate-600">Register: {selectedShiftReport.registerId} • Shift #{selectedShiftReport.id}</p>
+              <p className="text-[10px] text-slate-600">Opened: {selectedShiftReport.openedAt} • Closed: {selectedShiftReport.closedAt}</p>
+              <p className="text-[10px] text-slate-600">Cashier: {selectedShiftReport.cashier}</p>
+            </div>
+
+            <div className="space-y-1.5 py-1 border-b border-dashed border-slate-300">
+              <div className="flex justify-between">
+                <span>Opening Cash Float:</span>
+                <span className="font-bold">{formatMoney(selectedShiftReport.openingFloat)}</span>
+              </div>
+              <div className="flex justify-between text-emerald-700">
+                <span>Cash Sales Collected (+):</span>
+                <span className="font-bold">+{formatMoney(selectedShiftReport.cashSales)}</span>
+              </div>
+              <div className="flex justify-between text-amber-700">
+                <span>Vault Safe Drops (-):</span>
+                <span className="font-bold">-{formatMoney(selectedShiftReport.cashDropsTotal)}</span>
+              </div>
+              <div className="flex justify-between pt-1 font-bold border-t border-slate-200">
+                <span>EXPECTED DRAWER CASH:</span>
+                <span>{formatMoney(selectedShiftReport.expectedCash)}</span>
+              </div>
+              <div className="flex justify-between font-bold">
+                <span>ACTUAL COUNTED CASH:</span>
+                <span>{formatMoney(selectedShiftReport.closingCountedCash)}</span>
+              </div>
+              <div className="flex justify-between pt-1 border-t border-slate-200">
+                <span>RECONCILIATION VARIANCE:</span>
+                <span className={`font-bold ${
+                  selectedShiftReport.variance === 0
+                    ? 'text-emerald-700'
+                    : selectedShiftReport.variance > 0
+                    ? 'text-indigo-700'
+                    : 'text-rose-700'
+                }`}>
+                  {selectedShiftReport.variance >= 0 ? '+' : ''}{formatMoney(selectedShiftReport.variance)} ({selectedShiftReport.status})
+                </span>
+              </div>
+            </div>
+
+            <div className="text-[10px] text-slate-500 space-y-2 pt-1 border-b border-dashed border-slate-300 pb-3">
+              <p>Notes: {selectedShiftReport.notes}</p>
+              <div className="pt-2 flex justify-between">
+                <span>Cashier Sign: _____________</span>
+                <span>Audit: VERIFIED</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => window.print()}
+                className="flex-1 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center justify-center gap-1.5"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print Z-Report</span>
+              </button>
+              <button
+                onClick={() => setSelectedShiftReport(null)}
+                className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition"
+              >
+                Dismiss
               </button>
             </div>
           </div>
@@ -1077,7 +1330,7 @@ export const PosTerminalPage = () => {
           7. VAULT CASH DROP MODAL (FR-802)
           ========================================================================= */}
       {cashDropModal && (
-        <div className="fixed inset-0 z-40 bg-black/80 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
           <div className="max-w-md w-full glass-panel rounded-2xl p-6 border border-slate-700 space-y-4">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <h3 className="text-base font-bold text-white">Vault Safe Cash Drop</h3>
@@ -1128,7 +1381,7 @@ export const PosTerminalPage = () => {
           8. RETURNS & REFUNDS MODAL (FR-803)
           ========================================================================= */}
       {returnModal && (
-        <div className="fixed inset-0 z-40 bg-black/80 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
           <div className="max-w-xl w-full glass-panel rounded-2xl p-6 border border-slate-700 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-slate-800 pb-3">
               <div>

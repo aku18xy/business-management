@@ -546,9 +546,9 @@ export const AppProvider = ({ children }) => {
     return newDrop;
   };
 
-  const closeRegisterShift = ({ countedCash, notes = '' }) => {
+  const closeRegisterShift = ({ countedCash, actualCounted, notes = '' }) => {
     if (!posShift) return null;
-    const countedNum = parseFloat(countedCash) || 0;
+    const countedNum = parseFloat(countedCash !== undefined ? countedCash : actualCounted) || 0;
     const variance = Number((countedNum - shiftExpectedCash).toFixed(2));
     const status = Math.abs(variance) < 0.01 ? 'Balanced' : variance > 0 ? 'Overage' : 'Shortage';
 
