@@ -191,7 +191,7 @@ export const Sidebar = () => {
           {/* Living Plan / SRS Link */}
           <div className="pt-2">
             <a
-              href="/plan/"
+              href="https://nexus-bms-plan-srs.vercel.app"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between bg-indigo-950/40 hover:bg-indigo-900/50 text-indigo-300 border border-indigo-500/30 transition group"

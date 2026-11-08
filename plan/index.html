@@ -981,7 +981,9 @@
                 selectedCategory={selectedSpecCat}
                 setSelectedCategory={setSelectedSpecCat}
                 onOpenNewModule={() => setNewModuleModalOpen(true)}
-                onLaunchApp={() => setAppMode("live")}
+                onLaunchApp={() => {
+                  window.open("https://nexus-bms.vercel.app", "_blank") || (window.location.href = "https://nexus-bms.vercel.app");
+                }}
                 showToast={showToast}
               />
             )}

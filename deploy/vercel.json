@@ -2,11 +2,9 @@
   "version": 2,
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/plan", "destination": "/plan/index.html" },
-    { "source": "/plan/(.*)", "destination": "/plan/$1" },
     { "source": "/pos", "destination": "/index.html" },
     { "source": "/pos/(.*)", "destination": "/index.html" },
     { "source": "/assets/(.*)", "destination": "/assets/$1" },
-    { "source": "/((?!assets|plan|.*\\.[a-zA-Z0-9]+$).*)", "destination": "/index.html" }
+    { "source": "/((?!assets|.*\\.[a-zA-Z0-9]+$).*)", "destination": "/index.html" }
   ]
 }
