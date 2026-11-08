@@ -15,13 +15,15 @@ import {
   ChevronRight,
   ArrowRight,
   CheckCircle2,
-  X
+  X,
+  Pencil
 } from 'lucide-react';
 
 export const CrmPage = () => {
   const {
     customers,
     addCustomer,
+    updateCustomer,
     deals,
     addDeal,
     updateDealStage,
@@ -36,6 +38,16 @@ export const CrmPage = () => {
   const [showNewDealModal, setShowNewDealModal] = useState(false);
   const [showNewCustomerModal, setShowNewCustomerModal] = useState(false);
   const [selectedDealForQuote, setSelectedDealForQuote] = useState(null);
+
+  // Edit Customer Modal State (FR-302)
+  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [editCustName, setEditCustName] = useState('');
+  const [editCustContact, setEditCustContact] = useState('');
+  const [editCustEmail, setEditCustEmail] = useState('');
+  const [editCustPhone, setEditCustPhone] = useState('');
+  const [editCustIndustry, setEditCustIndustry] = useState('');
+  const [editCustLimit, setEditCustLimit] = useState('');
+  const [editCustStatus, setEditCustStatus] = useState('Active');
 
   // New Deal Form State
   const [newDealTitle, setNewDealTitle] = useState('');
@@ -327,6 +339,7 @@ export const CrmPage = () => {
                   <th className="py-3 px-4">Credit Limit</th>
                   <th className="py-3 px-4">Open Balance</th>
                   <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
@@ -355,9 +368,34 @@ export const CrmPage = () => {
                       ${cust.outstandingBalance.toLocaleString()}
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        cust.status === 'Active'
+                          ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                          : cust.status === 'Credit Hold'
+                          ? 'bg-rose-500/15 text-rose-300 border border-rose-500/30'
+                          : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+                      }`}>
                         {cust.status}
                       </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <button
+                        onClick={() => {
+                          setEditingCustomer(cust);
+                          setEditCustName(cust.name);
+                          setEditCustContact(cust.contactPerson);
+                          setEditCustEmail(cust.email);
+                          setEditCustPhone(cust.phone);
+                          setEditCustIndustry(cust.industry);
+                          setEditCustLimit(cust.creditLimit.toString());
+                          setEditCustStatus(cust.status || 'Active');
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-[11px] font-semibold transition flex items-center gap-1.5 ml-auto"
+                        title="Edit Client Profile (FR-302)"
+                      >
+                        <Pencil className="w-3 h-3" />
+                        <span>Edit Profile</span>
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -565,6 +603,144 @@ export const CrmPage = () => {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Modal: Edit Client Profile (FR-302) */}
+      {editingCustomer && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Pencil className="w-4 h-4 text-indigo-400" />
+                <div>
+                  <h3 className="font-bold text-white text-base">Edit Client Profile (FR-302)</h3>
+                  <p className="text-[11px] text-slate-400 font-mono">Account ID: {editingCustomer.id}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setEditingCustomer(null)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              if (!editCustName || !editCustContact) return;
+              updateCustomer(editingCustomer.id, {
+                name: editCustName,
+                contactPerson: editCustContact,
+                email: editCustEmail,
+                phone: editCustPhone,
+                industry: editCustIndustry,
+                creditLimit: parseFloat(editCustLimit) || 0,
+                status: editCustStatus
+              });
+              setEditingCustomer(null);
+            }} className="space-y-3.5 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">Company / Account Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={editCustName}
+                    onChange={(e) => setEditCustName(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">Primary Contact Person</label>
+                  <input
+                    type="text"
+                    required
+                    value={editCustContact}
+                    onChange={(e) => setEditCustContact(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    required
+                    value={editCustEmail}
+                    onChange={(e) => setEditCustEmail(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">Direct Phone</label>
+                  <input
+                    type="text"
+                    required
+                    value={editCustPhone}
+                    onChange={(e) => setEditCustPhone(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono outline-none focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">Industry Vertical</label>
+                  <input
+                    type="text"
+                    required
+                    value={editCustIndustry}
+                    onChange={(e) => setEditCustIndustry(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">Credit Limit ($ USD)</label>
+                  <input
+                    type="number"
+                    step="100"
+                    min="0"
+                    required
+                    value={editCustLimit}
+                    onChange={(e) => setEditCustLimit(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono font-bold outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-slate-300 font-semibold block mb-1">Account Status</label>
+                  <select
+                    value={editCustStatus}
+                    onChange={(e) => setEditCustStatus(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Credit Hold">Credit Hold</option>
+                    <option value="Under Review">Under Review</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setEditingCustomer(null)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/20"
+                >
+                  Save Profile Changes →
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

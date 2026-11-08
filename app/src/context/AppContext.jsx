@@ -190,6 +190,17 @@ export const AppProvider = ({ children }) => {
     addAuditLog('CRM_CUSTOMER_CREATED', `Added new client account: ${newCust.name} (${newCust.contactPerson})`);
   };
 
+  const updateCustomer = (customerId, updatedData) => {
+    setCustomers(prev =>
+      prev.map(c => c.id === customerId ? { ...c, ...updatedData } : c)
+    );
+    const existing = customers.find(c => c.id === customerId);
+    addAuditLog(
+      'CRM_CUSTOMER_UPDATED',
+      `Updated client profile for ${updatedData.name || existing?.name} (${updatedData.contactPerson || existing?.contactPerson})`
+    );
+  };
+
   const addDeal = (dealData) => {
     const newDeal = {
       id: `deal_${Date.now()}`,
@@ -573,6 +584,7 @@ export const AppProvider = ({ children }) => {
         // Phase 2 exports
         customers,
         addCustomer,
+        updateCustomer,
         deals,
         addDeal,
         updateDealStage,
