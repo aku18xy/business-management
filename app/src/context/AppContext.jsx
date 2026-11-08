@@ -11,7 +11,9 @@ import {
   INITIAL_QUOTATIONS,
   POS_CATALOG,
   INITIAL_POS_ORDERS,
-  PIPELINE_STAGES
+  PIPELINE_STAGES,
+  INITIAL_ACTIVE_SHIFT,
+  INITIAL_SHIFT_HISTORY
 } from '../data/mockData';
 
 const AppContext = createContext();
@@ -72,6 +74,19 @@ export const AppProvider = ({ children }) => {
 
   const [posCart, setPosCart] = useState([]);
 
+  // ==========================================
+  // FR-802: REGISTER SHIFT & CASH DRAWER RECONCILIATION
+  // ==========================================
+  const [posShift, setPosShift] = useState(() => {
+    const saved = localStorage.getItem('nexus_pos_shift');
+    return saved ? JSON.parse(saved) : INITIAL_ACTIVE_SHIFT;
+  });
+
+  const [posShiftHistory, setPosShiftHistory] = useState(() => {
+    const saved = localStorage.getItem('nexus_pos_shift_history');
+    return saved ? JSON.parse(saved) : INITIAL_SHIFT_HISTORY;
+  });
+
   // Theme mode & active navigation tab
   const [isDark, setIsDark] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -116,6 +131,14 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('nexus_pos_orders', JSON.stringify(posOrders));
   }, [posOrders]);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_pos_shift', JSON.stringify(posShift));
+  }, [posShift]);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_pos_shift_history', JSON.stringify(posShiftHistory));
+  }, [posShiftHistory]);
 
   // Role switching
   const switchUser = (userId) => {
@@ -271,6 +294,94 @@ export const AppProvider = ({ children }) => {
   };
 
   // ==========================================
+  // FR-802: REGISTER SHIFT & CASH DRAWER RECONCILIATION METHODS
+  // ==========================================
+  const shiftCashSales = posOrders
+    .filter(o => o.paymentMethod === 'Cash Drawer')
+    .reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+
+  const shiftCashDropsTotal = posShift && posShift.cashDrops
+    ? posShift.cashDrops.reduce((sum, d) => sum + (Number(d.amount) || 0), 0)
+    : 0;
+
+  const shiftExpectedCash = posShift
+    ? Number((posShift.openingFloat + shiftCashSales - shiftCashDropsTotal).toFixed(2))
+    : 0;
+
+  const openRegisterShift = ({ openingFloat, notes = '', registerId = 'REG-01-FLAGSHIP' }) => {
+    const floatNum = parseFloat(openingFloat) || 0;
+    const newShift = {
+      id: `SHIFT-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      registerId,
+      cashier: currentUser.name,
+      openedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      openedAtTimestamp: Date.now(),
+      openingFloat: floatNum,
+      status: 'Open',
+      notes,
+      cashDrops: []
+    };
+    setPosShift(newShift);
+    addAuditLog(
+      'POS_SHIFT_OPENED',
+      `Opened register shift ${newShift.id} on ${registerId} with float $${floatNum.toFixed(2)}`
+    );
+    return newShift;
+  };
+
+  const addCashDrop = ({ amount, reason, authorizer }) => {
+    if (!posShift) return null;
+    const dropNum = parseFloat(amount) || 0;
+    const newDrop = {
+      id: `drop_${Date.now()}`,
+      amount: dropNum,
+      reason: reason || 'Cash Drop to Vault Safe',
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      authorizer: authorizer || currentUser.name
+    };
+    setPosShift(prev => ({
+      ...prev,
+      cashDrops: [...(prev.cashDrops || []), newDrop]
+    }));
+    addAuditLog(
+      'POS_CASH_DROP',
+      `Processed cash drop of $${dropNum.toFixed(2)} to vault. Authorizer: ${newDrop.authorizer}`
+    );
+    return newDrop;
+  };
+
+  const closeRegisterShift = ({ countedCash, notes = '' }) => {
+    if (!posShift) return null;
+    const countedNum = parseFloat(countedCash) || 0;
+    const variance = Number((countedNum - shiftExpectedCash).toFixed(2));
+    const status = Math.abs(variance) < 0.01 ? 'Balanced' : variance > 0 ? 'Overage' : 'Shortage';
+
+    const closedShiftSummary = {
+      id: posShift.id,
+      registerId: posShift.registerId,
+      cashier: posShift.cashier,
+      openedAt: posShift.openedAt,
+      closedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      openingFloat: posShift.openingFloat,
+      cashSales: shiftCashSales,
+      cashDropsTotal: shiftCashDropsTotal,
+      expectedCash: shiftExpectedCash,
+      closingCountedCash: countedNum,
+      variance,
+      status,
+      notes: notes || `Shift reconciled and closed by ${currentUser.name}.`
+    };
+
+    setPosShiftHistory(prev => [closedShiftSummary, ...prev]);
+    setPosShift(null);
+    addAuditLog(
+      'POS_SHIFT_CLOSED',
+      `Closed shift ${posShift.id}. Counted $${countedNum.toFixed(2)}, Expected $${shiftExpectedCash.toFixed(2)}, Variance: ${variance >= 0 ? '+' : ''}$${variance.toFixed(2)} (${status})`
+    );
+    return closedShiftSummary;
+  };
+
+  // ==========================================
   // REAL-TIME EXECUTIVE TELEMETRY SYNTHESIS
   // POS orders and inventory reflect live in Cockpit KPIs
   // ==========================================
@@ -360,7 +471,16 @@ export const AppProvider = ({ children }) => {
         clearCart,
         completeCheckout,
         posOrders,
-        posSalesTotal
+        posSalesTotal,
+        // FR-802: Register Shift & Cash Drawer Reconciliation
+        posShift,
+        posShiftHistory,
+        shiftCashSales,
+        shiftCashDropsTotal,
+        shiftExpectedCash,
+        openRegisterShift,
+        addCashDrop,
+        closeRegisterShift
       }}
     >
       {children}

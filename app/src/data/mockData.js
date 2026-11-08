@@ -471,3 +471,60 @@ export const INITIAL_POS_ORDERS = [
     status: "Completed"
   }
 ];
+
+// ============================================================================
+// PHASE 2: POS SHIFT FLOAT & DRAWER RECONCILIATION (FR-802)
+// ============================================================================
+
+export const INITIAL_ACTIVE_SHIFT = {
+  id: "SHIFT-2026-1108",
+  registerId: "REG-01-FLAGSHIP",
+  cashier: "Alex Sterling",
+  openedAt: "Today, 08:30 AM",
+  openedAtTimestamp: Date.now() - 5 * 3600 * 1000,
+  openingFloat: 250.00,
+  status: "Open",
+  notes: "Morning shift opening float verified ($200 in bills, $50 in rolled coins).",
+  cashDrops: [
+    {
+      id: "drop_101",
+      amount: 150.00,
+      reason: "Midday Cash Drop to Vault Safe (Excess float protection)",
+      time: "Today, 13:00",
+      authorizer: "Elena Rostova (Finance)"
+    }
+  ]
+};
+
+export const INITIAL_SHIFT_HISTORY = [
+  {
+    id: "SHIFT-2026-1107",
+    registerId: "REG-01-FLAGSHIP",
+    cashier: "Marcus Vance",
+    openedAt: "Yesterday, 08:30 AM",
+    closedAt: "Yesterday, 17:30 PM",
+    openingFloat: 250.00,
+    cashSales: 840.50,
+    cashDropsTotal: 400.00,
+    expectedCash: 690.50,
+    closingCountedCash: 690.50,
+    variance: 0.00,
+    status: "Balanced",
+    notes: "Evening shift closed with zero drawer variance. All cash slips accounted for."
+  },
+  {
+    id: "SHIFT-2026-1106",
+    registerId: "REG-01-FLAGSHIP",
+    cashier: "Clara Chen",
+    openedAt: "Nov 06, 08:30 AM",
+    closedAt: "Nov 06, 17:30 PM",
+    openingFloat: 200.00,
+    cashSales: 620.00,
+    cashDropsTotal: 200.00,
+    expectedCash: 620.00,
+    closingCountedCash: 615.00,
+    variance: -5.00,
+    status: "Shortage",
+    notes: "$5.00 coin change shortage reported and approved by Store Manager."
+  }
+];
