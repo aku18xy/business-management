@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 export const CommandPalette = () => {
-  const { commandOpen, setCommandOpen, setActiveTab, allUsers, switchUser, isDark, setIsDark } = useApp();
+  const { commandOpen, setCommandOpen, setActiveTab, navigateToPath, allUsers, switchUser, isDark, setIsDark } = useApp();
   const [query, setQuery] = useState('');
 
   // Keyboard shortcut Cmd+K / Ctrl+K
@@ -51,10 +51,17 @@ export const CommandPalette = () => {
       run: () => setActiveTab('crm')
     },
     {
-      id: 'nav_pos',
-      label: 'Launch Point of Sale (POS) Terminal',
+      id: 'nav_pos_terminal',
+      label: 'Launch Countertop POS Terminal (/pos)',
       icon: Store,
-      group: 'Sales & Revenue',
+      group: 'Sales & Retail',
+      run: () => navigateToPath('/pos')
+    },
+    {
+      id: 'nav_pos_admin',
+      label: 'Manage POS Item Catalog & Register Shifts',
+      icon: Store,
+      group: 'Sales & Retail',
       run: () => setActiveTab('pos')
     },
     {

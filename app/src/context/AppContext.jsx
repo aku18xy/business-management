@@ -93,10 +93,39 @@ export const AppProvider = ({ children }) => {
   const [commandOpen, setCommandOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Current URL path tracking (supports dedicated /pos terminal route)
+  const [currentPath, setCurrentPath] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.location.pathname || '/';
+    }
+    return '/';
+  });
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname || '/');
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigateToPath = (path) => {
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', path);
+      setCurrentPath(path);
+      if (path === '/pos') {
+        setMobileMenuOpen(false);
+      }
+    }
+  };
+
   // Helper to change tab and close mobile drawer
   const navigateToTab = (tabId) => {
     setActiveTab(tabId);
     setMobileMenuOpen(false);
+    if (currentPath === '/pos') {
+      navigateToPath('/');
+    }
   };
 
   // Sync state to LocalStorage
@@ -399,6 +428,62 @@ export const AppProvider = ({ children }) => {
   };
 
   // ==========================================
+  // FR-804: POS CATALOG & ITEM MANAGEMENT METHODS
+  // ==========================================
+  const updatePosItem = (itemId, updatedData) => {
+    const existing = posCatalog.find(p => p.id === itemId);
+    if (!existing) return;
+
+    setPosCatalog(prev =>
+      prev.map(p => (p.id === itemId ? { ...p, ...updatedData } : p))
+    );
+
+    addAuditLog(
+      'POS_ITEM_UPDATED',
+      `Updated retail item ${existing.sku} - "${updatedData.name || existing.name}" (Price: $${Number(updatedData.price ?? existing.price).toFixed(2)}, Stock: ${updatedData.stock ?? existing.stock})`
+    );
+  };
+
+  const addPosItem = (newItem) => {
+    const id = `pos_prod_${Date.now()}`;
+    const itemWithId = {
+      id,
+      sku: newItem.sku || `SKU-${Math.floor(1000 + Math.random() * 9000)}`,
+      name: newItem.name || 'New Retail Product',
+      category: newItem.category || 'Retail',
+      price: Number(newItem.price) || 0,
+      cost: Number(newItem.cost) || 0,
+      stock: Number(newItem.stock) || 0,
+      barcode: newItem.barcode || `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
+      image: newItem.image || 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=150&auto=format&fit=crop&q=80',
+      tileColor: newItem.tileColor || 'indigo',
+      isQuickKey: Boolean(newItem.isQuickKey),
+      activeInPos: newItem.activeInPos !== false
+    };
+
+    setPosCatalog(prev => [itemWithId, ...prev]);
+
+    addAuditLog(
+      'POS_ITEM_CREATED',
+      `Added new POS retail item ${itemWithId.sku} - "${itemWithId.name}" ($${itemWithId.price.toFixed(2)})`
+    );
+
+    return itemWithId;
+  };
+
+  const deletePosItem = (itemId) => {
+    const existing = posCatalog.find(p => p.id === itemId);
+    if (!existing) return;
+
+    setPosCatalog(prev => prev.filter(p => p.id !== itemId));
+
+    addAuditLog(
+      'POS_ITEM_DELETED',
+      `Deleted POS retail item ${existing.sku} - "${existing.name}" from catalog`
+    );
+  };
+
+  // ==========================================
   // FR-802: REGISTER SHIFT & CASH DRAWER RECONCILIATION METHODS
   // ==========================================
   const shiftCashSales = posOrders
@@ -591,7 +676,14 @@ export const AppProvider = ({ children }) => {
         quotations,
         createQuotation,
         pipelineStages: PIPELINE_STAGES,
+        // Standalone Terminal & Path Navigation
+        currentPath,
+        navigateToPath,
+        // POS Catalog & Items
         posCatalog,
+        updatePosItem,
+        addPosItem,
+        deletePosItem,
         posCart,
         addToCart,
         updateCartQty,

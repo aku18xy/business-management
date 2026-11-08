@@ -114,11 +114,11 @@
     const INITIAL_SPEC_DATA = {
       meta: {
         projectName: "NexusBMS — Enterprise Business Management System",
-        documentCode: "SRS-BMS-2026-V2",
-        version: "1.2.0",
+        documentCode: "SRS-BMS-2026-V3",
+        version: "1.3.0",
         lastUpdated: "2026-11-08",
         author: "Product Owner & Google Antigravity Agent",
-        status: "Phase 1 & Phase 2 Operational (100%) • Production Ready on Vercel",
+        status: "Phase 1 & Phase 2 Operational (100%) • POS Kiosk & Item Admin Active • Vercel Ready",
         targetPlatform: "React Web Application hosted on Vercel",
         agentDirective: "Use this living SRS and Master Plan as the single source of truth. When requirements or modules are edited or marked 'Build Ready', implement the corresponding components, routes, and database schemas."
       },
@@ -158,9 +158,10 @@
             "Editable Client Profiles with full contact lifecycle, credit limits & audit logs (FR-302)",
             "Kanban Sales Pipeline with stage probabilities & weighted forecasting (FR-302-B)",
             "Quotation & Proposal Generator with 1-click Invoice & Sales Order conversion (FR-303)",
-            "Fast Web Point-of-Sale (POS) terminal with barcode/SKU lookup, split payments and receipt printing (FR-801)",
+            "Dedicated Standalone POS Kiosk Terminal (/pos) with barcode focus, split payments & cashier PIN switch (FR-801)",
             "Register Shift & Cash Drawer Reconciliation with opening float, cash drops & Z-report (FR-802)",
             "Returns, Refunds & Void Order Lifecycle with automatic stock restock and revenue reversal (FR-803)",
+            "Back-Office POS Item Catalog Editor, Quick-Keys & Register Fleet Administration (FR-804)",
             "Real-time POS checkout telemetry linked directly to Executive Dashboard revenue & cashflow",
             "Full Mobile Responsive compatibility (responsive layout, touch cards & mobile navigation)"
           ]
@@ -348,19 +349,21 @@
         {
           id: "MOD-08",
           code: "POS-RETAIL",
-          name: "Web Point of Sale (POS) & Omnichannel Orders",
+          name: "Web Point of Sale (POS), Standalone Kiosk Terminal & Catalog Management",
           category: "Revenue & Customer",
           priority: "P1 - High",
           status: "Build Ready / Implemented",
-          description: "Touch-friendly, keyboard-accelerated web POS terminal for walk-in sales, instant stock deduction, and shift cash drawer reconciliation.",
+          description: "Two-tier retail architecture: A dedicated standalone countertop terminal served at /pos for distraction-free touch checkout, barcode scanning, cashier PIN locking, and shift reconciliation; coupled with a centralized back-office administration console (/pos-management) for POS item catalog curation, pricing, quick-key configuration, and register fleet oversight.",
           userStories: [
-            "As a Cashier, I can scan or search products, apply promo codes, accept split payments (Cash/Card/QR), and print thermal receipts.",
-            "As a Store Manager, I can open and close register shifts and reconcile expected vs actual cash in drawer."
+            "As a Cashier, I can access the dedicated /pos terminal on countertop tablets or touchscreens with full-screen kiosk layout, barcode scanning auto-focus, fast split payments, and quick PIN lock.",
+            "As a Store Manager, I can use the POS Administration console in the BMS to edit item pricing, configure quick-key touch tiles, add new retail SKUs, and monitor register drawer floats and Z-reports.",
+            "As an Auditor, I can track shift variance, returns, voids, and item catalog mutations in the immutable audit trail."
           ],
           requirements: [
-            { id: "FR-801", title: "Fast Web POS Checkout Interface", priority: "Should Have", complexity: "Medium", acceptance: "Sub-100ms product search, cart hold/resume, customer loyalty lookup, and receipt generation." },
-            { id: "FR-802", title: "Register Shift & Cash Drawer Reconciliation", priority: "Should Have", complexity: "Low", acceptance: "Logs opening float, cash sales, cash drops, and closing variance." },
-            { id: "FR-803", title: "Returns, Refunds & Void Order Lifecycle", priority: "Must Have", complexity: "Medium", acceptance: "Processes returns and item voids with real-time stock replenishment, revenue/tax adjustment, and audit logging." }
+            { id: "FR-801", title: "Dedicated Standalone POS Kiosk Terminal (/pos)", priority: "Must Have", complexity: "Medium", acceptance: "Distraction-free countertop layout with barcode auto-focus, category touch tiles, cart operations, split tenders, receipt printing, and cashier PIN lock." },
+            { id: "FR-802", title: "Register Shift & Cash Drawer Reconciliation", priority: "Must Have", complexity: "Low", acceptance: "Logs opening float, cash sales, vault cash drops, drawer count verification, and closing Z-report." },
+            { id: "FR-803", title: "Returns, Refunds & Void Order Lifecycle", priority: "Must Have", complexity: "Medium", acceptance: "Processes returns and item voids with real-time stock replenishment, revenue/tax adjustment, and audit logging." },
+            { id: "FR-804", title: "Back-Office POS Catalog & Register Fleet Administration", priority: "Must Have", complexity: "Medium", acceptance: "Centralized console in BMS to create/edit POS items, retail prices, tile styling, quick-key favorites, and monitor register drawer floats across stores." }
           ]
         },
         {
@@ -474,7 +477,7 @@
     ];
 
     /* Storage Keys */
-    const SPEC_STORAGE_KEY = "NEXUS_BMS_SRS_SPEC_V2";
+    const SPEC_STORAGE_KEY = "NEXUS_BMS_SRS_SPEC_V3";
     const APP_STATE_KEY = "NEXUS_BMS_LIVE_APP_STATE_V1";
 
     /* =========================================================================
@@ -496,10 +499,9 @@
       // Living SRS Spec State
       const [spec, setSpec] = useState(() => {
         try {
-          // Clean up legacy v1 cached storage if present
-          if (localStorage.getItem("NEXUS_BMS_SRS_SPEC_V1")) {
-            localStorage.removeItem("NEXUS_BMS_SRS_SPEC_V1");
-          }
+          // Clean up legacy v1 and v2 cached storage if present
+          if (localStorage.getItem("NEXUS_BMS_SRS_SPEC_V1")) localStorage.removeItem("NEXUS_BMS_SRS_SPEC_V1");
+          if (localStorage.getItem("NEXUS_BMS_SRS_SPEC_V2")) localStorage.removeItem("NEXUS_BMS_SRS_SPEC_V2");
           const saved = localStorage.getItem(SPEC_STORAGE_KEY);
           if (saved) {
             const parsed = JSON.parse(saved);
@@ -2596,6 +2598,7 @@ ${JSON.stringify(spec, null, 2)}`;
                     try {
                       localStorage.setItem(SPEC_STORAGE_KEY, JSON.stringify(INITIAL_SPEC_DATA));
                       localStorage.removeItem("NEXUS_BMS_SRS_SPEC_V1");
+                      localStorage.removeItem("NEXUS_BMS_SRS_SPEC_V2");
                     } catch (e) {}
                     showToast("Reset to latest server-deployed specifications!");
                   }

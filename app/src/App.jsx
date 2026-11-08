@@ -6,13 +6,23 @@ import { MobileBottomNav } from './components/MobileBottomNav';
 import { CommandPalette } from './components/CommandPalette';
 import { Dashboard } from './pages/Dashboard';
 import { CrmPage } from './pages/CrmPage';
-import { PosPage } from './pages/PosPage';
+import { PosTerminalPage } from './pages/PosTerminalPage';
+import { PosAdminPage } from './pages/PosAdminPage';
 import { ApprovalsPage } from './pages/ApprovalsPage';
 import { AuditPage } from './pages/AuditPage';
 import { OrgSettingsPage } from './pages/OrgSettingsPage';
 
 export function App() {
-  const { activeTab, isDark } = useApp();
+  const { activeTab, isDark, currentPath } = useApp();
+
+  // FR-801: Dedicated Standalone POS Kiosk Terminal served at /pos
+  if (currentPath === '/pos') {
+    return (
+      <div className={`min-h-screen ${isDark ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+        <PosTerminalPage />
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen flex ${isDark ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} overflow-x-hidden`}>
@@ -30,7 +40,7 @@ export function App() {
           <div className="max-w-7xl mx-auto">
             {activeTab === 'dashboard' && <Dashboard />}
             {activeTab === 'crm' && <CrmPage />}
-            {activeTab === 'pos' && <PosPage />}
+            {activeTab === 'pos' && <PosAdminPage />}
             {activeTab === 'approvals' && <ApprovalsPage />}
             {activeTab === 'audit' && <AuditPage />}
             {activeTab === 'org' && <OrgSettingsPage />}

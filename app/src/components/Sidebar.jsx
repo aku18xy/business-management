@@ -18,6 +18,7 @@ export const Sidebar = () => {
   const {
     activeTab,
     navigateToTab,
+    navigateToPath,
     currentUser,
     allUsers,
     switchUser,
@@ -50,9 +51,9 @@ export const Sidebar = () => {
     },
     {
       id: 'pos',
-      label: 'Web POS Terminal',
+      label: 'POS Catalog & Shifts',
       icon: Store,
-      badge: 'Live',
+      badge: 'Admin',
       visible: true
     },
     {
@@ -169,6 +170,23 @@ export const Sidebar = () => {
               </button>
             );
           })}
+
+          {/* Countertop POS Kiosk Launcher */}
+          <div className="pt-2">
+            <button
+              onClick={() => {
+                navigateToPath('/pos');
+                if (isMobile) setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between bg-gradient-to-r from-emerald-950/40 to-indigo-950/40 hover:from-emerald-900/50 hover:to-indigo-900/50 text-emerald-300 border border-emerald-500/30 transition group shadow-inner"
+            >
+              <div className="flex items-center gap-2.5">
+                <Store className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition" />
+                <span className="font-bold">Launch POS Kiosk (/pos)</span>
+              </div>
+              <ExternalLink className="w-3.5 h-3.5 text-emerald-400 group-hover:translate-x-0.5 transition" />
+            </button>
+          </div>
 
           {/* Living Plan / SRS Link */}
           <div className="pt-2">
