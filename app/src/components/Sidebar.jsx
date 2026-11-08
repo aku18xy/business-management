@@ -6,7 +6,7 @@ import {
   Building2,
   FileCheck2,
   History,
-  FolderGit2,
+  FileText,
   ExternalLink,
   ChevronDown
 } from 'lucide-react';
@@ -134,6 +134,22 @@ export const Sidebar = () => {
               </button>
             );
           })}
+
+          {/* Living Plan / SRS Link */}
+          <div className="pt-2">
+            <a
+              href="/plan/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between bg-indigo-950/40 hover:bg-indigo-900/50 text-indigo-300 border border-indigo-500/30 transition group"
+            >
+              <div className="flex items-center gap-2.5">
+                <FileText className="w-4 h-4 text-indigo-400" />
+                <span>Living Plan & SRS</span>
+              </div>
+              <ExternalLink className="w-3.5 h-3.5 text-indigo-400 group-hover:translate-x-0.5 transition" />
+            </a>
+          </div>
 
           <div className="pt-4 mt-4 border-t border-slate-800/80 px-3">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 block mb-2">
