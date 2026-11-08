@@ -63,41 +63,63 @@ export const INITIAL_USERS = [
 export const ROLE_PERMISSIONS = {
   Admin: {
     canViewDashboard: true,
-    canManageUsers: true,
-    canManageOrg: true,
+    canManageDeals: true,
+    canManageCatalog: true,
+    canOperatePos: true,
     canApproveTransactions: true,
     canExportReports: true,
     canViewAuditLogs: true,
-    badgeColor: "bg-purple-500/20 text-purple-300 border-purple-500/40"
+    canManageOrg: true,
+    badgeColor: "bg-purple-500/20 text-purple-300 border-purple-500/40",
+    description: "Enterprise Chief Administrator: full governance, financial approvals, settings & audit inspection."
   },
   Manager: {
     canViewDashboard: true,
-    canManageUsers: false,
-    canManageOrg: false,
+    canManageDeals: true,
+    canManageCatalog: true,
+    canOperatePos: true,
     canApproveTransactions: true,
     canExportReports: true,
     canViewAuditLogs: true,
-    badgeColor: "bg-indigo-500/20 text-indigo-300 border-indigo-500/40"
+    canManageOrg: false,
+    badgeColor: "bg-indigo-500/20 text-indigo-300 border-indigo-500/40",
+    description: "Operations Lead: CRM deal management, POS catalog & shift reconciliation, transaction approvals."
   },
   Staff: {
     canViewDashboard: true,
-    canManageUsers: false,
-    canManageOrg: false,
+    canManageDeals: true,
+    canManageCatalog: false,
+    canOperatePos: true,
     canApproveTransactions: false,
     canExportReports: false,
     canViewAuditLogs: false,
-    badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+    canManageOrg: false,
+    badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
+    description: "Field Associate: CRM sales activity, countertop POS kiosk trade & cash drawer operation."
   },
   Auditor: {
     canViewDashboard: true,
-    canManageUsers: false,
-    canManageOrg: false,
+    canManageDeals: false,
+    canManageCatalog: false,
+    canOperatePos: false,
     canApproveTransactions: false,
     canExportReports: true,
     canViewAuditLogs: true,
-    badgeColor: "bg-amber-500/20 text-amber-300 border-amber-500/40"
+    canManageOrg: false,
+    badgeColor: "bg-amber-500/20 text-amber-300 border-amber-500/40",
+    description: "External Compliance Auditor: read-only forensic inspection, audit log verification & compliance exports."
   }
 };
+
+export const RBAC_MODULE_MATRIX = [
+  { module: "Executive Cockpit & BI", capability: "View revenue, margin & cashflow telemetry", admin: "Full Access", manager: "Full Access", staff: "Standard KPIs", auditor: "Read-Only" },
+  { module: "CRM & Sales Deals", capability: "Manage pipeline stages, quotations & client profiles", admin: "Read / Write", manager: "Read / Write", staff: "Read / Write", auditor: "Read-Only" },
+  { module: "POS Retail Terminal", capability: "Open shift float, ring sales, barcode scan, tender", admin: "Allowed", manager: "Allowed", staff: "Allowed", auditor: "Restricted" },
+  { module: "POS Item Catalog Admin", capability: "Create products, modify prices, delete SKUs", admin: "Full Control", manager: "Full Control", staff: "Restricted", auditor: "Restricted" },
+  { module: "Executive Action Inbox", capability: "Approve/Reject Purchase Orders & Expense Claims", admin: "Authorized", manager: "Authorized", staff: "Submit Only", auditor: "Restricted" },
+  { module: "Forensic Audit Trail", capability: "View tamper-evident mutation logs & export JSON", admin: "Inspect & Export", manager: "Inspect Only", staff: "Restricted", auditor: "Full Forensic" },
+  { module: "Organization & Multi-Branch", capability: "Configure branches, corporate tax, base currency", admin: "Full Governance", manager: "Restricted", staff: "Restricted", auditor: "Restricted" }
+];
 
 export const INITIAL_KPIS = {
   revenue: {

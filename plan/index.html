@@ -115,8 +115,8 @@
       meta: {
         projectName: "NexusBMS — Enterprise Business Management System",
         documentCode: "SRS-BMS-2026-V3",
-        version: "1.3.0",
-        lastUpdated: "2026-11-08",
+        version: "1.4.0",
+        lastUpdated: "2026-11-09",
         author: "Product Owner & Google Antigravity Agent",
         status: "Phase 1 & Phase 2 Operational (100%) • POS Kiosk & Item Admin Active • Vercel Ready",
         targetPlatform: "React Web Application hosted on Vercel",
@@ -233,7 +233,7 @@
             "As a Compliance Officer, I can inspect a timestamped audit log of every record creation, modification, or deletion."
           ],
           requirements: [
-            { id: "FR-101", title: "Role-Based Access Control (RBAC) Matrix", priority: "Must Have", complexity: "Medium", acceptance: "Users only see navigation items and API actions permitted by their assigned role." },
+            { id: "FR-101", title: "Role-Based Access Control (RBAC) Matrix & Permission Governance", priority: "Must Have", complexity: "Medium", acceptance: "Enforce 4-tier role hierarchy (Super Admin, Operations Manager, Sales & Stock Staff, Compliance Auditor) across all core modules with dynamic UI adaptation, action-level permission guards, and visual RBAC matrix inspection." },
             { id: "FR-102", title: "Multi-Branch / Multi-Currency Support", priority: "Must Have", complexity: "Medium", acceptance: "Transactions record branch ID and currency exchange rate at time of entry." },
             { id: "FR-103", title: "System-Wide Audit Trail", priority: "Must Have", complexity: "Low", acceptance: "All mutations log actor_id, entity_type, entity_id, before_json, after_json, and timestamp." }
           ]

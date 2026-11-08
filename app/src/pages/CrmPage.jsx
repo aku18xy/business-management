@@ -30,7 +30,8 @@ export const CrmPage = () => {
     pipelineStages,
     quotations,
     createQuotation,
-    currentOrg
+    currentOrg,
+    userPermissions
   } = useApp();
 
   const [activeSubTab, setActiveSubTab] = useState('pipeline'); // 'pipeline' | 'customers' | 'quotes'
@@ -158,22 +159,39 @@ export const CrmPage = () => {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 self-start md:self-auto">
-          <button
-            onClick={() => setShowNewCustomerModal(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
-          >
-            <Users className="w-3.5 h-3.5" />
-            <span>+ Customer</span>
-          </button>
-          <button
-            onClick={() => setShowNewDealModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/25 transition"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>+ New Opportunity</span>
-          </button>
+          {userPermissions?.canManageDeals ? (
+            <>
+              <button
+                onClick={() => setShowNewCustomerModal(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>+ Customer</span>
+              </button>
+              <button
+                onClick={() => setShowNewDealModal(true)}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/25 transition"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ New Opportunity</span>
+              </button>
+            </>
+          ) : (
+            <span className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-500 text-xs font-mono">
+              CRM: Read-Only (Auditor)
+            </span>
+          )}
         </div>
       </div>
+
+      {!userPermissions?.canManageDeals && (
+        <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-3 text-amber-200 text-xs">
+          <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>
+            <strong>Forensic Compliance Mode (FR-101):</strong> Your active role ({userPermissions ? 'Auditor' : 'Guest'}) is restricted to read-only forensic inspection. Opportunity creation, customer modifications, and quotations are disabled.
+          </span>
+        </div>
+      )}
 
       {/* KPI Cards Strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -288,16 +306,19 @@ export const CrmPage = () => {
                         {/* Quick Stage Mover Selector */}
                         <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between gap-1">
                           <select
+                            disabled={!userPermissions?.canManageDeals}
                             value={deal.stage}
                             onChange={(e) => updateDealStage(deal.id, e.target.value)}
-                            className="bg-slate-900 border border-slate-700 rounded px-1.5 py-0.5 text-[10px] text-slate-300 outline-none w-24"
+                            className={`bg-slate-900 border border-slate-700 rounded px-1.5 py-0.5 text-[10px] text-slate-300 outline-none w-24 ${
+                              !userPermissions?.canManageDeals ? 'opacity-50 cursor-not-allowed' : ''
+                            }`}
                           >
                             {pipelineStages.map(s => (
                               <option key={s.id} value={s.id}>{s.title}</option>
                             ))}
                           </select>
 
-                          {deal.stage !== 'won' && deal.stage !== 'proposal' && (
+                          {deal.stage !== 'won' && deal.stage !== 'proposal' && userPermissions?.canManageDeals && (
                             <button
                               onClick={() => handleQuickQuote(deal)}
                               className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-semibold transition"
