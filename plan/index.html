@@ -410,102 +410,21 @@
       ]
     };
 
-    /* =========================================================================
-       BRANCHES & ROLES (RBAC MATRIX)
-       ========================================================================= */
-    const BRANCHES = [
-      { id: "hq", name: "New York HQ", city: "New York, USA", currency: "USD", symbol: "$", rate: 1.0, flag: "🇺🇸" },
-      { id: "emea", name: "London EMEA Hub", city: "London, UK", currency: "GBP", symbol: "£", rate: 0.79, flag: "🇬🇧" },
-      { id: "apac", name: "Tokyo APAC Center", city: "Tokyo, Japan", currency: "JPY", symbol: "¥", rate: 152.4, flag: "🇯🇵" },
-      { id: "sg", name: "Singapore Logistics", city: "Singapore", currency: "SGD", symbol: "S$", rate: 1.35, flag: "🇸🇬" }
-    ];
-
-    const ROLES = [
-      { id: "admin", name: "Super Admin", roleTitle: "Enterprise Administrator", badge: "Admin", color: "purple", permissions: ["READ", "WRITE", "APPROVE", "AUDIT", "SETTINGS"] },
-      { id: "manager", name: "Operations Manager", roleTitle: "Head of Operations", badge: "Manager", color: "indigo", permissions: ["READ", "WRITE", "APPROVE"] },
-      { id: "staff", name: "Sales & Stock Staff", roleTitle: "Associate Officer", badge: "Staff", color: "emerald", permissions: ["READ", "WRITE_LIMITED"] },
-      { id: "auditor", name: "Compliance Auditor", roleTitle: "External Risk Auditor", badge: "Auditor", color: "amber", permissions: ["READ", "AUDIT"] }
-    ];
-
-    /* =========================================================================
-       INITIAL APPLICATION BUSINESS DATA
-       ========================================================================= */
-    const INITIAL_DEALS = [
-      { id: "D-101", name: "Metro Logistics Fleet Tracking", company: "Metro Logistics Ltd", contact: "David Vance", email: "dvance@metrologistics.com", value: 12500, stage: "Qualified", probability: 40 },
-      { id: "D-102", name: "Vertex Dental Chain ERP", company: "Vertex Health Group", contact: "Dr. Elena Rostova", email: "elena@vertexdental.io", value: 6800, stage: "Lead", probability: 20 },
-      { id: "D-103", name: "Astra Aerospace Supply Portal", company: "Astra Dynamics Corp", contact: "Markus Bauer", email: "mbauer@astradynamics.com", value: 29000, stage: "Proposal", probability: 70 },
-      { id: "D-104", name: "BlueWave Hospitality Suite", company: "BlueWave Hotels & Resorts", contact: "Claire Laurent", email: "claurent@bluewave.fr", value: 9200, stage: "Proposal", probability: 70 },
-      { id: "D-105", name: "Horizon Retail Enterprise Rollout", company: "Horizon Hypermarkets", contact: "Kenneth Lee", email: "klee@horizonretail.com", value: 18000, stage: "Won", probability: 100 },
-      { id: "D-106", name: "Summit Legal Document Vault", company: "Summit Legal Partners", contact: "Rachel Chen", email: "rchen@summitlegal.org", value: 11400, stage: "Won", probability: 100 }
-    ];
-
-    const INITIAL_INVENTORY = [
-      { id: "INV-8801", sku: "SKU-8801", name: "Industrial Barcode Scanner Pro", category: "Hardware", warehouse: "Central Hub", inStock: 142, costPrice: 120, unitPrice: 299, reorderLevel: 25, barcode: "880194821034" },
-      { id: "INV-8824", sku: "SKU-8824", name: "Thermal POS Receipt Printer", category: "Hardware", warehouse: "Central Hub", inStock: 6, costPrice: 85, unitPrice: 195, reorderLevel: 15, barcode: "882400192831" },
-      { id: "INV-9012", sku: "SKU-9012", name: "RFID Heavy-Duty Smart Tags (500pk)", category: "Consumables", warehouse: "West Coast", inStock: 34, costPrice: 40, unitPrice: 89, reorderLevel: 40, barcode: "901284920194" },
-      { id: "INV-4105", sku: "SKU-4105", name: "Enterprise POS Terminal Station 15.6-inch", category: "Hardware", warehouse: "Central Hub", inStock: 18, costPrice: 450, unitPrice: 899, reorderLevel: 10, barcode: "410582910283" },
-      { id: "INV-3301", sku: "SKU-3301", name: "Thermal Paper Roll 80mm (Box of 50)", category: "Consumables", warehouse: "Asia Pacific", inStock: 85, costPrice: 22, unitPrice: 55, reorderLevel: 30, barcode: "330198421092" },
-      { id: "INV-7719", sku: "SKU-7719", name: "NexusBMS Cloud Multi-Branch License", category: "Software", warehouse: "Global Cloud", inStock: 999, costPrice: 0, unitPrice: 1200, reorderLevel: 0, barcode: "771900192834" }
-    ];
-
-    const INITIAL_INVOICES = [
-      { id: "INV-2026-1042", number: "INV-2026-1042", client: "Apex Global Corp", date: "2026-11-05", dueDate: "2026-11-20", amount: 4200, paidAmount: 4200, status: "Paid", method: "Stripe ACH" },
-      { id: "INV-2026-1043", number: "INV-2026-1043", client: "Metro Logistics Ltd", date: "2026-10-15", dueDate: "2026-11-01", amount: 12500, paidAmount: 0, status: "Overdue", method: "Wire Transfer" },
-      { id: "INV-2026-1044", number: "INV-2026-1044", client: "Astra Aerospace", date: "2026-11-07", dueDate: "2026-11-22", amount: 8750, paidAmount: 0, status: "Pending", method: "Net 15" },
-      { id: "INV-2026-1045", number: "INV-2026-1045", client: "Horizon Retail Rollout", date: "2026-11-01", dueDate: "2026-11-15", amount: 18000, paidAmount: 18000, status: "Paid", method: "Credit Card" },
-      { id: "INV-2026-1046", number: "INV-2026-1046", client: "BlueWave Hospitality", date: "2026-10-20", dueDate: "2026-11-04", amount: 3800, paidAmount: 0, status: "Overdue", method: "Wire Transfer" }
-    ];
-
-    const INITIAL_APPROVALS = [
-      { id: "APP-01", type: "Purchase Order", code: "PO-2026-089", title: "TechSupply Ltd • 30x Thermal POS Printers", amount: 8400, department: "Procurement", requester: "Alex Rivera", date: "Today 09:15" },
-      { id: "APP-02", type: "Expense Claim", code: "EXP-2026-312", title: "Q4 Client Onsite Logistics & Travel", amount: 620, department: "Sales", requester: "Maria Santos", date: "Yesterday 16:40" },
-      { id: "APP-03", type: "Leave Request", code: "LV-2026-044", title: "Annual Leave (3 Days) • Nov 18 - Nov 20", amount: null, department: "Engineering", requester: "Sarah Jenkins", date: "Nov 06" }
-    ];
-
-    const INITIAL_AUDIT = [
-      { id: "AUD-991", timestamp: "2026-11-08 11:42:15", actor: "Super Admin", role: "admin", action: "DEPLOY", entity: "Vercel Production", entityId: "PRJ-4eSPoIGpf", details: "NexusBMS Phase 1 Edge deployment published." },
-      { id: "AUD-990", timestamp: "2026-11-08 10:15:30", actor: "Alex Rivera", role: "manager", action: "CREATE", entity: "PurchaseOrder", entityId: "PO-2026-089", details: "Drafted PO for 30 units of SKU-8824 ($8,400)." },
-      { id: "AUD-989", timestamp: "2026-11-08 09:30:12", actor: "Kenneth Lee", role: "staff", action: "PAYMENT", entity: "Invoice", entityId: "INV-2026-1042", details: "Recorded full payment of $4,200.00 via Stripe ACH." },
-      { id: "AUD-988", timestamp: "2026-11-07 16:20:04", actor: "Super Admin", role: "admin", action: "CONFIG", entity: "BranchSetting", entityId: "APAC-TOKYO", details: "Configured JPY FX exchange rate at 152.4." }
-    ];
-
-    const INITIAL_EMPLOYEES = [
-      { id: "EMP-01", name: "Alex Rivera", department: "Operations & Procurement", role: "Operations Manager", salary: 85000, status: "Active", attendance: "On-Shift" },
-      { id: "EMP-02", name: "Maria Santos", department: "Revenue & Sales", role: "Senior Sales Lead", salary: 78000, status: "Active", attendance: "Remote" },
-      { id: "EMP-03", name: "Sarah Jenkins", department: "Software Engineering", role: "Staff Engineer", salary: 110000, status: "Active", attendance: "On-Shift" },
-      { id: "EMP-04", name: "David Chen", department: "Finance & Accounting", role: "Controller", salary: 92000, status: "Active", attendance: "On-Shift" }
-    ];
-
     /* Storage Keys */
     const SPEC_STORAGE_KEY = "NEXUS_BMS_SRS_SPEC_V3";
-    const APP_STATE_KEY = "NEXUS_BMS_LIVE_APP_STATE_V1";
 
     /* =========================================================================
-       HELPER FORMATTERS
-       ========================================================================= */
-    function formatCurrency(amount, branch) {
-      if (amount === null || amount === undefined) return "—";
-      const converted = amount * branch.rate;
-      if (branch.currency === "JPY") {
-        return `${branch.symbol}${Math.round(converted).toLocaleString()}`;
-      }
-      return `${branch.symbol}${converted.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    }
-
-    /* =========================================================================
-       MAIN ROOT CONTAINER COMPONENT
+       MAIN ROOT CONTAINER COMPONENT (PLAN & SRS PORTAL)
        ========================================================================= */
     function NexusRoot() {
       // Living SRS Spec State
       const [spec, setSpec] = useState(() => {
         try {
-          // Clean up legacy v1 and v2 cached storage if present
           if (localStorage.getItem("NEXUS_BMS_SRS_SPEC_V1")) localStorage.removeItem("NEXUS_BMS_SRS_SPEC_V1");
           if (localStorage.getItem("NEXUS_BMS_SRS_SPEC_V2")) localStorage.removeItem("NEXUS_BMS_SRS_SPEC_V2");
           const saved = localStorage.getItem(SPEC_STORAGE_KEY);
           if (saved) {
             const parsed = JSON.parse(saved);
-            // Verify version matches current code build version, otherwise refresh to latest INITIAL_SPEC_DATA
             if (parsed.meta?.version === INITIAL_SPEC_DATA.meta?.version) {
               return parsed;
             }
@@ -516,14 +435,10 @@
         }
       });
 
-      // App Mode: "live" (Operational Application) or "spec" (Engineering Blueprint)
-      const [appMode, setAppMode] = useState("live");
       const [specTab, setSpecTab] = useState("overview");
       const [editSpecMode, setEditSpecMode] = useState(false);
       const [searchSpecQuery, setSearchSpecQuery] = useState("");
       const [selectedSpecCat, setSelectedSpecCat] = useState("All");
-      const [newModuleModalOpen, setNewModuleModalOpen] = useState(false);
-      const [activeModuleForReq, setActiveModuleForReq] = useState(null);
 
       // Theme State (Dark / Light)
       const [isDark, setIsDark] = useState(() => {
@@ -538,56 +453,14 @@
         }
       }, [isDark]);
 
-      // Global Live App State
-      const [branch, setBranch] = useState(BRANCHES[0]);
-      const [role, setRole] = useState(ROLES[0]);
-      const [activeAppModule, setActiveAppModule] = useState("dashboard");
-      const [timeframe, setTimeframe] = useState("MTD");
-
-      // Business Entities State
-      const [deals, setDeals] = useState(INITIAL_DEALS);
-      const [inventory, setInventory] = useState(INITIAL_INVENTORY);
-      const [invoices, setInvoices] = useState(INITIAL_INVOICES);
-      const [approvals, setApprovals] = useState(INITIAL_APPROVALS);
-      const [auditTrail, setAuditTrail] = useState(INITIAL_AUDIT);
-      const [employees, setEmployees] = useState(INITIAL_EMPLOYEES);
-
-      // POS State
-      const [posCart, setPosCart] = useState([]);
-      const [posCompletedReceipt, setPosCompletedReceipt] = useState(null);
-
-      // HRM Attendance State
-      const [clockedIn, setClockedIn] = useState(false);
-      const [shiftSeconds, setShiftSeconds] = useState(0);
-
-      // Modals and Command Palette
+      // Command Palette and Toast
       const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-      const [newDealModalOpen, setNewDealModalOpen] = useState(false);
-      const [auditModalDetail, setAuditModalDetail] = useState(null);
       const [toast, setToast] = useState(null);
 
-      // Toast Notification Helper
       const showToast = useCallback((msg, type = "success") => {
         setToast({ msg, type });
         setTimeout(() => setToast(null), 3600);
       }, []);
-
-      // Audit Logger Helper (FR-103 System-Wide Audit Trail)
-      const logAudit = useCallback((action, entity, entityId, details) => {
-        const now = new Date();
-        const timestamp = now.toISOString().replace("T", " ").substring(0, 19);
-        const newEntry = {
-          id: `AUD-${Math.floor(1000 + Math.random() * 9000)}`,
-          timestamp,
-          actor: role.name,
-          role: role.id,
-          action,
-          entity,
-          entityId,
-          details
-        };
-        setAuditTrail(prev => [newEntry, ...prev]);
-      }, [role]);
 
       // Global Keyboard Shortcut: Cmd+K / Ctrl+K
       useEffect(() => {
@@ -598,25 +471,11 @@
           }
           if (e.key === "Escape") {
             setCommandPaletteOpen(false);
-            setNewDealModalOpen(false);
-            setPosCompletedReceipt(null);
-            setAuditModalDetail(null);
           }
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
       }, []);
-
-      // Clock in timer tick
-      useEffect(() => {
-        let interval = null;
-        if (clockedIn) {
-          interval = setInterval(() => {
-            setShiftSeconds(sec => sec + 1);
-          }, 1000);
-        }
-        return () => clearInterval(interval);
-      }, [clockedIn]);
 
       // Save spec to localStorage
       useEffect(() => {
@@ -627,165 +486,12 @@
         }
       }, [spec]);
 
-      // Handlers for Live App Actions
-      const handleApprove = (appId) => {
-        const item = approvals.find(a => a.id === appId);
-        if (!item) return;
-        setApprovals(prev => prev.filter(a => a.id !== appId));
-        logAudit("APPROVE", item.type, item.code, `Approved ${item.title} by ${role.name}`);
-        showToast(`Approved ${item.code} (${item.title})`);
-      };
-
-      const handleReject = (appId) => {
-        const item = approvals.find(a => a.id === appId);
-        if (!item) return;
-        setApprovals(prev => prev.filter(a => a.id !== appId));
-        logAudit("REJECT", item.type, item.code, `Rejected ${item.title} by ${role.name}`);
-        showToast(`Rejected ${item.code}`, "error");
-      };
-
-      const handleRecordPayment = (invId) => {
-        setInvoices(prev => prev.map(inv => {
-          if (inv.id !== invId) return inv;
-          return { ...inv, status: "Paid", paidAmount: inv.amount };
-        }));
-        const inv = invoices.find(i => i.id === invId);
-        if (inv) {
-          logAudit("PAYMENT", "Invoice", inv.number, `Received full settlement of ${formatCurrency(inv.amount, branch)} for ${inv.client}`);
-          showToast(`Payment recorded for ${inv.number} (${inv.client})`);
-        }
-      };
-
-      const handleCreatePOFromLowStock = (skuItem) => {
-        const poNumber = `PO-2026-${Math.floor(100 + Math.random() * 900)}`;
-        const reorderQty = (skuItem.reorderLevel * 2) - skuItem.inStock;
-        const totalAmount = reorderQty * skuItem.costPrice;
-        
-        // Add pending approval
-        const newApproval = {
-          id: `APP-${Date.now().toString().slice(-4)}`,
-          type: "Purchase Order",
-          code: poNumber,
-          title: `Auto-PO for ${reorderQty}x ${skuItem.name}`,
-          amount: totalAmount,
-          department: "Inventory",
-          requester: role.name,
-          date: "Just now"
-        };
-        setApprovals(prev => [newApproval, ...prev]);
-
-        // Boost stock simulation
-        setInventory(prev => prev.map(item => item.id === skuItem.id ? { ...item, inStock: item.inStock + reorderQty } : item));
-
-        logAudit("CREATE", "PurchaseOrder", poNumber, `Auto-generated Purchase Order for ${reorderQty} units of ${skuItem.sku} ($${totalAmount.toLocaleString()})`);
-        showToast(`Issued ${poNumber} for ${skuItem.sku}. Routed to Executive Action Inbox.`);
-      };
-
-      const handleConvertDealToInvoice = (deal) => {
-        const invNumber = `INV-2026-${Math.floor(2000 + Math.random() * 8000)}`;
-        const newInvoice = {
-          id: invNumber,
-          number: invNumber,
-          client: deal.company,
-          date: new Date().toISOString().split("T")[0],
-          dueDate: new Date(Date.now() + 15 * 86400000).toISOString().split("T")[0],
-          amount: deal.value,
-          paidAmount: 0,
-          status: "Pending",
-          method: "Net 15"
-        };
-        setInvoices(prev => [newInvoice, ...prev]);
-        setDeals(prev => prev.map(d => d.id === deal.id ? { ...d, stage: "Won", probability: 100 } : d));
-        logAudit("CONVERT", "DealToInvoice", deal.id, `Converted proposal '${deal.name}' into invoice ${invNumber} ($${deal.value.toLocaleString()})`);
-        showToast(`Converted '${deal.name}' to Invoice ${invNumber}!`);
-        setActiveAppModule("finance");
-      };
-
-      const handleToggleClock = () => {
-        if (!clockedIn) {
-          setClockedIn(true);
-          setShiftSeconds(0);
-          logAudit("AUTH", "Attendance", role.name, "Clocked in for active shift");
-          showToast(`Clocked in as ${role.name}. Shift timer active.`);
-        } else {
-          setClockedIn(false);
-          const hours = (shiftSeconds / 3600).toFixed(2);
-          logAudit("AUTH", "Attendance", role.name, `Clocked out after ${hours} hours (${shiftSeconds}s)`);
-          showToast(`Clocked out. Logged ${hours} hours to attendance timesheet.`);
-        }
-      };
-
-      const handleAddDeal = (dealData) => {
-        const newDeal = {
-          id: `D-${Date.now().toString().slice(-4)}`,
-          ...dealData
-        };
-        setDeals(prev => [newDeal, ...prev]);
-        logAudit("CREATE", "Deal", newDeal.id, `Created sales deal '${newDeal.name}' for ${newDeal.company} ($${newDeal.value})`);
-        showToast(`Created Deal: ${newDeal.name}`);
-        setNewDealModalOpen(false);
-      };
-
-      // POS Cart Handlers
-      const handleAddToCart = (product) => {
-        setPosCart(prev => {
-          const existing = prev.find(item => item.id === product.id);
-          if (existing) {
-            return prev.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item);
-          }
-          return [...prev, { ...product, qty: 1 }];
-        });
-        showToast(`Added ${product.name} to cart`);
-      };
-
-      const handleUpdateCartQty = (productId, delta) => {
-        setPosCart(prev => {
-          return prev.map(item => {
-            if (item.id === productId) {
-              const newQty = item.qty + delta;
-              return newQty > 0 ? { ...item, qty: newQty } : null;
-            }
-            return item;
-          }).filter(Boolean);
-        });
-      };
-
-      const handleCheckoutPOS = (paymentMethod) => {
-        if (posCart.length === 0) return;
-        const subtotal = posCart.reduce((acc, item) => acc + (item.unitPrice * item.qty), 0);
-        const tax = subtotal * 0.0825;
-        const total = subtotal + tax;
-        const receiptNumber = `RCP-${Date.now().toString().slice(-6)}`;
-        
-        const receipt = {
-          receiptNumber,
-          timestamp: new Date().toLocaleString(),
-          branch: branch.name,
-          cashier: role.name,
-          items: [...posCart],
-          subtotal,
-          tax,
-          total,
-          paymentMethod
-        };
-
-        // Deduct inventory
-        setInventory(prev => prev.map(item => {
-          const inCart = posCart.find(c => c.id === item.id);
-          if (inCart) {
-            return { ...item, inStock: Math.max(0, item.inStock - inCart.qty) };
-          }
-          return item;
-        }));
-
-        setPosCompletedReceipt(receipt);
-        setPosCart([]);
-        logAudit("CREATE", "POSOrder", receiptNumber, `Completed POS checkout of ${formatCurrency(total, branch)} via ${paymentMethod}`);
-        showToast(`Order ${receiptNumber} completed! Receipt generated.`);
+      const handleOpenLiveApp = () => {
+        window.open("https://nexus-bms.vercel.app", "_blank") || (window.location.href = "https://nexus-bms.vercel.app");
       };
 
       return (
-        <div className="min-h-screen flex flex-col font-sans transition-colors duration-200">
+        <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 transition-colors duration-200">
           {/* TOAST POPUP */}
           {toast && (
             <div className={`fixed bottom-5 right-5 z-50 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 text-sm font-semibold border animate-fade-in ${
@@ -801,7 +507,7 @@
           {/* TOP GLOBAL BAR */}
           <header className="sticky top-0 z-40 glass-panel border-b border-slate-700/60 px-4 lg:px-8 py-2.5">
             <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-              {/* Brand & Mode Segments */}
+              {/* Brand & Document Identity */}
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-600 flex items-center justify-center font-bold text-lg text-white shadow-lg shadow-indigo-500/30">
                   NB
@@ -813,97 +519,39 @@
                     </span>
                     <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                      Vercel Edge Active
+                      Master Plan & SRS Spec
                     </span>
                   </div>
                   <h1 className="text-sm sm:text-base font-bold text-slate-100 flex items-center gap-2">
-                    Enterprise Operating System
+                    Enterprise Master Plan & Functional SRS Roadmap
                   </h1>
                 </div>
               </div>
 
-              {/* View Mode Toggle: Live System vs Blueprint Spec */}
-              <div className="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-700/80 shadow-inner">
-                <button
-                  onClick={() => setAppMode("live")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                    appMode === "live"
-                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  <span>🚀</span>
-                  <span>Live BMS System</span>
-                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-indigo-500/40 text-indigo-100">Phase 1</span>
-                </button>
-                <button
-                  onClick={() => setAppMode("spec")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                    appMode === "spec"
-                      ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  <span>📋</span>
-                  <span>SRS & Roadmap Spec</span>
-                </button>
-              </div>
-
-              {/* Command Palette, Branch, RBAC & Theme Controls */}
-              <div className="flex items-center gap-2">
+              {/* Action Buttons: Quick Search, Live BMS App Link, Theme Toggle */}
+              <div className="flex items-center gap-2.5">
                 {/* Command Palette Trigger */}
                 <button
                   onClick={() => setCommandPaletteOpen(true)}
                   className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 transition"
-                  title="Press Cmd+K or Ctrl+K"
+                  title="Press Cmd+K or Ctrl+K to search requirements"
                 >
-                  <span>🔍 Quick Search</span>
+                  <span>🔍 Search SRS</span>
                   <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-mono text-slate-400">⌘K</kbd>
                 </button>
 
-                {/* Multi-Branch Selector (FR-102) */}
-                <div className="relative group">
-                  <select
-                    value={branch.id}
-                    onChange={(e) => {
-                      const b = BRANCHES.find(x => x.id === e.target.value);
-                      if (b) {
-                        setBranch(b);
-                        logAudit("CONFIG", "Branch", b.id, `Switched active branch context to ${b.name} (${b.currency})`);
-                        showToast(`Switched branch to ${b.name}`);
-                      }
-                    }}
-                    className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-medium cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  >
-                    {BRANCHES.map(b => (
-                      <option key={b.id} value={b.id}>
-                        {b.flag} {b.name} ({b.currency})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* RBAC Role Selector (FR-101) */}
-                <div className="relative">
-                  <select
-                    value={role.id}
-                    onChange={(e) => {
-                      const r = ROLES.find(x => x.id === e.target.value);
-                      if (r) {
-                        setRole(r);
-                        logAudit("AUTH", "RoleChange", r.id, `Active role switched to ${r.name}`);
-                        showToast(`Active Role: ${r.name}`);
-                      }
-                    }}
-                    className="bg-slate-900 border border-indigo-500/50 rounded-lg px-2.5 py-1.5 text-xs text-indigo-300 font-semibold cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  >
-                    {ROLES.map(r => (
-                      <option key={r.id} value={r.id}>
-                        👤 {r.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {/* Direct Link to Deployed Live BMS Application */}
+                <a
+                  href="https://nexus-bms.vercel.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition shadow flex items-center gap-1.5"
+                  title="Open live production NexusBMS app on nexus-bms.vercel.app"
+                >
+                  <span>🚀</span>
+                  <span>Open Live BMS App</span>
+                  <span className="text-[10px] opacity-80">↗</span>
+                </a>
 
                 {/* Dark/Light Mode Switcher */}
                 <button
@@ -913,128 +561,43 @@
                 >
                   {isDark ? "☀️" : "🌙"}
                 </button>
-
-                {/* Action Inbox Alert Badge */}
-                {approvals.length > 0 && (
-                  <button
-                    onClick={() => {
-                      setAppMode("live");
-                      setActiveAppModule("dashboard");
-                    }}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold animate-pulse"
-                    title="Pending Executive Approvals"
-                  >
-                    <span>🔔</span>
-                    <span>{approvals.length}</span>
-                  </button>
-                )}
               </div>
             </div>
           </header>
 
-          {/* MAIN WORKSPACE BODY */}
+          {/* MAIN SPECIFICATION BODY */}
           <div className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8">
-            {appMode === "live" ? (
-              <NexusLiveAppStage
-                branch={branch}
-                role={role}
-                activeModule={activeAppModule}
-                setActiveModule={setActiveAppModule}
-                timeframe={timeframe}
-                setTimeframe={setTimeframe}
-                deals={deals}
-                setDeals={setDeals}
-                inventory={inventory}
-                setInventory={setInventory}
-                invoices={invoices}
-                setInvoices={setInvoices}
-                approvals={approvals}
-                employees={employees}
-                auditTrail={auditTrail}
-                posCart={posCart}
-                clockedIn={clockedIn}
-                shiftSeconds={shiftSeconds}
-                onApprove={handleApprove}
-                onReject={handleReject}
-                onRecordPayment={handleRecordPayment}
-                onAutoPO={handleCreatePOFromLowStock}
-                onConvertDeal={handleConvertDealToInvoice}
-                onToggleClock={handleToggleClock}
-                onAddToCart={handleAddToCart}
-                onUpdateCartQty={handleUpdateCartQty}
-                onCheckoutPOS={handleCheckoutPOS}
-                onOpenNewDealModal={() => setNewDealModalOpen(true)}
-                onInspectAuditDetail={(item) => setAuditModalDetail(item)}
-                onOpenCommandPalette={() => setCommandPaletteOpen(true)}
-                onSwitchToSpec={() => setAppMode("spec")}
-              />
-            ) : (
-              <NexusSpecStage
-                spec={spec}
-                setSpec={setSpec}
-                activeTab={specTab}
-                setActiveTab={setSpecTab}
-                editMode={editSpecMode}
-                setEditMode={setEditSpecMode}
-                searchQuery={searchSpecQuery}
-                setSearchQuery={setSearchSpecQuery}
-                selectedCategory={selectedSpecCat}
-                setSelectedCategory={setSelectedSpecCat}
-                onOpenNewModule={() => setNewModuleModalOpen(true)}
-                onLaunchApp={() => {
-                  window.open("https://nexus-bms.vercel.app", "_blank") || (window.location.href = "https://nexus-bms.vercel.app");
-                }}
-                showToast={showToast}
-              />
-            )}
+            <NexusSpecStage
+              spec={spec}
+              setSpec={setSpec}
+              activeTab={specTab}
+              setActiveTab={setSpecTab}
+              editMode={editSpecMode}
+              setEditMode={setEditSpecMode}
+              searchQuery={searchSpecQuery}
+              setSearchQuery={setSearchSpecQuery}
+              selectedCategory={selectedSpecCat}
+              setSelectedCategory={setSelectedSpecCat}
+              onLaunchApp={handleOpenLiveApp}
+              showToast={showToast}
+            />
           </div>
 
           {/* COMMAND PALETTE MODAL (Cmd+K) */}
           {commandPaletteOpen && (
             <CommandPaletteModal
+              modules={spec.modules}
               onClose={() => setCommandPaletteOpen(false)}
-              onNavigate={(modId) => {
-                setAppMode("live");
-                setActiveAppModule(modId);
+              onSelectTab={(tabId) => {
+                setSpecTab(tabId);
                 setCommandPaletteOpen(false);
               }}
-              onAction={(actionName) => {
+              onSearchQuery={(q) => {
+                setSpecTab("srs");
+                setSearchSpecQuery(q);
                 setCommandPaletteOpen(false);
-                if (actionName === "new-deal") setNewDealModalOpen(true);
-                if (actionName === "clock") handleToggleClock();
-                if (actionName === "pos") {
-                  setAppMode("live");
-                  setActiveAppModule("pos");
-                }
-                if (actionName === "spec") {
-                  setAppMode("spec");
-                }
               }}
-            />
-          )}
-
-          {/* NEW DEAL MODAL */}
-          {newDealModalOpen && (
-            <NewDealModal
-              onClose={() => setNewDealModalOpen(false)}
-              onSave={handleAddDeal}
-            />
-          )}
-
-          {/* POS RECEIPT PRINT MODAL */}
-          {posCompletedReceipt && (
-            <PosReceiptModal
-              receipt={posCompletedReceipt}
-              branch={branch}
-              onClose={() => setPosCompletedReceipt(null)}
-            />
-          )}
-
-          {/* AUDIT DIFF MODAL */}
-          {auditModalDetail && (
-            <AuditDetailModal
-              auditItem={auditModalDetail}
-              onClose={() => setAuditModalDetail(null)}
+              onOpenLiveApp={handleOpenLiveApp}
             />
           )}
 
@@ -1043,1450 +606,12 @@
             <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
               <span className="font-mono">{spec.meta.projectName} • {spec.meta.documentCode}</span>
               <span className="flex items-center gap-2">
-                <span>Phase 1 Verified & Active</span>
+                <span>Phase 1 Complete • Phase 2 In Progress</span>
                 <span>•</span>
                 <span>Powered by Google Antigravity & Deployed on Vercel</span>
               </span>
             </div>
           </footer>
-        </div>
-      );
-    }
-
-    /* =========================================================================
-       NEXUS LIVE APP STAGE & NAVIGATION
-       ========================================================================= */
-    function NexusLiveAppStage(props) {
-      const {
-        branch, role, activeModule, setActiveModule, timeframe, setTimeframe,
-        deals, inventory, invoices, approvals, employees, auditTrail,
-        posCart, clockedIn, shiftSeconds, onApprove, onReject, onRecordPayment,
-        onAutoPO, onConvertDeal, onToggleClock, onAddToCart, onUpdateCartQty,
-        onCheckoutPOS, onOpenNewDealModal, onInspectAuditDetail, onOpenCommandPalette, onSwitchToSpec
-      } = props;
-
-      const NAV_ITEMS = [
-        { id: "dashboard", label: "Executive Dashboard", icon: "📊", badge: approvals.length > 0 ? approvals.length : null },
-        { id: "crm", label: "CRM & Sales Pipeline", icon: "🤝", badge: deals.length },
-        { id: "inventory", label: "ERP Inventory & Stock", icon: "📦", badge: inventory.filter(i => i.inStock <= i.reorderLevel).length || null },
-        { id: "finance", label: "Finance & Invoicing", icon: "💳", badge: invoices.filter(i => i.status === "Overdue").length || null },
-        { id: "pos", label: "Web POS Terminal", icon: "🛒", badge: posCart.length || null },
-        { id: "hrm", label: "HRM & Attendance", icon: "👥", badge: clockedIn ? "ON" : null },
-        { id: "projects", label: "Projects & Tasks", icon: "📋", badge: "2" },
-        { id: "audit", label: "Security & Audit Trail", icon: "🛡️", badge: "Live" },
-        { id: "copilot", label: "AI Business Copilot", icon: "🤖", badge: "AI" },
-        { id: "settings", label: "Organization & RBAC", icon: "⚙️", badge: null },
-      ];
-
-      return (
-        <div className="space-y-6">
-          {/* Main Navigation Tabs */}
-          <div className="glass-panel rounded-2xl p-2 flex items-center gap-1.5 overflow-x-auto no-print shadow-lg">
-            {NAV_ITEMS.map(nav => (
-              <button
-                key={nav.id}
-                onClick={() => setActiveModule(nav.id)}
-                className={`px-3.5 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition flex items-center gap-2 ${
-                  activeModule === nav.id
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
-                }`}
-              >
-                <span>{nav.icon}</span>
-                <span>{nav.label}</span>
-                {nav.badge && (
-                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                    activeModule === nav.id ? "bg-white/20 text-white" : "bg-indigo-500/20 text-indigo-300"
-                  }`}>
-                    {nav.badge}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-
-          {/* Module Stage Switching */}
-          {activeModule === "dashboard" && (
-            <ExecutiveDashboardView
-              branch={branch}
-              role={role}
-              timeframe={timeframe}
-              setTimeframe={setTimeframe}
-              deals={deals}
-              inventory={inventory}
-              invoices={invoices}
-              approvals={approvals}
-              onApprove={onApprove}
-              onReject={onReject}
-              onAutoPO={onAutoPO}
-              setActiveModule={setActiveModule}
-              onOpenNewDealModal={onOpenNewDealModal}
-            />
-          )}
-
-          {activeModule === "crm" && (
-            <CrmSalesView
-              branch={branch}
-              role={role}
-              deals={deals}
-              onConvertDeal={onConvertDeal}
-              onOpenNewDealModal={onOpenNewDealModal}
-            />
-          )}
-
-          {activeModule === "inventory" && (
-            <InventoryErpView
-              branch={branch}
-              role={role}
-              inventory={inventory}
-              onAutoPO={onAutoPO}
-            />
-          )}
-
-          {activeModule === "finance" && (
-            <FinanceInvoicingView
-              branch={branch}
-              role={role}
-              invoices={invoices}
-              onRecordPayment={onRecordPayment}
-            />
-          )}
-
-          {activeModule === "pos" && (
-            <WebPosView
-              branch={branch}
-              role={role}
-              inventory={inventory}
-              posCart={posCart}
-              onAddToCart={onAddToCart}
-              onUpdateCartQty={onUpdateCartQty}
-              onCheckoutPOS={onCheckoutPOS}
-            />
-          )}
-
-          {activeModule === "hrm" && (
-            <HrmWorkforceView
-              branch={branch}
-              role={role}
-              employees={employees}
-              clockedIn={clockedIn}
-              shiftSeconds={shiftSeconds}
-              onToggleClock={onToggleClock}
-            />
-          )}
-
-          {activeModule === "projects" && (
-            <ProjectsOperationsView
-              branch={branch}
-              role={role}
-            />
-          )}
-
-          {activeModule === "audit" && (
-            <AuditTrailView
-              auditTrail={auditTrail}
-              onInspectAuditDetail={onInspectAuditDetail}
-            />
-          )}
-
-          {activeModule === "copilot" && (
-            <AiCopilotView
-              branch={branch}
-              deals={deals}
-              inventory={inventory}
-              invoices={invoices}
-              approvals={approvals}
-            />
-          )}
-
-          {activeModule === "settings" && (
-            <SettingsRbacView
-              branch={branch}
-              role={role}
-            />
-          )}
-        </div>
-      );
-    }
-
-    /* =========================================================================
-       MODULE 1: EXECUTIVE DASHBOARD (FR-201, FR-202, FR-203)
-       ========================================================================= */
-    function ExecutiveDashboardView(props) {
-      const { branch, role, timeframe, setTimeframe, deals, inventory, invoices, approvals, onApprove, onReject, onAutoPO, setActiveModule, onOpenNewDealModal } = props;
-
-      // Dynamic Financial Calculations
-      const totalRevenue = useMemo(() => {
-        return invoices.filter(i => i.status === "Paid").reduce((acc, i) => acc + i.paidAmount, 0) + 126720;
-      }, [invoices]);
-
-      const netOperatingProfit = useMemo(() => {
-        return Math.round(totalRevenue * 0.284);
-      }, [totalRevenue]);
-
-      const openReceivables = useMemo(() => {
-        return invoices.filter(i => i.status !== "Paid").reduce((acc, i) => acc + (i.amount - i.paidAmount), 0);
-      }, [invoices]);
-
-      const overdueCount = useMemo(() => {
-        return invoices.filter(i => i.status === "Overdue").length;
-      }, [invoices]);
-
-      const lowStockItems = useMemo(() => {
-        return inventory.filter(i => i.inStock <= i.reorderLevel);
-      }, [inventory]);
-
-      const activePipelineValue = useMemo(() => {
-        return deals.reduce((acc, d) => acc + (d.value * (d.probability / 100)), 0);
-      }, [deals]);
-
-      // Interactive Cashflow Data points
-      const cashflowMonths = [
-        { month: "Jun", rev: 110000, exp: 78000 },
-        { month: "Jul", rev: 122000, exp: 84000 },
-        { month: "Aug", rev: 118000, exp: 81000 },
-        { month: "Sep", rev: 135000, exp: 92000 },
-        { month: "Oct", rev: 142000, exp: 96000 },
-        { month: "Nov (MTD)", rev: totalRevenue, exp: Math.round(totalRevenue * 0.716) }
-      ];
-
-      return (
-        <div className="space-y-6">
-          {/* Header Strip with Period Filter */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-5 rounded-2xl">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono uppercase text-indigo-400 font-bold">FR-201 & FR-202</span>
-                <span className="text-xs text-slate-400">• Executive Cockpit</span>
-              </div>
-              <h2 className="text-xl font-bold text-white mt-0.5">Enterprise Operational Command Center</h2>
-              <p className="text-xs text-slate-400 mt-1">
-                Real-time financial telemetry, cash position, and pending operational authorizations.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-700/80">
-              {["Today", "MTD", "QTD", "YTD"].map(tf => (
-                <button
-                  key={tf}
-                  onClick={() => setTimeframe(tf)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                    timeframe === tf
-                      ? "bg-indigo-600 text-white shadow"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  {tf}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 4 Core KPI Cards (FR-201) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Card 1: Revenue */}
-            <div className="glass-panel p-5 rounded-2xl border-l-4 border-l-indigo-500 relative overflow-hidden">
-              <div className="flex justify-between items-start">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Net Revenue ({timeframe})</span>
-                <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                  +18.4% YoY
-                </span>
-              </div>
-              <div className="text-2xl font-extrabold text-white mt-2 font-mono">
-                {formatCurrency(totalRevenue, branch)}
-              </div>
-              <div className="mt-2 text-xs text-slate-400 flex items-center justify-between">
-                <span>Base: ${totalRevenue.toLocaleString()} USD</span>
-                <span className="text-indigo-400 hover:underline cursor-pointer" onClick={() => setActiveModule("finance")}>View Invoices →</span>
-              </div>
-            </div>
-
-            {/* Card 2: Operating Margin */}
-            <div className="glass-panel p-5 rounded-2xl border-l-4 border-l-emerald-500 relative overflow-hidden">
-              <div className="flex justify-between items-start">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Operating Net Margin</span>
-                <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                  28.4%
-                </span>
-              </div>
-              <div className="text-2xl font-extrabold text-emerald-400 mt-2 font-mono">
-                {formatCurrency(netOperatingProfit, branch)}
-              </div>
-              <div className="mt-2 text-xs text-slate-400 flex items-center justify-between">
-                <span>EBITDA Positive</span>
-                <span className="text-emerald-400">Healthy</span>
-              </div>
-            </div>
-
-            {/* Card 3: Receivables */}
-            <div className="glass-panel p-5 rounded-2xl border-l-4 border-l-amber-500 relative overflow-hidden">
-              <div className="flex justify-between items-start">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Open Receivables (AR)</span>
-                <span className="text-xs font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                  {overdueCount} Overdue
-                </span>
-              </div>
-              <div className="text-2xl font-extrabold text-amber-300 mt-2 font-mono">
-                {formatCurrency(openReceivables, branch)}
-              </div>
-              <div className="mt-2 text-xs text-slate-400 flex items-center justify-between">
-                <span>Collection Risk: Low</span>
-                <span className="text-amber-400 hover:underline cursor-pointer" onClick={() => setActiveModule("finance")}>Settle AR →</span>
-              </div>
-            </div>
-
-            {/* Card 4: Inventory Alerts */}
-            <div className="glass-panel p-5 rounded-2xl border-l-4 border-l-rose-500 relative overflow-hidden">
-              <div className="flex justify-between items-start">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Inventory Stock Alerts</span>
-                <span className="text-xs font-mono text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
-                  {lowStockItems.length} Low SKUs
-                </span>
-              </div>
-              <div className="text-2xl font-extrabold text-rose-400 mt-2 font-mono">
-                {lowStockItems.length} Reorders
-              </div>
-              <div className="mt-2 text-xs text-slate-400 flex items-center justify-between">
-                <span>Auto-PO System</span>
-                <span className="text-rose-400 hover:underline cursor-pointer" onClick={() => setActiveModule("inventory")}>Restock Now →</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Middle Row: Cashflow Chart (FR-202) & Unified Action Inbox (FR-203) */}
-          <div className="grid lg:grid-cols-3 gap-6">
-            {/* Interactive SVG Cashflow Chart (2 Cols) */}
-            <div className="lg:col-span-2 glass-panel p-6 rounded-2xl space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    <span>📈</span>
-                    <span>Revenue vs. Operating Expense Cashflow</span>
-                  </h3>
-                  <p className="text-xs text-slate-400">Monthly progression converted into {branch.name} ({branch.currency})</p>
-                </div>
-                <div className="flex items-center gap-4 text-xs font-medium">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded bg-indigo-500"></span>
-                    <span className="text-slate-300">Revenue</span>
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 rounded bg-rose-500/60"></span>
-                    <span className="text-slate-300">Expenses</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Chart Visual Graphic (Clean SVG) */}
-              <div className="h-64 w-full flex items-end gap-3 pt-6 pb-2 px-2 border-b border-slate-700/80">
-                {cashflowMonths.map((item, idx) => {
-                  const maxVal = 160000;
-                  const revHeight = (item.rev / maxVal) * 100;
-                  const expHeight = (item.exp / maxVal) * 100;
-                  return (
-                    <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group relative cursor-pointer">
-                      {/* Tooltip on hover */}
-                      <div className="absolute -top-12 z-20 hidden group-hover:flex flex-col items-center bg-slate-900 border border-slate-700 p-2 rounded-lg text-[10px] text-white shadow-xl whitespace-nowrap">
-                        <span className="font-bold text-indigo-300">{item.month}: {formatCurrency(item.rev, branch)}</span>
-                        <span className="text-rose-400">Exp: {formatCurrency(item.exp, branch)}</span>
-                        <span className="text-emerald-400 font-bold">Profit: {formatCurrency(item.rev - item.exp, branch)}</span>
-                      </div>
-
-                      <div className="w-full flex items-end justify-center gap-1.5 h-full">
-                        {/* Revenue Bar */}
-                        <div
-                          style={{ height: `${revHeight}%` }}
-                          className="w-full max-w-[28px] bg-gradient-to-t from-indigo-700 to-indigo-500 rounded-t-md transition-all group-hover:brightness-125"
-                        ></div>
-                        {/* Expense Bar */}
-                        <div
-                          style={{ height: `${expHeight}%` }}
-                          className="w-full max-w-[28px] bg-gradient-to-t from-rose-800 to-rose-500/80 rounded-t-md transition-all group-hover:brightness-125"
-                        ></div>
-                      </div>
-                      <span className="text-[11px] font-mono text-slate-400 mt-2">{item.month}</span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="flex items-center justify-between text-xs text-slate-400 pt-2">
-                <span>Current Operating Velocity: <strong>Strong Expansion</strong></span>
-                <span>Weighted Deals Pipeline: <strong>{formatCurrency(activePipelineValue, branch)}</strong></span>
-              </div>
-            </div>
-
-            {/* UNIFIED ACTION INBOX (FR-203) */}
-            <div className="glass-panel p-6 rounded-2xl flex flex-col justify-between space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-3 border-b border-slate-700/80 pb-3">
-                  <div>
-                    <h3 className="text-base font-bold text-white flex items-center gap-2">
-                      <span>⚡</span>
-                      <span>Unified Action Inbox</span>
-                    </h3>
-                    <span className="text-xs text-slate-400">Pending Executive Approvals</span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold font-mono">
-                    {approvals.length} Pending
-                  </span>
-                </div>
-
-                {approvals.length === 0 ? (
-                  <div className="text-center py-10 text-slate-500 space-y-2">
-                    <span className="text-3xl">🎉</span>
-                    <p className="text-xs">All pending operational approvals are clear!</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {approvals.map((item) => (
-                      <div key={item.id} className="bg-slate-900/90 border border-slate-700/80 rounded-xl p-3.5 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold">
-                            {item.type}
-                          </span>
-                          <span className="text-[10px] text-slate-400">{item.date}</span>
-                        </div>
-                        <div className="text-xs font-bold text-white leading-tight">
-                          {item.title}
-                        </div>
-                        <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
-                          <span>Req: {item.requester}</span>
-                          {item.amount && (
-                            <span className="font-mono font-bold text-emerald-400">
-                              {formatCurrency(item.amount, branch)}
-                            </span>
-                          )}
-                        </div>
-                        {/* 1-Click Approve / Reject (FR-203) */}
-                        <div className="flex items-center gap-2 pt-2 border-t border-slate-800">
-                          <button
-                            onClick={() => onApprove(item.id)}
-                            className="flex-1 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow"
-                          >
-                            ✓ Approve
-                          </button>
-                          <button
-                            onClick={() => onReject(item.id)}
-                            className="px-3 py-1.5 rounded-lg bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-300 text-xs font-bold transition"
-                          >
-                            ✕ Reject
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Fast Action Shortcuts */}
-              <div className="pt-3 border-t border-slate-800/80 grid grid-cols-2 gap-2">
-                <button
-                  onClick={onOpenNewDealModal}
-                  className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs text-slate-200 font-semibold text-center transition"
-                >
-                  + New Deal
-                </button>
-                <button
-                  onClick={() => setActiveModule("pos")}
-                  className="px-3 py-2 rounded-xl bg-indigo-600/30 hover:bg-indigo-600/40 border border-indigo-500/50 text-xs text-indigo-200 font-semibold text-center transition"
-                >
-                  Launch POS 🛒
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Lower Row: Low-Stock Automated Reorder Queue (FR-402) */}
-          <div className="glass-panel p-6 rounded-2xl space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <span>🚨</span>
-                  <span>Automated Inventory Safety Level Alerts</span>
-                </h3>
-                <p className="text-xs text-slate-400">SKUs below minimum safe reorder threshold across regional warehouses.</p>
-              </div>
-              <button
-                onClick={() => setActiveModule("inventory")}
-                className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition"
-              >
-                View Full Catalog →
-              </button>
-            </div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {lowStockItems.map(sku => (
-                <div key={sku.id} className="bg-slate-900/80 border border-rose-500/40 rounded-xl p-4 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="font-mono text-indigo-300 font-bold">{sku.sku}</span>
-                      <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px] font-bold">
-                        Stock: {sku.inStock} / Min: {sku.reorderLevel}
-                      </span>
-                    </div>
-                    <h4 className="text-xs font-bold text-white mt-1">{sku.name}</h4>
-                    <span className="text-[11px] text-slate-400 block mt-0.5">Location: {sku.warehouse}</span>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
-                    <span className="text-xs font-mono text-slate-300 font-bold">Cost: {formatCurrency(sku.costPrice, branch)}</span>
-                    <button
-                      onClick={() => onAutoPO(sku)}
-                      className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow"
-                    >
-                      ⚡ 1-Click PO
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    /* =========================================================================
-       MODULE 2: CRM & SALES PIPELINE (FR-301, FR-302, FR-303)
-       ========================================================================= */
-    function CrmSalesView({ branch, role, deals, onConvertDeal, onOpenNewDealModal }) {
-      const stages = ["Lead", "Qualified", "Proposal", "Won"];
-
-      const weightedPipeline = useMemo(() => {
-        return deals.reduce((acc, d) => acc + (d.value * (d.probability / 100)), 0);
-      }, [deals]);
-
-      return (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-5 rounded-2xl">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono uppercase text-indigo-400 font-bold">FR-301, 302 & 303</span>
-                <span className="text-xs text-slate-400">• Revenue Engine</span>
-              </div>
-              <h2 className="text-xl font-bold text-white mt-0.5">CRM, Sales Pipeline & Proposal Generator</h2>
-              <p className="text-xs text-slate-400 mt-1">
-                Visual Kanban lifecycle tracking with stage probability weighting and 1-click invoice conversion.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <span className="text-[11px] text-slate-400 block">Weighted Forecast:</span>
-                <span className="text-base font-bold text-emerald-400 font-mono">
-                  {formatCurrency(weightedPipeline, branch)}
-                </span>
-              </div>
-              <button
-                onClick={onOpenNewDealModal}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-lg shadow-indigo-600/30"
-              >
-                + New Lead / Deal
-              </button>
-            </div>
-          </div>
-
-          {/* Kanban Pipeline Columns */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {stages.map((stg) => {
-              const stageDeals = deals.filter(d => d.stage === stg);
-              const stageSum = stageDeals.reduce((acc, d) => acc + d.value, 0);
-
-              return (
-                <div key={stg} className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between min-h-[460px]">
-                  <div>
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3">
-                      <div>
-                        <span className="text-xs font-bold text-white">{stg}</span>
-                        <span className="text-[11px] text-slate-400 block font-mono">
-                          {formatCurrency(stageSum, branch)}
-                        </span>
-                      </div>
-                      <span className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-xs text-indigo-300 font-bold">
-                        {stageDeals.length}
-                      </span>
-                    </div>
-
-                    <div className="space-y-3">
-                      {stageDeals.map((deal) => (
-                        <div key={deal.id} className="glass-panel p-3.5 rounded-xl border border-slate-700/80 space-y-2 hover:border-indigo-500/50 transition">
-                          <div className="flex justify-between items-start">
-                            <span className="text-[10px] font-mono text-indigo-400 font-bold">{deal.id}</span>
-                            <span className="text-[10px] font-mono text-slate-400">{deal.probability}% Prob</span>
-                          </div>
-                          <h4 className="text-xs font-bold text-white">{deal.name}</h4>
-                          <div className="text-[11px] text-slate-300">{deal.company}</div>
-                          <div className="text-[10px] text-slate-400">{deal.contact} • {deal.email}</div>
-                          <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
-                            <span className="text-xs font-bold text-emerald-400 font-mono">
-                              {formatCurrency(deal.value, branch)}
-                            </span>
-                            {stg === "Proposal" && (
-                              <button
-                                onClick={() => onConvertDeal(deal)}
-                                className="px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold transition shadow"
-                                title="1-Click Convert to Sales Order & Invoice (FR-303)"
-                              >
-                                ⚡ Invoice
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-800/80 text-[11px] text-slate-500 text-center font-mono">
-                    {stageDeals.length} records in {stg}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      );
-    }
-
-    /* =========================================================================
-       MODULE 3: ERP INVENTORY & PROCUREMENT (FR-401, FR-402, FR-403)
-       ========================================================================= */
-    function InventoryErpView({ branch, role, inventory, onAutoPO }) {
-      const [search, setSearch] = useState("");
-      const [categoryFilter, setCategoryFilter] = useState("All");
-
-      const filtered = inventory.filter(item => {
-        const matchesCat = categoryFilter === "All" || item.category === categoryFilter;
-        const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase()) || item.sku.toLowerCase().includes(search.toLowerCase());
-        return matchesCat && matchesSearch;
-      });
-
-      return (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-5 rounded-2xl">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono uppercase text-indigo-400 font-bold">FR-401, 402 & 403</span>
-                <span className="text-xs text-slate-400">• Supply Chain Management</span>
-              </div>
-              <h2 className="text-xl font-bold text-white mt-0.5">Master SKU Catalog & Multi-Warehouse Stock Ledger</h2>
-              <p className="text-xs text-slate-400 mt-1">
-                Real-time stock valuation across Central Hub, West Coast, and Asia Pacific warehouses.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <input
-                type="text"
-                placeholder="Search SKU or Product..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              />
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white cursor-pointer"
-              >
-                <option value="All">All Categories</option>
-                <option value="Hardware">Hardware</option>
-                <option value="Consumables">Consumables</option>
-                <option value="Software">Software</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Master Table */}
-          <div className="glass-panel rounded-2xl overflow-hidden border border-slate-700/80">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950/90 text-slate-400 border-b border-slate-800">
-                  <tr>
-                    <th className="p-3.5">SKU & Barcode</th>
-                    <th className="p-3.5">Product Name</th>
-                    <th className="p-3.5">Category</th>
-                    <th className="p-3.5">Warehouse Location</th>
-                    <th className="p-3.5">Stock Level</th>
-                    <th className="p-3.5">Cost / Unit Price</th>
-                    <th className="p-3.5">Status</th>
-                    <th className="p-3.5 text-right">Procurement Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/80">
-                  {filtered.map((item) => {
-                    const isLow = item.inStock <= item.reorderLevel;
-                    return (
-                      <tr key={item.id} className="hover:bg-slate-850/40 transition">
-                        <td className="p-3.5 font-mono">
-                          <span className="text-indigo-300 font-bold block">{item.sku}</span>
-                          <span className="text-[10px] text-slate-500">{item.barcode}</span>
-                        </td>
-                        <td className="p-3.5 font-semibold text-white">{item.name}</td>
-                        <td className="p-3.5">
-                          <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px]">
-                            {item.category}
-                          </span>
-                        </td>
-                        <td className="p-3.5 text-slate-300">{item.warehouse}</td>
-                        <td className="p-3.5 font-mono">
-                          <span className={`font-bold ${isLow ? "text-rose-400" : "text-emerald-400"}`}>
-                            {item.inStock} units
-                          </span>
-                          <span className="text-[10px] text-slate-500 block">Min: {item.reorderLevel}</span>
-                        </td>
-                        <td className="p-3.5 font-mono">
-                          <span className="text-slate-400">{formatCurrency(item.costPrice, branch)}</span>
-                          <span className="text-white font-bold block">{formatCurrency(item.unitPrice, branch)}</span>
-                        </td>
-                        <td className="p-3.5">
-                          {isLow ? (
-                            <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold">
-                              Below Reorder
-                            </span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
-                              Healthy
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-3.5 text-right">
-                          {isLow ? (
-                            <button
-                              onClick={() => onAutoPO(item)}
-                              className="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[11px] transition shadow"
-                            >
-                              ⚡ Issue PO
-                            </button>
-                          ) : (
-                            <span className="text-slate-500 text-[11px]">Sufficient</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    /* =========================================================================
-       MODULE 4: FINANCE, INVOICES & LEDGER (FR-501, FR-502, FR-503)
-       ========================================================================= */
-    function FinanceInvoicingView({ branch, role, invoices, onRecordPayment }) {
-      const [filter, setFilter] = useState("All");
-
-      const filtered = invoices.filter(inv => {
-        if (filter === "All") return true;
-        return inv.status === filter;
-      });
-
-      const totalInvoiced = invoices.reduce((acc, i) => acc + i.amount, 0);
-      const totalCollected = invoices.filter(i => i.status === "Paid").reduce((acc, i) => acc + i.paidAmount, 0);
-      const totalOutstanding = totalInvoiced - totalCollected;
-
-      return (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-5 rounded-2xl">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono uppercase text-indigo-400 font-bold">FR-501, 502 & 503</span>
-                <span className="text-xs text-slate-400">• Financial Compliance</span>
-              </div>
-              <h2 className="text-xl font-bold text-white mt-0.5">Accounts Receivable, Billing & Double-Entry Ledger</h2>
-              <p className="text-xs text-slate-400 mt-1">
-                Automated invoice aging, payment settlement, and general ledger journal export.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {["All", "Paid", "Pending", "Overdue"].map(st => (
-                <button
-                  key={st}
-                  onClick={() => setFilter(st)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                    filter === st ? "bg-indigo-600 text-white" : "bg-slate-900 text-slate-400 hover:text-white"
-                  }`}
-                >
-                  {st}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Ledger Metric Summary */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="glass-panel p-4 rounded-xl">
-              <span className="text-[11px] text-slate-400">Total Billed Volume</span>
-              <div className="text-xl font-bold text-white mt-0.5 font-mono">{formatCurrency(totalInvoiced, branch)}</div>
-            </div>
-            <div className="glass-panel p-4 rounded-xl">
-              <span className="text-[11px] text-slate-400">Total Cash Collected</span>
-              <div className="text-xl font-bold text-emerald-400 mt-0.5 font-mono">{formatCurrency(totalCollected, branch)}</div>
-            </div>
-            <div className="glass-panel p-4 rounded-xl">
-              <span className="text-[11px] text-slate-400">Outstanding Receivables (AR)</span>
-              <div className="text-xl font-bold text-amber-400 mt-0.5 font-mono">{formatCurrency(totalOutstanding, branch)}</div>
-            </div>
-          </div>
-
-          {/* Invoices List */}
-          <div className="glass-panel rounded-2xl overflow-hidden border border-slate-700/80">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950/90 text-slate-400 border-b border-slate-800">
-                  <tr>
-                    <th className="p-3.5">Invoice #</th>
-                    <th className="p-3.5">Client Organization</th>
-                    <th className="p-3.5">Issued Date</th>
-                    <th className="p-3.5">Due Date</th>
-                    <th className="p-3.5">Settlement Terms</th>
-                    <th className="p-3.5">Total Amount</th>
-                    <th className="p-3.5">Status</th>
-                    <th className="p-3.5 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/80">
-                  {filtered.map(inv => (
-                    <tr key={inv.id} className="hover:bg-slate-850/40 transition">
-                      <td className="p-3.5 font-mono text-indigo-300 font-bold">{inv.number}</td>
-                      <td className="p-3.5 font-semibold text-white">{inv.client}</td>
-                      <td className="p-3.5 text-slate-400">{inv.date}</td>
-                      <td className="p-3.5 text-slate-400">{inv.dueDate}</td>
-                      <td className="p-3.5 text-slate-300">{inv.method}</td>
-                      <td className="p-3.5 font-mono font-bold text-white">{formatCurrency(inv.amount, branch)}</td>
-                      <td className="p-3.5">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                          inv.status === "Paid"
-                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                            : inv.status === "Overdue"
-                            ? "bg-rose-500/20 text-rose-300 border border-rose-500/30 animate-pulse"
-                            : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                        }`}>
-                          {inv.status}
-                        </span>
-                      </td>
-                      <td className="p-3.5 text-right">
-                        {inv.status !== "Paid" ? (
-                          <button
-                            onClick={() => onRecordPayment(inv.id)}
-                            className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition shadow"
-                          >
-                            ✓ Record Payment
-                          </button>
-                        ) : (
-                          <span className="text-emerald-400 font-mono text-[11px]">Settled ✓</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    /* =========================================================================
-       MODULE 5: WEB POINT OF SALE (POS) (FR-801, FR-802)
-       ========================================================================= */
-    function WebPosView({ branch, role, inventory, posCart, onAddToCart, onUpdateCartQty, onCheckoutPOS }) {
-      const [search, setSearch] = useState("");
-      const [posCategory, setPosCategory] = useState("All");
-
-      const filteredItems = inventory.filter(item => {
-        const matchesCat = posCategory === "All" || item.category === posCategory;
-        const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase()) || item.barcode.includes(search);
-        return matchesCat && matchesSearch;
-      });
-
-      const subtotal = posCart.reduce((acc, item) => acc + (item.unitPrice * item.qty), 0);
-      const tax = subtotal * 0.0825;
-      const total = subtotal + tax;
-
-      return (
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left 2 Cols: Product Catalog & Fast SKU Search */}
-          <div className="lg:col-span-2 space-y-4">
-            <div className="glass-panel p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <span className="text-xs font-mono uppercase text-indigo-400 font-bold">FR-801 • Fast Checkout</span>
-                <h3 className="text-lg font-bold text-white">Omnichannel Web POS Terminal</h3>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder="Scan Barcode or Search SKU..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 w-48 sm:w-64"
-                />
-              </div>
-            </div>
-
-            {/* Category Filter Pills */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1">
-              {["All", "Hardware", "Consumables", "Software"].map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setPosCategory(cat)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
-                    posCategory === cat
-                      ? "bg-indigo-600 text-white"
-                      : "bg-slate-900/80 border border-slate-700 text-slate-400 hover:text-white"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-
-            {/* Products Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {filteredItems.map(prod => (
-                <div
-                  key={prod.id}
-                  onClick={() => onAddToCart(prod)}
-                  className="glass-panel p-4 rounded-xl border border-slate-700/80 hover:border-indigo-500/60 cursor-pointer transition flex flex-col justify-between group"
-                >
-                  <div>
-                    <div className="flex justify-between items-start text-[10px] text-slate-400 mb-1">
-                      <span className="font-mono text-indigo-400">{prod.sku}</span>
-                      <span>Stock: {prod.inStock}</span>
-                    </div>
-                    <h4 className="text-xs font-bold text-white group-hover:text-indigo-300 transition line-clamp-2">
-                      {prod.name}
-                    </h4>
-                  </div>
-                  <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-emerald-400">
-                      {formatCurrency(prod.unitPrice, branch)}
-                    </span>
-                    <span className="px-2 py-0.5 rounded bg-indigo-600/30 text-indigo-300 text-[10px] font-bold group-hover:bg-indigo-600 group-hover:text-white transition">
-                      + Add
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right 1 Col: Live POS Cart & Shift Cash Drawer */}
-          <div className="glass-panel p-5 rounded-2xl flex flex-col justify-between space-y-4 min-h-[500px]">
-            <div>
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
-                <div>
-                  <h3 className="text-base font-bold text-white flex items-center gap-1.5">
-                    <span>🛒 Active Cart</span>
-                  </h3>
-                  <span className="text-[11px] text-slate-400">Terminal: {branch.name}</span>
-                </div>
-                <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-mono text-xs font-bold">
-                  {posCart.reduce((acc, i) => acc + i.qty, 0)} Items
-                </span>
-              </div>
-
-              {/* Cart Items List */}
-              {posCart.length === 0 ? (
-                <div className="text-center py-16 text-slate-500 space-y-2">
-                  <span className="text-3xl">🛍️</span>
-                  <p className="text-xs">Cart is empty. Click or scan products to add.</p>
-                </div>
-              ) : (
-                <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-                  {posCart.map(item => (
-                    <div key={item.id} className="bg-slate-900/90 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs font-bold text-white truncate">{item.name}</div>
-                        <div className="text-[10px] text-slate-400 font-mono">
-                          {formatCurrency(item.unitPrice, branch)} × {item.qty}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => onUpdateCartQty(item.id, -1)}
-                          className="w-6 h-6 rounded bg-slate-800 text-slate-300 flex items-center justify-center font-bold text-xs hover:bg-slate-700"
-                        >
-                          -
-                        </button>
-                        <span className="text-xs font-mono font-bold text-white px-1">{item.qty}</span>
-                        <button
-                          onClick={() => onUpdateCartQty(item.id, 1)}
-                          className="w-6 h-6 rounded bg-slate-800 text-slate-300 flex items-center justify-center font-bold text-xs hover:bg-slate-700"
-                        >
-                          +
-                        </button>
-                      </div>
-
-                      <div className="text-xs font-mono font-bold text-emerald-400">
-                        {formatCurrency(item.unitPrice * item.qty, branch)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Cart Calculations & Payment Options */}
-            <div className="pt-3 border-t border-slate-800 space-y-3">
-              <div className="space-y-1 text-xs">
-                <div className="flex justify-between text-slate-400">
-                  <span>Subtotal</span>
-                  <span className="font-mono text-slate-200">{formatCurrency(subtotal, branch)}</span>
-                </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>Sales Tax (8.25%)</span>
-                  <span className="font-mono text-slate-200">{formatCurrency(tax, branch)}</span>
-                </div>
-                <div className="flex justify-between text-sm font-bold text-white pt-1 border-t border-slate-800">
-                  <span>Grand Total</span>
-                  <span className="font-mono text-emerald-400 text-base">{formatCurrency(total, branch)}</span>
-                </div>
-              </div>
-
-              {/* Payment Methods */}
-              <div className="grid grid-cols-3 gap-2 pt-2">
-                <button
-                  disabled={posCart.length === 0}
-                  onClick={() => onCheckoutPOS("Cash (Drawer)")}
-                  className="py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-bold transition shadow"
-                >
-                  💵 Cash
-                </button>
-                <button
-                  disabled={posCart.length === 0}
-                  onClick={() => onCheckoutPOS("Credit Card (Chip)")}
-                  className="py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-bold transition shadow"
-                >
-                  💳 Card
-                </button>
-                <button
-                  disabled={posCart.length === 0}
-                  onClick={() => onCheckoutPOS("QR Code (Digital)")}
-                  className="py-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white text-xs font-bold transition shadow"
-                >
-                  📱 QR Pay
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    /* =========================================================================
-       MODULE 6: HRM & WORKFORCE (FR-601, FR-602, FR-603)
-       ========================================================================= */
-    function HrmWorkforceView({ branch, role, employees, clockedIn, shiftSeconds, onToggleClock }) {
-      const formatTimer = (totalSeconds) => {
-        const hrs = Math.floor(totalSeconds / 3600);
-        const mins = Math.floor((totalSeconds % 3600) / 60);
-        const secs = totalSeconds % 60;
-        return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-      };
-
-      return (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-5 rounded-2xl">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono uppercase text-indigo-400 font-bold">FR-601, 602 & 603</span>
-                <span className="text-xs text-slate-400">• People & Culture</span>
-              </div>
-              <h2 className="text-xl font-bold text-white mt-0.5">HRM, Attendance Punch Clock & Payroll Engine</h2>
-              <p className="text-xs text-slate-400 mt-1">
-                Live timesheet tracking, departmental roster, and statutory deduction calculations.
-              </p>
-            </div>
-
-            {/* Attendance Punch Clock Widget (FR-602) */}
-            <div className="bg-slate-900 border border-slate-700 rounded-2xl p-3 flex items-center gap-4">
-              <div>
-                <span className="text-[10px] text-slate-400 block uppercase font-mono">My Shift Status:</span>
-                <span className={`text-xs font-bold ${clockedIn ? "text-emerald-400" : "text-slate-400"}`}>
-                  {clockedIn ? "Active • Clocked In" : "Offline • Clocked Out"}
-                </span>
-                {clockedIn && (
-                  <span className="text-base font-mono font-bold text-white block mt-0.5">
-                    {formatTimer(shiftSeconds)}
-                  </span>
-                )}
-              </div>
-              <button
-                onClick={onToggleClock}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition shadow ${
-                  clockedIn
-                    ? "bg-rose-600 hover:bg-rose-500 text-white"
-                    : "bg-emerald-600 hover:bg-emerald-500 text-white"
-                }`}
-              >
-                {clockedIn ? "Clock Out ⏹" : "Clock In ▶"}
-              </button>
-            </div>
-          </div>
-
-          {/* Employee Directory Table */}
-          <div className="glass-panel rounded-2xl overflow-hidden border border-slate-700/80">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950/90 text-slate-400 border-b border-slate-800">
-                  <tr>
-                    <th className="p-3.5">Employee ID</th>
-                    <th className="p-3.5">Full Name</th>
-                    <th className="p-3.5">Department</th>
-                    <th className="p-3.5">Designated Role</th>
-                    <th className="p-3.5">Base Annual Salary</th>
-                    <th className="p-3.5">Shift Attendance</th>
-                    <th className="p-3.5 text-right">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/80">
-                  {employees.map(emp => (
-                    <tr key={emp.id} className="hover:bg-slate-850/40 transition">
-                      <td className="p-3.5 font-mono text-indigo-300 font-bold">{emp.id}</td>
-                      <td className="p-3.5 font-semibold text-white">{emp.name}</td>
-                      <td className="p-3.5 text-slate-300">{emp.department}</td>
-                      <td className="p-3.5 text-slate-400">{emp.role}</td>
-                      <td className="p-3.5 font-mono font-bold text-white">{formatCurrency(emp.salary, branch)}</td>
-                      <td className="p-3.5">
-                        <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-bold">
-                          {emp.attendance}
-                        </span>
-                      </td>
-                      <td className="p-3.5 text-right">
-                        <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
-                          {emp.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    /* =========================================================================
-       MODULE 7: PROJECTS & TASKS (FR-701, FR-702)
-       ========================================================================= */
-    function ProjectsOperationsView({ branch, role }) {
-      const projects = [
-        { id: "PRJ-01", name: "Horizon Retail ERP Multi-Store Rollout", client: "Horizon Hypermarkets", budgetHours: 320, loggedHours: 195, margin: "34%", deadline: "2026-12-15", status: "In Progress" },
-        { id: "PRJ-02", name: "Astra Aerospace Vendor Procurement Vault", client: "Astra Dynamics Corp", budgetHours: 180, loggedHours: 42, margin: "42%", deadline: "2027-01-30", status: "On Track" }
-      ];
-
-      return (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-5 rounded-2xl">
-            <div>
-              <span className="text-xs font-mono uppercase text-indigo-400 font-bold">FR-701 & FR-702</span>
-              <h2 className="text-xl font-bold text-white mt-0.5">Project Workspaces & Billable Timesheets</h2>
-              <p className="text-xs text-slate-400 mt-1">Track milestone deliverables, logged hours, and real-time project margins.</p>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            {projects.map(p => {
-              const progressPct = Math.round((p.loggedHours / p.budgetHours) * 100);
-              return (
-                <div key={p.id} className="glass-panel p-5 rounded-2xl space-y-4">
-                  <div className="flex justify-between items-start">
-                    <span className="text-xs font-mono text-indigo-300 font-bold">{p.id}</span>
-                    <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-xs font-bold">
-                      {p.status}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-white">{p.name}</h3>
-                    <span className="text-xs text-slate-400">Client: {p.client}</span>
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs text-slate-300">
-                      <span>Logged: {p.loggedHours} hrs</span>
-                      <span>Budget: {p.budgetHours} hrs ({progressPct}%)</span>
-                    </div>
-                    <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                      <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${progressPct}%` }}></div>
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Target Margin: <strong className="text-emerald-400">{p.margin}</strong></span>
-                    <span className="text-slate-400">Deadline: <strong>{p.deadline}</strong></span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      );
-    }
-
-    /* =========================================================================
-       MODULE 8: SECURITY & AUDIT TRAIL (FR-101, FR-103)
-       ========================================================================= */
-    function AuditTrailView({ auditTrail, onInspectAuditDetail }) {
-      const [filter, setFilter] = useState("ALL");
-
-      const filtered = auditTrail.filter(item => {
-        if (filter === "ALL") return true;
-        return item.action === filter;
-      });
-
-      return (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-5 rounded-2xl">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-mono uppercase text-indigo-400 font-bold">FR-103 • Compliance Ledger</span>
-                <span className="text-xs text-slate-400">• Immutable Security Audit</span>
-              </div>
-              <h2 className="text-xl font-bold text-white mt-0.5">System-Wide Forensic Audit Trail</h2>
-              <p className="text-xs text-slate-400 mt-1">
-                Cryptographically verifiable, immutable record of every mutation, financial approval, and role action.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 overflow-x-auto">
-              {["ALL", "APPROVE", "REJECT", "CREATE", "PAYMENT", "AUTH", "CONFIG"].map(act => (
-                <button
-                  key={act}
-                  onClick={() => setFilter(act)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                    filter === act ? "bg-indigo-600 text-white" : "bg-slate-900 text-slate-400 hover:text-white"
-                  }`}
-                >
-                  {act}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="glass-panel rounded-2xl overflow-hidden border border-slate-700/80">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950/90 text-slate-400 border-b border-slate-800">
-                  <tr>
-                    <th className="p-3.5">Log ID</th>
-                    <th className="p-3.5">Timestamp</th>
-                    <th className="p-3.5">Actor / User</th>
-                    <th className="p-3.5">Action</th>
-                    <th className="p-3.5">Entity / Resource</th>
-                    <th className="p-3.5">Mutation Details</th>
-                    <th className="p-3.5 text-right">Payload</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/80">
-                  {filtered.map(item => (
-                    <tr key={item.id} className="hover:bg-slate-850/40 transition">
-                      <td className="p-3.5 font-mono text-indigo-300 font-bold">{item.id}</td>
-                      <td className="p-3.5 font-mono text-slate-400">{item.timestamp}</td>
-                      <td className="p-3.5 font-semibold text-white">
-                        {item.actor} <span className="text-[10px] text-slate-500 font-normal">({item.role})</span>
-                      </td>
-                      <td className="p-3.5">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                          item.action === "APPROVE" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" :
-                          item.action === "REJECT" ? "bg-rose-500/20 text-rose-300 border border-rose-500/30" :
-                          item.action === "PAYMENT" ? "bg-purple-500/20 text-purple-300 border border-purple-500/30" :
-                          "bg-slate-800 text-slate-300"
-                        }`}>
-                          {item.action}
-                        </span>
-                      </td>
-                      <td className="p-3.5 font-mono text-slate-300">{item.entity} ({item.entityId})</td>
-                      <td className="p-3.5 text-slate-200">{item.details}</td>
-                      <td className="p-3.5 text-right">
-                        <button
-                          onClick={() => onInspectAuditDetail(item)}
-                          className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-indigo-300 text-[11px] font-mono transition"
-                        >
-                          Inspect →
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    /* =========================================================================
-       MODULE 9: AI COPILOT (FR-901, FR-902)
-       ========================================================================= */
-    function AiCopilotView({ branch, deals, inventory, invoices, approvals }) {
-      const [messages, setMessages] = useState([
-        { sender: "assistant", text: "Hello! I am your Antigravity AI Business Copilot. I analyze real-time CRM, Inventory, and Finance streams across all active branches. Select a prompt below or ask any question." }
-      ]);
-      const [inputVal, setInputVal] = useState("");
-
-      const handleAsk = (queryText) => {
-        const text = queryText || inputVal;
-        if (!text.trim()) return;
-
-        const userMsg = { sender: "user", text };
-        setMessages(prev => [...prev, userMsg]);
-        setInputVal("");
-
-        // Simulate intelligent response using current state calculations
-        setTimeout(() => {
-          let reply = "";
-          const q = text.toLowerCase();
-          if (q.includes("cashflow") || q.includes("profit") || q.includes("margin")) {
-            const rev = invoices.filter(i => i.status === "Paid").reduce((a, b) => a + b.paidAmount, 0) + 126720;
-            const profit = Math.round(rev * 0.284);
-            reply = `Financial Health Analysis: Current net revenue is ${formatCurrency(rev, branch)} with an operating profit of ${formatCurrency(profit, branch)} (28.4% margin). Cashflow trajectory is strong with zero default risk in current MTD.`;
-          } else if (q.includes("inventory") || q.includes("stock") || q.includes("sku")) {
-            const low = inventory.filter(i => i.inStock <= i.reorderLevel);
-            reply = `Inventory Analysis: There are currently ${low.length} SKUs below minimum safety reorder thresholds: ${low.map(x => `${x.sku} (${x.name}, ${x.inStock} units left)`).join(", ")}. Recommendation: 1-click Auto-PO is ready to restock.`;
-          } else if (q.includes("overdue") || q.includes("ar") || q.includes("invoice")) {
-            const overdue = invoices.filter(i => i.status === "Overdue");
-            const sum = overdue.reduce((a, b) => a + b.amount, 0);
-            reply = `Accounts Receivable Risk: Found ${overdue.length} overdue invoices totaling ${formatCurrency(sum, branch)}. Major items: ${overdue.map(x => `${x.number} (${x.client}, ${formatCurrency(x.amount, branch)})`).join("; ")}. Automated dunning reminders are staged.`;
-          } else if (q.includes("pipeline") || q.includes("deal") || q.includes("crm")) {
-            const weighted = deals.reduce((a, b) => a + (b.value * (b.probability / 100)), 0);
-            reply = `CRM Deal Pipeline: Total active deals: ${deals.length}. Weighted pipeline forecast value: ${formatCurrency(weighted, branch)}. High-probability conversion: ${deals.filter(d => d.stage === "Proposal").map(d => d.name).join(", ")}.`;
-          } else {
-            reply = `Antigravity Analysis for: "${text}"
-Across ${branch.name}, all core business processes (Auth, Dashboard, CRM, Inventory, Finance, POS, HRM) are operating normally with sub-100ms response times on Vercel Edge.`;
-          }
-          setMessages(prev => [...prev, { sender: "assistant", text: reply }]);
-        }, 500);
-      };
-
-      return (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-5 rounded-2xl">
-            <div>
-              <span className="text-xs font-mono uppercase text-indigo-400 font-bold">FR-901 & FR-902</span>
-              <h2 className="text-xl font-bold text-white mt-0.5">Antigravity AI Business Copilot</h2>
-              <p className="text-xs text-slate-400 mt-1">Natural language reasoning over operational data streams using Vercel AI SDK patterns.</p>
-            </div>
-          </div>
-
-          {/* Quick Prompt Chips */}
-          <div className="flex flex-wrap gap-2">
-            {[
-              "What is our current cashflow and operating margin?",
-              "Which inventory SKUs need urgent reordering?",
-              "List all overdue invoices and calculate collection risk",
-              "What is our weighted CRM pipeline forecast?"
-            ].map((chip, idx) => (
-              <button
-                key={idx}
-                onClick={() => handleAsk(chip)}
-                className="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-indigo-500/30 hover:border-indigo-500 text-xs text-indigo-300 font-medium transition"
-              >
-                💡 {chip}
-              </button>
-            ))}
-          </div>
-
-          {/* Chat Container */}
-          <div className="glass-panel p-5 rounded-2xl space-y-4 min-h-[400px] flex flex-col justify-between">
-            <div className="space-y-3 overflow-y-auto max-h-[380px] pr-2">
-              {messages.map((m, idx) => (
-                <div
-                  key={idx}
-                  className={`flex ${m.sender === "user" ? "justify-end" : "justify-start"}`}
-                >
-                  <div className={`max-w-2xl p-4 rounded-2xl text-xs leading-relaxed ${
-                    m.sender === "user"
-                      ? "bg-indigo-600 text-white font-medium"
-                      : "bg-slate-900 border border-slate-700/80 text-slate-200"
-                  }`}>
-                    {m.text}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleAsk();
-              }}
-              className="flex gap-2 pt-3 border-t border-slate-800"
-            >
-              <input
-                type="text"
-                placeholder="Ask Antigravity AI anything about revenue, inventory, margins, or deals..."
-                value={inputVal}
-                onChange={(e) => setInputVal(e.target.value)}
-                className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              />
-              <button
-                type="submit"
-                className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow"
-              >
-                Ask Copilot →
-              </button>
-            </form>
-          </div>
-        </div>
-      );
-    }
-
-    /* =========================================================================
-       MODULE 10: SETTINGS & RBAC MATRIX (FR-101, FR-102)
-       ========================================================================= */
-    function SettingsRbacView({ branch, role }) {
-      const MATRIX = [
-        { module: "Executive Dashboard", admin: "Read / Export", manager: "Read / Export", staff: "Read Only", auditor: "Read Only" },
-        { module: "CRM & Deals Pipeline", admin: "Full Control", manager: "Create / Edit / Close", staff: "Create Leads", auditor: "Read Only" },
-        { module: "ERP Inventory & POs", admin: "Full Control", manager: "Issue PO / Adjust", staff: "Scan / Look Up", auditor: "Read Only" },
-        { module: "Finance & Invoicing", admin: "Full Control", manager: "Create / Settle", staff: "No Access", auditor: "Full Audit Read" },
-        { module: "Web Point of Sale (POS)", admin: "Full Control", manager: "Reconcile Shift", staff: "Sell / Cashier", auditor: "Read Logs" },
-        { module: "HRM & Payroll", admin: "Full Control", manager: "Approve Leave", staff: "Clock In / Out", auditor: "Read Only" },
-        { module: "Security & Audit Trail", admin: "Full Control", manager: "View Own Dept", staff: "No Access", auditor: "Full Audit Read" },
-      ];
-
-      return (
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-5 rounded-2xl">
-            <div>
-              <span className="text-xs font-mono uppercase text-indigo-400 font-bold">FR-101 & FR-102</span>
-              <h2 className="text-xl font-bold text-white mt-0.5">Role-Based Access Control (RBAC) Matrix</h2>
-              <p className="text-xs text-slate-400 mt-1">Granular authorization policies enforced across UI routes and server actions.</p>
-            </div>
-            <div className="text-xs text-slate-300 font-mono bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-700">
-              Active Context: <strong className="text-indigo-400">{role.name}</strong> @ {branch.name}
-            </div>
-          </div>
-
-          <div className="glass-panel rounded-2xl overflow-hidden border border-slate-700/80">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-950/90 text-slate-400 border-b border-slate-800">
-                <tr>
-                  <th className="p-3.5">Business Module</th>
-                  <th className="p-3.5">Super Admin</th>
-                  <th className="p-3.5">Operations Manager</th>
-                  <th className="p-3.5">Staff (Sales/Stock)</th>
-                  <th className="p-3.5">Compliance Auditor</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/80">
-                {MATRIX.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-slate-850/40 transition">
-                    <td className="p-3.5 font-bold text-white">{row.module}</td>
-                    <td className="p-3.5 text-purple-300 font-semibold">{row.admin}</td>
-                    <td className="p-3.5 text-indigo-300">{row.manager}</td>
-                    <td className="p-3.5 text-emerald-300">{row.staff}</td>
-                    <td className="p-3.5 text-amber-300">{row.auditor}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         </div>
       );
     }
@@ -2845,26 +970,30 @@ ${JSON.stringify(spec, null, 2)}`;
     }
 
     /* =========================================================================
-       MODALS: COMMAND PALETTE, NEW DEAL, POS RECEIPT, AUDIT DIFF
+       COMMAND PALETTE MODAL (Cmd+K / Ctrl+K)
        ========================================================================= */
-    function CommandPaletteModal({ onClose, onNavigate, onAction }) {
+    function CommandPaletteModal({ modules = [], onClose, onSelectTab, onSearchQuery, onOpenLiveApp }) {
       const [query, setQuery] = useState("");
 
-      const COMMANDS = [
-        { id: "dashboard", label: "Executive Dashboard", group: "Navigate", icon: "📊" },
-        { id: "crm", label: "CRM & Sales Pipeline", group: "Navigate", icon: "🤝" },
-        { id: "inventory", label: "ERP Inventory Catalog", group: "Navigate", icon: "📦" },
-        { id: "finance", label: "Finance & Accounts Receivable", group: "Navigate", icon: "💳" },
-        { id: "pos", label: "Web POS Checkout Terminal", group: "Navigate", icon: "🛒" },
-        { id: "hrm", label: "HRM & Shift Punch Clock", group: "Navigate", icon: "👥" },
-        { id: "audit", label: "System-Wide Audit Trail", group: "Navigate", icon: "🛡️" },
-        { id: "copilot", label: "Antigravity AI Copilot", group: "Navigate", icon: "🤖" },
-        { id: "new-deal", label: "Create New Customer Deal", group: "Action", icon: "⚡" },
-        { id: "clock", label: "Toggle Attendance Clock-In", group: "Action", icon: "⏱️" },
-        { id: "spec", label: "View Living SRS Blueprint", group: "Spec", icon: "📋" },
+      const TABS = [
+        { id: "overview", label: "1. Executive Summary & Scope", group: "Plan Section", icon: "📋" },
+        { id: "roadmap", label: "2. Master Project Plan & Roadmap", group: "Plan Section", icon: "🗺️" },
+        { id: "srs", label: "3. Functional SRS Modules & Requirements", group: "Plan Section", icon: "📦" },
+        { id: "architecture", label: "4. Architecture & ER Schema", group: "Plan Section", icon: "🏗️" },
+        { id: "agent", label: "5. Antigravity Agent Directives", group: "Plan Section", icon: "🤖" },
+        { id: "live-bms", label: "🚀 Open Live BMS Web App (nexus-bms.vercel.app)", group: "External App", icon: "🌐" }
       ];
 
-      const filtered = COMMANDS.filter(c => c.label.toLowerCase().includes(query.toLowerCase()));
+      const moduleItems = modules.map(m => ({
+        id: `mod-${m.code}`,
+        label: `${m.code}: ${m.name} (${m.requirements.length} Reqs)`,
+        group: "SRS Module",
+        icon: "⚡",
+        module: m
+      }));
+
+      const allItems = [...TABS, ...moduleItems];
+      const filtered = allItems.filter(c => c.label.toLowerCase().includes(query.toLowerCase()));
 
       return (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-start justify-center pt-20 p-4 animate-fade-in">
@@ -2874,7 +1003,7 @@ ${JSON.stringify(spec, null, 2)}`;
               <input
                 autoFocus
                 type="text"
-                placeholder="Type a command or jump to module..."
+                placeholder="Search plan sections, SRS modules, or open live app..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="w-full bg-transparent text-sm text-white focus:outline-none placeholder-slate-500"
@@ -2887,8 +1016,14 @@ ${JSON.stringify(spec, null, 2)}`;
                 <div
                   key={cmd.id}
                   onClick={() => {
-                    if (cmd.group === "Navigate") onNavigate(cmd.id);
-                    else onAction(cmd.id);
+                    onClose();
+                    if (cmd.id === "live-bms") {
+                      onOpenLiveApp();
+                    } else if (cmd.group === "Plan Section") {
+                      onSelectTab(cmd.id);
+                    } else if (cmd.group === "SRS Module") {
+                      onSearchQuery(cmd.module.code);
+                    }
                   }}
                   className="p-2.5 rounded-xl hover:bg-indigo-600/20 hover:text-indigo-300 text-slate-200 text-xs font-semibold flex items-center justify-between cursor-pointer transition"
                 >
@@ -2899,217 +1034,11 @@ ${JSON.stringify(spec, null, 2)}`;
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">{cmd.group}</span>
                 </div>
               ))}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    function NewDealModal({ onClose, onSave }) {
-      const [name, setName] = useState("");
-      const [company, setCompany] = useState("");
-      const [contact, setContact] = useState("");
-      const [email, setEmail] = useState("");
-      const [value, setValue] = useState(15000);
-      const [stage, setStage] = useState("Qualified");
-
-      const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!name || !company) return;
-        onSave({
-          name,
-          company,
-          contact: contact || "Lead Contact",
-          email: email || "info@client.com",
-          value: Number(value),
-          stage,
-          probability: stage === "Lead" ? 20 : stage === "Qualified" ? 40 : stage === "Proposal" ? 70 : 100
-        });
-      };
-
-      return (
-        <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4">
-          <form onSubmit={handleSubmit} className="glass-panel rounded-2xl p-6 max-w-md w-full space-y-4 border border-slate-700">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <h3 className="font-bold text-white text-base">+ New CRM Deal Opportunity</h3>
-              <button type="button" onClick={onClose} className="text-slate-400 hover:text-white text-sm">✕</button>
-            </div>
-
-            <div>
-              <label className="text-xs text-slate-400 block mb-1">Deal Title *</label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Fleet GPS Tracking Integration"
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs text-slate-400 block mb-1">Company / Organization *</label>
-              <input
-                type="text"
-                required
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                placeholder="e.g. Apex Global Corp"
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-slate-400 block mb-1">Contact Person</label>
-                <input
-                  type="text"
-                  value={contact}
-                  onChange={(e) => setContact(e.target.value)}
-                  placeholder="e.g. Sarah Connor"
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-slate-400 block mb-1">Estimated Value ($)</label>
-                <input
-                  type="number"
-                  value={value}
-                  onChange={(e) => setValue(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white font-mono"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs text-slate-400 block mb-1">Pipeline Stage</label>
-              <select
-                value={stage}
-                onChange={(e) => setStage(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white"
-              >
-                <option value="Lead">Lead Capture (20%)</option>
-                <option value="Qualified">Qualified Prospect (40%)</option>
-                <option value="Proposal">Proposal / Quote Sent (70%)</option>
-                <option value="Won">Closed Won (100%)</option>
-              </select>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={onClose} className="px-3 py-2 rounded-lg text-xs text-slate-400 hover:text-white">
-                Cancel
-              </button>
-              <button type="submit" className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold">
-                Save Deal
-              </button>
-            </div>
-          </form>
-        </div>
-      );
-    }
-
-    function PosReceiptModal({ receipt, branch, onClose }) {
-      return (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="bg-white text-slate-900 rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl font-mono text-xs">
-            <div className="text-center border-b border-dashed border-slate-300 pb-3">
-              <div className="font-extrabold text-sm uppercase">NEXUSBMS OMNICHANNEL POS</div>
-              <div className="text-[10px] text-slate-600">{receipt.branch}</div>
-              <div className="text-[10px] text-slate-500 mt-1">{receipt.timestamp}</div>
-              <div className="text-[10px] text-slate-500">Receipt #: {receipt.receiptNumber}</div>
-              <div className="text-[10px] text-slate-500">Cashier: {receipt.cashier}</div>
-            </div>
-
-            <div className="space-y-1.5 border-b border-dashed border-slate-300 pb-3">
-              {receipt.items.map((it, idx) => (
-                <div key={idx} className="flex justify-between">
-                  <span>{it.qty}x {it.name.substring(0, 20)}</span>
-                  <span>{formatCurrency(it.unitPrice * it.qty, branch)}</span>
+              {filtered.length === 0 && (
+                <div className="p-4 text-center text-xs text-slate-500">
+                  No matching section or module found. Press ESC to close.
                 </div>
-              ))}
-            </div>
-
-            <div className="space-y-1 border-b border-dashed border-slate-300 pb-3">
-              <div className="flex justify-between">
-                <span>Subtotal:</span>
-                <span>{formatCurrency(receipt.subtotal, branch)}</span>
-              </div>
-              <div className="flex justify-between text-slate-600">
-                <span>Tax (8.25%):</span>
-                <span>{formatCurrency(receipt.tax, branch)}</span>
-              </div>
-              <div className="flex justify-between font-bold text-sm pt-1">
-                <span>TOTAL PAID:</span>
-                <span>{formatCurrency(receipt.total, branch)}</span>
-              </div>
-              <div className="text-[10px] text-slate-500 text-right">Method: {receipt.paymentMethod}</div>
-            </div>
-
-            <div className="text-center text-[10px] text-slate-500 space-y-1">
-              <div>Thank you for your business!</div>
-              <div>NexusBMS Enterprise POS • Verified Edge Transaction</div>
-            </div>
-
-            <div className="flex gap-2 pt-2 no-print">
-              <button
-                onClick={() => window.print()}
-                className="flex-1 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs"
-              >
-                🖨️ Print Receipt
-              </button>
-              <button
-                onClick={onClose}
-                className="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    function AuditDetailModal({ auditItem, onClose }) {
-      return (
-        <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4">
-          <div className="glass-panel rounded-2xl p-6 max-w-lg w-full space-y-4 border border-slate-700">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <div>
-                <span className="text-xs font-mono text-indigo-400 font-bold">{auditItem.id}</span>
-                <h3 className="font-bold text-white text-base">Forensic Audit Payload Inspection</h3>
-              </div>
-              <button onClick={onClose} className="text-slate-400 hover:text-white text-sm">✕</button>
-            </div>
-
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Timestamp:</span>
-                <span className="font-mono text-slate-200">{auditItem.timestamp}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Actor Identity:</span>
-                <span className="font-semibold text-white">{auditItem.actor} ({auditItem.role})</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Action Type:</span>
-                <span className="font-mono text-indigo-400 font-bold">{auditItem.action}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Entity Affected:</span>
-                <span className="font-mono text-emerald-400">{auditItem.entity} ({auditItem.entityId})</span>
-              </div>
-              <div className="pt-2">
-                <span className="text-slate-400 block mb-1">Audit Details:</span>
-                <p className="bg-slate-900 border border-slate-800 p-2.5 rounded-lg text-slate-200 leading-relaxed font-mono">
-                  {auditItem.details}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <button onClick={onClose} className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold">
-                Close Inspector
-              </button>
+              )}
             </div>
           </div>
         </div>
