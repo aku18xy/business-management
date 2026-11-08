@@ -55,6 +55,7 @@ export const PosTerminalPage = () => {
     navigateToPath,
     // FR-802: Register Shift & Cash Drawer Reconciliation
     posShift,
+    isShiftOpen,
     posShiftHistory,
     shiftCashSales,
     shiftCashDropsTotal,
@@ -66,6 +67,9 @@ export const PosTerminalPage = () => {
     voidPosOrder,
     refundPosOrder
   } = useApp();
+
+  // Evaluate whether cash drawer shift is currently open
+  const isShiftActive = isShiftOpen !== undefined ? isShiftOpen : Boolean(posShift && (posShift.status === 'Open' || posShift.isOpen));
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -138,12 +142,33 @@ export const PosTerminalPage = () => {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (isLocked) return;
-      if (e.key === 'F2') {
+      if (e.key === 'F1') {
+        e.preventDefault();
+        if (!isShiftActive) {
+          setOpenShiftModal(true);
+        } else if (posCart.length > 0) {
+          setSelectedPayment('Cash Drawer');
+          setCheckoutModal(true);
+        }
+      } else if (e.key === 'F2') {
         e.preventDefault();
         searchInputRef.current?.focus();
+      } else if (e.key === 'F3') {
+        e.preventDefault();
+        if (!isShiftActive) {
+          setOpenShiftModal(true);
+        } else if (posCart.length > 0) {
+          setSelectedPayment('QR Pay');
+          setCheckoutModal(true);
+        }
       } else if (e.key === 'F4') {
         e.preventDefault();
-        if (posCart.length > 0) setCheckoutModal(true);
+        if (!isShiftActive) {
+          setOpenShiftModal(true);
+        } else if (posCart.length > 0) {
+          setSelectedPayment('Card Terminal');
+          setCheckoutModal(true);
+        }
       } else if (e.key === 'F8') {
         e.preventDefault();
         setReconcileModal(true);
@@ -151,7 +176,16 @@ export const PosTerminalPage = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [posCart, isLocked]);
+  }, [posCart, isLocked, isShiftActive]);
+
+  // Handle adding items to cart with shift open validation
+  const handleAddItemToCart = (product) => {
+    if (!isShiftActive) {
+      setOpenShiftModal(true);
+      return;
+    }
+    addToCart(product);
+  };
 
   // Categories
   const categories = ['All', '★ Quick-Keys', ...Array.from(new Set(posCatalog.map(p => p.category)))];
@@ -187,8 +221,14 @@ export const PosTerminalPage = () => {
     return `$${Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  // Tender checkout
+  // Tender checkout (Enforcing FR-802: Orders blocked if shift is closed)
   const handleCompleteSale = () => {
+    if (!isShiftActive) {
+      alert('Cannot place order: Register shift is closed. Please open shift and record starting cash float first.');
+      setCheckoutModal(false);
+      setOpenShiftModal(true);
+      return;
+    }
     if (posCart.length === 0) return;
     const tenderedVal = Number(cashTendered) || cartTotal;
     const changeDue = Math.max(0, tenderedVal - cartTotal);
@@ -204,6 +244,11 @@ export const PosTerminalPage = () => {
       total: cartTotal,
       branchId: selectedBranch?.id || 'BR-HQ-01'
     });
+
+    if (!receipt) {
+      alert('Order could not be processed. Please verify register shift is open.');
+      return;
+    }
 
     setLastReceipt(receipt);
     setCheckoutModal(false);
@@ -283,10 +328,17 @@ export const PosTerminalPage = () => {
                 <span className="text-xs font-bold text-white tracking-wide truncate">
                   NexusPOS
                 </span>
-                <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  REG-01
-                </span>
+                {isShiftActive ? (
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    {posShift?.registerId || 'REG-01'} • ONLINE
+                  </span>
+                ) : (
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/30 font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" />
+                    REG-01 • SHIFT CLOSED
+                  </span>
+                )}
               </div>
               <span className="text-[10px] text-slate-400 hidden md:inline truncate">
                 {selectedBranch?.name || 'Flagship Megastore'} • USD ($)
@@ -297,25 +349,29 @@ export const PosTerminalPage = () => {
 
         {/* Center: Shift & Drawer Quick Pill */}
         <div className="flex items-center gap-1.5 shrink-0">
-          {posShift?.isOpen ? (
+          {isShiftActive ? (
             <button
               onClick={() => setReconcileModal(true)}
-              className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 flex items-center gap-1.5 text-xs transition"
-              title="Click to view drawer balance & cash drops"
+              className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-emerald-500/30 flex items-center gap-1.5 text-xs transition shadow-sm"
+              title="Shift is OPEN — Click to view drawer balance & cash drops"
             >
-              <Coins className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <Coins className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
               <span className="text-slate-400 hidden md:inline">Drawer:</span>
               <span className="font-mono font-bold text-emerald-400 text-xs">
                 {formatMoney(shiftExpectedCash)}
+              </span>
+              <span className="hidden lg:inline text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-bold uppercase">
+                Open
               </span>
             </button>
           ) : (
             <button
               onClick={() => setOpenShiftModal(true)}
-              className="px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center gap-1 text-[11px] sm:text-xs font-bold"
+              className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 flex items-center gap-1.5 text-[11px] sm:text-xs font-bold transition shadow-sm animate-pulse"
+              title="Shift is CLOSED — Click to open register and set float"
             >
-              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate max-w-[85px] sm:max-w-none">Open Shift</span>
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+              <span className="truncate max-w-[130px] sm:max-w-none">Shift Closed — Open Register</span>
             </button>
           )}
 
@@ -331,7 +387,7 @@ export const PosTerminalPage = () => {
           {/* Quick Shift Button (Desktop only) */}
           <button
             onClick={() => {
-              if (posShift?.isOpen) setCashDropModal(true);
+              if (isShiftActive) setCashDropModal(true);
               else setOpenShiftModal(true);
             }}
             className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 hidden xl:flex items-center gap-1.5 transition"
@@ -403,7 +459,7 @@ export const PosTerminalPage = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && filteredCatalog.length === 1) {
-                    addToCart(filteredCatalog[0]);
+                    handleAddItemToCart(filteredCatalog[0]);
                     setSearchQuery('');
                   }
                 }}
@@ -425,6 +481,33 @@ export const PosTerminalPage = () => {
               <span className="hidden sm:inline">Z-Report [F8]</span>
             </button>
           </div>
+
+          {/* Shift Closed Alert Banner (FR-802 Trading Suspended Guard) */}
+          {!isShiftActive && (
+            <div className="mb-2 sm:mb-3 p-3 rounded-2xl bg-gradient-to-r from-rose-950/90 via-amber-950/60 to-rose-950/90 border border-rose-500/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xl shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-rose-500/20 text-rose-400 shrink-0 border border-rose-500/30">
+                  <AlertTriangle className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-extrabold text-white tracking-wide flex items-center gap-2">
+                    <span>REGISTER SHIFT IS CLOSED</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/30 text-rose-300 font-mono font-bold">TRADING SUSPENDED</span>
+                  </h4>
+                  <p className="text-[11px] text-rose-200/90 mt-0.5">
+                    Orders cannot be placed. Cashier must open shift and set the starting cash float before ringing sales.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setOpenShiftModal(true)}
+                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-1.5 shrink-0 active:scale-95"
+              >
+                <Unlock className="w-3.5 h-3.5" />
+                <span>Open Shift & Set Float</span>
+              </button>
+            </div>
+          )}
 
           {/* Category Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-2 shrink-0 scrollbar-none">
@@ -455,7 +538,7 @@ export const PosTerminalPage = () => {
                 <button
                   key={product.id}
                   disabled={isOutOfStock}
-                  onClick={() => addToCart(product)}
+                  onClick={() => handleAddItemToCart(product)}
                   className={`group relative rounded-2xl p-2.5 sm:p-3 text-left border flex flex-col justify-between transition-all active:scale-[0.98] ${
                     isOutOfStock
                       ? 'bg-slate-900/30 border-slate-900 opacity-50 cursor-not-allowed'
@@ -521,28 +604,41 @@ export const PosTerminalPage = () => {
 
           {/* MOBILE STICKY BOTTOM CART BAR */}
           <div className="pt-2 bg-slate-950/80 border-t border-slate-800/80 lg:hidden shrink-0">
-            <button
-              onClick={() => setMobileCartOpen(true)}
-              className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold shadow-xl shadow-indigo-600/30 transition active:scale-[0.98]"
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="relative">
-                  <ShoppingCart className="w-5 h-5" />
-                  {totalCartUnits > 0 && (
-                    <span className="absolute -top-2 -right-2 px-1.5 py-0.2 bg-emerald-400 text-slate-950 rounded-full text-[10px] font-black font-mono shadow">
-                      {totalCartUnits}
-                    </span>
-                  )}
+            {!isShiftActive ? (
+              <button
+                onClick={() => setOpenShiftModal(true)}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-gradient-to-r from-rose-600 via-amber-600 to-rose-600 hover:from-rose-500 hover:to-rose-400 text-white font-bold shadow-xl shadow-rose-600/30 transition active:scale-[0.98]"
+              >
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-amber-200 animate-pulse" />
+                  <span className="text-xs">Shift Closed — Open Register</span>
                 </div>
-                <span className="text-xs">
-                  {totalCartUnits > 0 ? `${totalCartUnits} Item${totalCartUnits > 1 ? 's' : ''} in Cart` : 'Tap to View Cart'}
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 font-mono text-sm font-extrabold text-white">
-                <span>{formatMoney(cartTotal)}</span>
-                <span className="text-indigo-200 text-base font-sans">→</span>
-              </div>
-            </button>
+                <span className="text-xs font-mono font-extrabold bg-black/30 px-2.5 py-1 rounded-lg">Set Float →</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setMobileCartOpen(true)}
+                className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold shadow-xl shadow-indigo-600/30 transition active:scale-[0.98]"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="relative">
+                    <ShoppingCart className="w-5 h-5" />
+                    {totalCartUnits > 0 && (
+                      <span className="absolute -top-2 -right-2 px-1.5 py-0.2 bg-emerald-400 text-slate-950 rounded-full text-[10px] font-black font-mono shadow">
+                        {totalCartUnits}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs">
+                    {totalCartUnits > 0 ? `${totalCartUnits} Item${totalCartUnits > 1 ? 's' : ''} in Cart` : 'Tap to View Cart'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 font-mono text-sm font-extrabold text-white">
+                  <span>{formatMoney(cartTotal)}</span>
+                  <span className="text-indigo-200 text-base font-sans">→</span>
+                </div>
+              </button>
+            )}
           </div>
         </section>
 
@@ -718,39 +814,86 @@ export const PosTerminalPage = () => {
               </div>
             </div>
 
+            {/* Shift Closed Tender Blocker (FR-802 Order Block) */}
+            {!isShiftActive && (
+              <div className="p-3 rounded-2xl bg-rose-950/80 border border-rose-500/50 text-center space-y-1.5 mb-2 shadow-lg">
+                <div className="flex items-center justify-center gap-1.5 text-rose-300 text-xs font-extrabold tracking-wide">
+                  <Lock className="w-3.5 h-3.5 text-rose-400" />
+                  <span>SHIFT CLOSED • CHECKOUT BLOCKED</span>
+                </div>
+                <p className="text-[10px] text-rose-200/80">
+                  Open cash drawer shift and set starting float to enable order tender.
+                </p>
+                <button
+                  onClick={() => setOpenShiftModal(true)}
+                  className="w-full py-1.5 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold text-xs shadow-md shadow-emerald-600/30 transition flex items-center justify-center gap-1.5"
+                >
+                  <Unlock className="w-3.5 h-3.5" />
+                  <span>Open Shift & Set Float</span>
+                </button>
+              </div>
+            )}
+
             {/* Main Tender Buttons */}
             <div className="grid grid-cols-3 gap-2 pt-1">
               <button
-                disabled={posCart.length === 0}
+                disabled={!isShiftActive || posCart.length === 0}
                 onClick={() => {
+                  if (!isShiftActive) {
+                    setOpenShiftModal(true);
+                    return;
+                  }
                   setSelectedPayment('Cash Drawer');
                   setCheckoutModal(true);
                 }}
-                className="py-2.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs flex flex-col items-center justify-center gap-1 shadow-lg shadow-emerald-600/20 transition active:scale-[0.98]"
+                className={`py-2.5 px-2 rounded-xl text-white font-bold text-xs flex flex-col items-center justify-center gap-1 shadow-lg transition active:scale-[0.98] ${
+                  !isShiftActive || posCart.length === 0
+                    ? 'bg-slate-800 text-slate-500 border border-slate-700/50 opacity-40 cursor-not-allowed'
+                    : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20'
+                }`}
+                title={!isShiftActive ? 'Shift closed: Open shift to checkout' : 'Complete cash sale [F1]'}
               >
                 <Banknote className="w-4 h-4" />
                 <span>Cash [F1]</span>
               </button>
 
               <button
-                disabled={posCart.length === 0}
+                disabled={!isShiftActive || posCart.length === 0}
                 onClick={() => {
+                  if (!isShiftActive) {
+                    setOpenShiftModal(true);
+                    return;
+                  }
                   setSelectedPayment('Card Terminal');
                   setCheckoutModal(true);
                 }}
-                className="py-2.5 px-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs flex flex-col items-center justify-center gap-1 shadow-lg shadow-indigo-600/20 transition active:scale-[0.98]"
+                className={`py-2.5 px-2 rounded-xl text-white font-bold text-xs flex flex-col items-center justify-center gap-1 shadow-lg transition active:scale-[0.98] ${
+                  !isShiftActive || posCart.length === 0
+                    ? 'bg-slate-800 text-slate-500 border border-slate-700/50 opacity-40 cursor-not-allowed'
+                    : 'bg-indigo-600 hover:bg-indigo-500 shadow-indigo-600/20'
+                }`}
+                title={!isShiftActive ? 'Shift closed: Open shift to checkout' : 'Process card payment [F2]'}
               >
                 <CreditCard className="w-4 h-4" />
                 <span>Card [F2]</span>
               </button>
 
               <button
-                disabled={posCart.length === 0}
+                disabled={!isShiftActive || posCart.length === 0}
                 onClick={() => {
+                  if (!isShiftActive) {
+                    setOpenShiftModal(true);
+                    return;
+                  }
                   setSelectedPayment('QR Pay');
                   setCheckoutModal(true);
                 }}
-                className="py-2.5 px-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs flex flex-col items-center justify-center gap-1 shadow-lg shadow-purple-600/20 transition active:scale-[0.98]"
+                className={`py-2.5 px-2 rounded-xl text-white font-bold text-xs flex flex-col items-center justify-center gap-1 shadow-lg transition active:scale-[0.98] ${
+                  !isShiftActive || posCart.length === 0
+                    ? 'bg-slate-800 text-slate-500 border border-slate-700/50 opacity-40 cursor-not-allowed'
+                    : 'bg-purple-600 hover:bg-purple-500 shadow-purple-600/20'
+                }`}
+                title={!isShiftActive ? 'Shift closed: Open shift to checkout' : 'Scan customer QR code [F3]'}
               >
                 <QrCode className="w-4 h-4" />
                 <span>QR Pay [F3]</span>
@@ -1016,117 +1159,196 @@ export const PosTerminalPage = () => {
               <div>
                 <h3 className="text-base font-bold text-white">Register Shift Drawer & Z-Report (FR-802)</h3>
                 <span className="text-xs text-slate-400">
-                  {posShift?.registerId || 'REG-01-FLAGSHIP'} • Cashier: {posShift?.cashier || currentUser.name}
+                  {isShiftActive
+                    ? `${posShift?.registerId || 'REG-01-FLAGSHIP'} • Cashier: ${posShift?.cashier || currentUser.name}`
+                    : 'REG-01-FLAGSHIP • Status: Shift Closed'}
                 </span>
               </div>
               <button onClick={() => setReconcileModal(false)} className="text-slate-400 hover:text-white">✕</button>
             </div>
 
-            <div className="space-y-2 bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs">
-              <div className="flex justify-between text-slate-400">
-                <span>Opening Cash Float:</span>
-                <span className="font-mono text-white font-bold">{formatMoney(posShift?.openingFloat || 250)}</span>
-              </div>
-              <div className="flex justify-between text-slate-400">
-                <span>Shift Cash Sales Collected:</span>
-                <span className="font-mono text-emerald-400 font-bold">+{formatMoney(shiftCashSales)}</span>
-              </div>
-              <div className="flex justify-between text-slate-400">
-                <span>Vault Cash Drops (Safe):</span>
-                <span className="font-mono text-amber-400 font-bold">-{formatMoney(shiftCashDropsTotal)}</span>
-              </div>
-              <div className="flex justify-between text-sm font-bold text-white pt-2 border-t border-slate-800">
-                <span>Expected Drawer Cash:</span>
-                <span className="font-mono text-emerald-400 text-base">{formatMoney(shiftExpectedCash)}</span>
-              </div>
-            </div>
-
-            {/* Quick action to record mid-shift vault drop */}
-            <div className="flex items-center justify-between text-xs pt-1">
-              <span className="text-slate-400">Excess cash in drawer?</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setReconcileModal(false);
-                  setCashDropModal(true);
-                }}
-                className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold border border-amber-500/40 flex items-center gap-1.5 transition"
-              >
-                <ArrowDownToLine className="w-3.5 h-3.5" />
-                <span>Record Vault Cash Drop</span>
-              </button>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="text-xs text-slate-400 font-medium">Actual Counted Physical Cash in Drawer</label>
-                <button
-                  type="button"
-                  onClick={() => setCountedCashInput(shiftExpectedCash.toFixed(2))}
-                  className="text-[10px] text-emerald-400 hover:underline font-mono"
-                >
-                  Count Exact Expected
-                </button>
-              </div>
-              <input
-                type="number"
-                step="0.01"
-                placeholder={shiftExpectedCash.toFixed(2)}
-                value={countedCashInput}
-                onChange={(e) => setCountedCashInput(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-sm font-bold focus:outline-none focus:border-indigo-500"
-              />
-
-              {countedCashInput && (
-                <div className="flex justify-between items-center text-xs pt-2">
-                  <span className="text-slate-400">Reconciliation Variance:</span>
-                  <span className={`font-mono font-bold ${
-                    Number(countedCashInput) === shiftExpectedCash
-                      ? 'text-emerald-400'
-                      : Number(countedCashInput) > shiftExpectedCash
-                      ? 'text-indigo-400'
-                      : 'text-rose-400'
-                  }`}>
-                    {Number(countedCashInput) - shiftExpectedCash >= 0 ? '+' : ''}
-                    {formatMoney(Number(countedCashInput) - shiftExpectedCash)} (
-                    {Number(countedCashInput) === shiftExpectedCash ? 'Balanced' : Number(countedCashInput) > shiftExpectedCash ? 'Overage' : 'Shortage'})
-                  </span>
+            {!isShiftActive ? (
+              <div className="space-y-4 py-1">
+                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-center space-y-2">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto">
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                  <h4 className="text-sm font-bold text-white">No Register Shift Currently Open</h4>
+                  <p className="text-xs text-slate-300 max-w-sm mx-auto">
+                    Trading is currently paused. Cashier must open a new shift and set the starting cash float before taking payments.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setReconcileModal(false);
+                      setOpenShiftModal(true);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition inline-flex items-center gap-1.5"
+                  >
+                    <Unlock className="w-3.5 h-3.5" />
+                    <span>Open Register Shift Now</span>
+                  </button>
                 </div>
-              )}
-            </div>
 
-            <div>
-              <label className="text-xs text-slate-400 block mb-1">Closing Notes / Discrepancy Explanation</label>
-              <input
-                type="text"
-                placeholder="All coin rolls counted. Verified bills against tape..."
-                value={reconcileNotes}
-                onChange={(e) => setReconcileNotes(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
-              />
-            </div>
+                {posShiftHistory && posShiftHistory.length > 0 && (
+                  <div className="space-y-2 pt-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-slate-300">Previous Closed Shifts ({posShiftHistory.length})</span>
+                      <span className="text-[10px] text-slate-500">Official Z-Reports</span>
+                    </div>
+                    <div className="max-h-52 overflow-y-auto space-y-1.5 pr-1">
+                      {posShiftHistory.map(shift => (
+                        <div
+                          key={shift.id}
+                          className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs"
+                        >
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-bold text-white">{shift.id}</span>
+                              <span className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
+                                shift.status === 'Balanced'
+                                  ? 'bg-emerald-500/20 text-emerald-300'
+                                  : 'bg-rose-500/20 text-rose-300'
+                              }`}>
+                                {shift.status}
+                              </span>
+                            </div>
+                            <span className="text-slate-400 text-[11px] block mt-0.5">
+                              {shift.openedAt} - {shift.closedAt} • Cashier: {shift.cashier}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setSelectedShiftReport(shift);
+                              setReconcileModal(false);
+                            }}
+                            className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition flex items-center gap-1 shrink-0"
+                          >
+                            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>Z-Report</span>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="flex justify-end pt-2 border-t border-slate-800">
+                  <button
+                    onClick={() => setReconcileModal(false)}
+                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2 bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs">
+                  <div className="flex justify-between text-slate-400">
+                    <span>Opening Cash Float:</span>
+                    <span className="font-mono text-white font-bold">{formatMoney(posShift?.openingFloat || 250)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400">
+                    <span>Shift Cash Sales Collected:</span>
+                    <span className="font-mono text-emerald-400 font-bold">+{formatMoney(shiftCashSales)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400">
+                    <span>Vault Cash Drops (Safe):</span>
+                    <span className="font-mono text-amber-400 font-bold">-{formatMoney(shiftCashDropsTotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-bold text-white pt-2 border-t border-slate-800">
+                    <span>Expected Drawer Cash:</span>
+                    <span className="font-mono text-emerald-400 text-base">{formatMoney(shiftExpectedCash)}</span>
+                  </div>
+                </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
-              <button
-                onClick={() => setReconcileModal(false)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  const actual = countedCashInput !== '' ? Number(countedCashInput) : shiftExpectedCash;
-                  const summary = closeRegisterShift({ countedCash: actual, notes: reconcileNotes });
-                  setReconcileModal(false);
-                  setCountedCashInput('');
-                  setReconcileNotes('');
-                  if (summary) setSelectedShiftReport(summary);
-                }}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow"
-              >
-                Reconcile & Print Z-Report
-              </button>
-            </div>
+                {/* Quick action to record mid-shift vault drop */}
+                <div className="flex items-center justify-between text-xs pt-1">
+                  <span className="text-slate-400">Excess cash in drawer?</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReconcileModal(false);
+                      setCashDropModal(true);
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold border border-amber-500/40 flex items-center gap-1.5 transition"
+                  >
+                    <ArrowDownToLine className="w-3.5 h-3.5" />
+                    <span>Record Vault Cash Drop</span>
+                  </button>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs text-slate-400 font-medium">Actual Counted Physical Cash in Drawer</label>
+                    <button
+                      type="button"
+                      onClick={() => setCountedCashInput(shiftExpectedCash.toFixed(2))}
+                      className="text-[10px] text-emerald-400 hover:underline font-mono"
+                    >
+                      Count Exact Expected
+                    </button>
+                  </div>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder={shiftExpectedCash.toFixed(2)}
+                    value={countedCashInput}
+                    onChange={(e) => setCountedCashInput(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono text-sm font-bold focus:outline-none focus:border-indigo-500"
+                  />
+
+                  {countedCashInput && (
+                    <div className="flex justify-between items-center text-xs pt-2">
+                      <span className="text-slate-400">Reconciliation Variance:</span>
+                      <span className={`font-mono font-bold ${
+                        Number(countedCashInput) === shiftExpectedCash
+                          ? 'text-emerald-400'
+                          : Number(countedCashInput) > shiftExpectedCash
+                          ? 'text-indigo-400'
+                          : 'text-rose-400'
+                      }`}>
+                        {Number(countedCashInput) - shiftExpectedCash >= 0 ? '+' : ''}
+                        {formatMoney(Number(countedCashInput) - shiftExpectedCash)} (
+                        {Number(countedCashInput) === shiftExpectedCash ? 'Balanced' : Number(countedCashInput) > shiftExpectedCash ? 'Overage' : 'Shortage'})
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-xs text-slate-400 block mb-1">Closing Notes / Discrepancy Explanation</label>
+                  <input
+                    type="text"
+                    placeholder="All coin rolls counted. Verified bills against tape..."
+                    value={reconcileNotes}
+                    onChange={(e) => setReconcileNotes(e.target.value)}
+                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                  <button
+                    onClick={() => setReconcileModal(false)}
+                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      const actual = countedCashInput !== '' ? Number(countedCashInput) : shiftExpectedCash;
+                      const summary = closeRegisterShift({ countedCash: actual, notes: reconcileNotes });
+                      setReconcileModal(false);
+                      setCountedCashInput('');
+                      setReconcileNotes('');
+                      if (summary) setSelectedShiftReport(summary);
+                    }}
+                    className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow"
+                  >
+                    Reconcile & Print Z-Report
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

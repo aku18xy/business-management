@@ -484,6 +484,7 @@ export const INITIAL_ACTIVE_SHIFT = {
   openedAtTimestamp: Date.now() - 5 * 3600 * 1000,
   openingFloat: 250.00,
   status: "Open",
+  isOpen: true,
   notes: "Morning shift opening float verified ($200 in bills, $50 in rolled coins).",
   cashDrops: [
     {

@@ -87,6 +87,9 @@ export const AppProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : INITIAL_SHIFT_HISTORY;
   });
 
+  // True if there is an active open register shift
+  const isShiftOpen = Boolean(posShift && (posShift.status === 'Open' || posShift.isOpen));
+
   // Theme mode & active navigation tab
   const [isDark, setIsDark] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -290,24 +293,47 @@ export const AppProvider = ({ children }) => {
 
   const clearCart = () => setPosCart([]);
 
-  const completeCheckout = (paymentMethod) => {
+  const completeCheckout = (paymentPayload) => {
+    // ENFORCE FR-802: If shift is closed, orders CANNOT be placed
+    if (!isShiftOpen) {
+      console.warn('BLOCKED: Cannot complete POS order because register shift is closed.');
+      return null;
+    }
+
     if (posCart.length === 0) return null;
 
-    const subtotal = posCart.reduce((acc, item) => acc + item.price * item.qty, 0);
-    const tax = subtotal * (currentOrg.taxRate / 100);
-    const total = subtotal + tax;
+    const paymentMethod = typeof paymentPayload === 'object' ? paymentPayload.paymentMethod : paymentPayload;
+    const customer = typeof paymentPayload === 'object' ? paymentPayload.customerName : 'Walk-in Retail Guest';
+    const subtotal = typeof paymentPayload === 'object' && paymentPayload.subtotal !== undefined
+      ? paymentPayload.subtotal
+      : posCart.reduce((acc, item) => acc + item.price * item.qty, 0);
+    const tax = typeof paymentPayload === 'object' && paymentPayload.tax !== undefined
+      ? paymentPayload.tax
+      : subtotal * (currentOrg.taxRate / 100);
+    const total = typeof paymentPayload === 'object' && paymentPayload.total !== undefined
+      ? paymentPayload.total
+      : subtotal + tax;
+    const discountPercent = typeof paymentPayload === 'object' ? (paymentPayload.discountPercent || 0) : 0;
+    const changeDue = typeof paymentPayload === 'object' ? (paymentPayload.changeDue || 0) : 0;
+    const cashTendered = typeof paymentPayload === 'object' ? paymentPayload.cashTendered : null;
 
     const orderNumber = `POS-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     const newOrder = {
       id: `ord_${Date.now()}`,
       orderNumber,
+      shiftId: posShift?.id,
+      registerId: posShift?.registerId || 'REG-01-FLAGSHIP',
       cashier: currentUser.name,
+      customerName: customer,
       date: "Just now",
       items: posCart.map(item => ({ id: item.id, sku: item.sku, name: item.name, qty: item.qty, price: item.price })),
       subtotal,
       tax,
       total,
+      discountPercent,
       paymentMethod,
+      cashTendered,
+      changeDue,
       status: "Completed"
     };
 
@@ -327,7 +353,7 @@ export const AppProvider = ({ children }) => {
 
     addAuditLog(
       'POS_ORDER_COMPLETED',
-      `Processed checkout ${orderNumber} for $${total.toFixed(2)} via ${paymentMethod}`
+      `Processed checkout ${orderNumber} for $${total.toFixed(2)} via ${paymentMethod} on shift ${posShift?.id || 'N/A'}`
     );
 
     return newOrder;
@@ -514,6 +540,7 @@ export const AppProvider = ({ children }) => {
       openedAtTimestamp: Date.now(),
       openingFloat: floatNum,
       status: 'Open',
+      isOpen: true,
       notes,
       cashDrops: []
     };
@@ -693,6 +720,7 @@ export const AppProvider = ({ children }) => {
         posSalesTotal,
         // FR-802: Register Shift & Cash Drawer Reconciliation
         posShift,
+        isShiftOpen,
         posShiftHistory,
         shiftCashSales,
         shiftCashDropsTotal,
