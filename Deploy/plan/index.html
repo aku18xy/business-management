@@ -151,13 +151,18 @@
           id: "PHASE-2",
           phase: "Phase 2: CRM, Sales Pipeline & Point of Sale (POS)",
           duration: "Weeks 3 - 4",
-          status: "In Progress",
-          progress: 60,
+          status: "Completed / Operational",
+          progress: 100,
           deliverables: [
-            "Customer & Lead Directory with interaction timeline and tags",
-            "Kanban Sales Pipeline (Lead -> Qualified -> Proposal -> Won/Lost)",
-            "Quotation & Proposal Generator with 1-click Invoice conversion",
-            "Fast Web Point-of-Sale (POS) terminal with barcode/SKU lookup and receipt printing"
+            "Customer & Lead Directory with interaction timeline and tags (FR-301)",
+            "Editable Client Profiles with full contact lifecycle, credit limits & audit logs (FR-302)",
+            "Kanban Sales Pipeline with stage probabilities & weighted forecasting (FR-302-B)",
+            "Quotation & Proposal Generator with 1-click Invoice & Sales Order conversion (FR-303)",
+            "Fast Web Point-of-Sale (POS) terminal with barcode/SKU lookup, split payments and receipt printing (FR-801)",
+            "Register Shift & Cash Drawer Reconciliation with opening float, cash drops & Z-report (FR-802)",
+            "Returns, Refunds & Void Order Lifecycle with automatic stock restock and revenue reversal (FR-803)",
+            "Real-time POS checkout telemetry linked directly to Executive Dashboard revenue & cashflow",
+            "Full Mobile Responsive compatibility (responsive layout, touch cards & mobile navigation)"
           ]
         },
         {
@@ -354,7 +359,8 @@
           ],
           requirements: [
             { id: "FR-801", title: "Fast Web POS Checkout Interface", priority: "Should Have", complexity: "Medium", acceptance: "Sub-100ms product search, cart hold/resume, customer loyalty lookup, and receipt generation." },
-            { id: "FR-802", title: "Register Shift & Cash Drawer Reconciliation", priority: "Should Have", complexity: "Low", acceptance: "Logs opening float, cash sales, cash drops, and closing variance." }
+            { id: "FR-802", title: "Register Shift & Cash Drawer Reconciliation", priority: "Should Have", complexity: "Low", acceptance: "Logs opening float, cash sales, cash drops, and closing variance." },
+            { id: "FR-803", title: "Returns, Refunds & Void Order Lifecycle", priority: "Must Have", complexity: "Medium", acceptance: "Processes returns and item voids with real-time stock replenishment, revenue/tax adjustment, and audit logging." }
           ]
         },
         {
@@ -2664,7 +2670,7 @@ ${JSON.stringify(spec, null, 2)}`;
                       </div>
 
                       <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
-                        <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${phase.progress}%` }}></div>
+                        <div className={`${phase.progress === 100 ? "bg-emerald-500" : "bg-indigo-500"} h-2 rounded-full transition-all duration-500`} style={{ width: `${phase.progress}%` }}></div>
                       </div>
 
                       <div className="grid sm:grid-cols-2 gap-2 pt-2">
