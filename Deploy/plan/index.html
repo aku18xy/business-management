@@ -114,11 +114,11 @@
     const INITIAL_SPEC_DATA = {
       meta: {
         projectName: "NexusBMS — Enterprise Business Management System",
-        documentCode: "SRS-BMS-2026-V1",
-        version: "1.0.0-draft",
+        documentCode: "SRS-BMS-2026-V2",
+        version: "1.2.0",
         lastUpdated: "2026-11-08",
         author: "Product Owner & Google Antigravity Agent",
-        status: "Phase 1 Operational • Production Ready on Vercel",
+        status: "Phase 1 & Phase 2 Operational (100%) • Production Ready on Vercel",
         targetPlatform: "React Web Application hosted on Vercel",
         agentDirective: "Use this living SRS and Master Plan as the single source of truth. When requirements or modules are edited or marked 'Build Ready', implement the corresponding components, routes, and database schemas."
       },
@@ -474,7 +474,7 @@
     ];
 
     /* Storage Keys */
-    const SPEC_STORAGE_KEY = "NEXUS_BMS_SRS_SPEC_V1";
+    const SPEC_STORAGE_KEY = "NEXUS_BMS_SRS_SPEC_V2";
     const APP_STATE_KEY = "NEXUS_BMS_LIVE_APP_STATE_V1";
 
     /* =========================================================================
@@ -496,8 +496,19 @@
       // Living SRS Spec State
       const [spec, setSpec] = useState(() => {
         try {
+          // Clean up legacy v1 cached storage if present
+          if (localStorage.getItem("NEXUS_BMS_SRS_SPEC_V1")) {
+            localStorage.removeItem("NEXUS_BMS_SRS_SPEC_V1");
+          }
           const saved = localStorage.getItem(SPEC_STORAGE_KEY);
-          return saved ? JSON.parse(saved) : INITIAL_SPEC_DATA;
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            // Verify version matches current code build version, otherwise refresh to latest INITIAL_SPEC_DATA
+            if (parsed.meta?.version === INITIAL_SPEC_DATA.meta?.version) {
+              return parsed;
+            }
+          }
+          return INITIAL_SPEC_DATA;
         } catch (e) {
           return INITIAL_SPEC_DATA;
         }
@@ -2576,6 +2587,23 @@ ${JSON.stringify(spec, null, 2)}`;
                 className="px-3 py-2 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition"
               >
                 Export JSON
+              </button>
+
+              <button
+                onClick={() => {
+                  if (confirm("Reset SRS specification and roadmap to latest server-deployed state?")) {
+                    setSpec(INITIAL_SPEC_DATA);
+                    try {
+                      localStorage.setItem(SPEC_STORAGE_KEY, JSON.stringify(INITIAL_SPEC_DATA));
+                      localStorage.removeItem("NEXUS_BMS_SRS_SPEC_V1");
+                    } catch (e) {}
+                    showToast("Reset to latest server-deployed specifications!");
+                  }
+                }}
+                className="px-3 py-2 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition"
+                title="Reset to latest server-deployed specifications"
+              >
+                ↺ Reset Spec
               </button>
 
               <button
