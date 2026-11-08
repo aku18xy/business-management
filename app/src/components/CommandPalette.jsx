@@ -9,6 +9,8 @@ import {
   Moon,
   Sun,
   FileCheck2,
+  Users2,
+  Store,
   X
 } from 'lucide-react';
 
@@ -42,10 +44,24 @@ export const CommandPalette = () => {
       run: () => setActiveTab('dashboard')
     },
     {
+      id: 'nav_crm',
+      label: 'Open CRM & Sales Deals Pipeline',
+      icon: Users2,
+      group: 'Sales & Revenue',
+      run: () => setActiveTab('crm')
+    },
+    {
+      id: 'nav_pos',
+      label: 'Launch Point of Sale (POS) Terminal',
+      icon: Store,
+      group: 'Sales & Revenue',
+      run: () => setActiveTab('pos')
+    },
+    {
       id: 'nav_approvals',
       label: 'Go to Approval Inbox',
       icon: FileCheck2,
-      group: 'Navigation',
+      group: 'Operations',
       run: () => setActiveTab('approvals')
     },
     {
@@ -90,7 +106,7 @@ export const CommandPalette = () => {
           <Search className="w-5 h-5 text-slate-400 mr-3" />
           <input
             type="text"
-            placeholder="Type a command or search action (e.g., 'dashboard', 'switch', 'audit')..."
+            placeholder="Type a command or search action (e.g., 'crm', 'pos', 'dashboard')..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full bg-transparent text-sm text-slate-100 placeholder-slate-500 outline-none"

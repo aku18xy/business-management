@@ -8,7 +8,9 @@ import {
   History,
   FileText,
   ExternalLink,
-  ChevronDown
+  ChevronDown,
+  Users2,
+  Store
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -22,6 +24,7 @@ export const Sidebar = () => {
     selectedBranch,
     setSelectedBranch,
     approvals,
+    deals,
     userPermissions
   } = useApp();
 
@@ -34,6 +37,20 @@ export const Sidebar = () => {
       icon: LayoutDashboard,
       badge: null,
       visible: userPermissions.canViewDashboard
+    },
+    {
+      id: 'crm',
+      label: 'CRM & Sales Deals',
+      icon: Users2,
+      badge: `${deals.length}`,
+      visible: true
+    },
+    {
+      id: 'pos',
+      label: 'Web POS Terminal',
+      icon: Store,
+      badge: 'Live',
+      visible: true
     },
     {
       id: 'approvals',
@@ -74,8 +91,8 @@ export const Sidebar = () => {
               <p className="text-[11px] text-slate-400 font-medium">Enterprise Suite</p>
             </div>
           </div>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-            Phase 1
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            Phase 1+2
           </span>
         </div>
 
@@ -107,7 +124,7 @@ export const Sidebar = () => {
         {/* Main Navigation */}
         <nav className="p-3 space-y-1">
           <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-            Core Operations
+            Active Business Modules
           </div>
           {navItems.filter(item => item.visible).map((item) => {
             const Icon = item.icon;
@@ -127,7 +144,11 @@ export const Sidebar = () => {
                   <span>{item.label}</span>
                 </div>
                 {item.badge && (
-                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-indigo-500 text-white font-bold">
+                  <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                    item.badge === 'Live'
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      : 'bg-indigo-500 text-white'
+                  }`}>
                     {item.badge}
                   </span>
                 )}
@@ -157,15 +178,15 @@ export const Sidebar = () => {
             </span>
             <div className="space-y-1.5 text-xs text-slate-500">
               <div className="flex items-center justify-between py-1">
-                <span>Phase 2: CRM & POS</span>
-                <span className="text-[10px] font-mono bg-slate-800 px-1.5 py-0.5 rounded">Planned</span>
-              </div>
-              <div className="flex items-center justify-between py-1">
                 <span>Phase 3: ERP Inventory</span>
-                <span className="text-[10px] font-mono bg-slate-800 px-1.5 py-0.5 rounded">Planned</span>
+                <span className="text-[10px] font-mono bg-slate-800 px-1.5 py-0.5 rounded">Next Up</span>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span>Phase 4: Finance & Ledger</span>
+                <span className="text-[10px] font-mono bg-slate-800 px-1.5 py-0.5 rounded">Planned</span>
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <span>Phase 5: HRM & Payroll</span>
                 <span className="text-[10px] font-mono bg-slate-800 px-1.5 py-0.5 rounded">Planned</span>
               </div>
             </div>
