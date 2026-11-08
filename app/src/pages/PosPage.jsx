@@ -25,7 +25,9 @@ import {
   Clock,
   User,
   History,
-  FileText
+  FileText,
+  Ban,
+  Undo2
 } from 'lucide-react';
 
 export const PosPage = () => {
@@ -47,7 +49,10 @@ export const PosPage = () => {
     shiftExpectedCash,
     openRegisterShift,
     addCashDrop,
-    closeRegisterShift
+    closeRegisterShift,
+    // POS Returns & Void
+    voidPosOrder,
+    refundPosOrder
   } = useApp();
 
   const cartRef = React.useRef(null);
@@ -73,6 +78,19 @@ export const PosPage = () => {
   const [openNotes, setOpenNotes] = useState('Opening float verified in bills and rolled coin tubes.');
 
   const [selectedShiftReport, setSelectedShiftReport] = useState(null);
+
+  // Returns & Void Order Modal States
+  const [voidModal, setVoidModal] = useState(false);
+  const [selectedOrderForVoid, setSelectedOrderForVoid] = useState(null);
+  const [voidReason, setVoidReason] = useState('Cashier Scanning Error');
+
+  const [returnModal, setReturnModal] = useState(false);
+  const [selectedOrderForReturn, setSelectedOrderForReturn] = useState(null);
+  const [returnItemsState, setReturnItemsState] = useState({}); // { [itemIndex]: returnQty }
+  const [returnReason, setReturnReason] = useState('Customer Changed Mind');
+  const [returnTender, setReturnTender] = useState('Original Payment Method');
+
+  const [activeCreditNote, setActiveCreditNote] = useState(null);
 
   // Filter Catalog
   const categories = ['All', ...Array.from(new Set(posCatalog.map(p => p.category)))];
@@ -385,6 +403,7 @@ export const PosPage = () => {
                   <th className="py-3 px-4">Payment Method</th>
                   <th className="py-3 px-4">Total Paid</th>
                   <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 font-sans">
@@ -400,20 +419,95 @@ export const PosPage = () => {
                       {ord.date}
                     </td>
                     <td className="py-3.5 px-4 text-slate-300">
-                      {ord.items.map(i => `${i.qty}x ${i.name}`).join(', ')}
+                      <div>{ord.items.map(i => `${i.qty}x ${i.name}`).join(', ')}</div>
+                      {ord.voidReason && (
+                        <div className="text-[10px] text-rose-400/80 italic mt-0.5">Void: "{ord.voidReason}"</div>
+                      )}
+                      {ord.refundReceipts && ord.refundReceipts.length > 0 && (
+                        <div className="text-[10px] text-purple-400 italic mt-0.5">
+                          Refunded: ${ord.refundedAmount?.toFixed(2)} ({ord.refundReceipts[0].id})
+                        </div>
+                      )}
                     </td>
                     <td className="py-3.5 px-4">
                       <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[11px]">
                         {ord.paymentMethod}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 font-mono font-bold text-emerald-400 text-sm">
-                      ${ord.total.toFixed(2)}
+                    <td className="py-3.5 px-4 font-mono font-bold text-sm">
+                      <span className={ord.status === 'Voided' ? 'line-through text-slate-500' : 'text-emerald-400'}>
+                        ${ord.total.toFixed(2)}
+                      </span>
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        ord.status === 'Completed'
+                          ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                          : ord.status === 'Voided'
+                          ? 'bg-rose-500/15 text-rose-300 border border-rose-500/30'
+                          : 'bg-purple-500/15 text-purple-300 border border-purple-500/30'
+                      }`}>
                         {ord.status}
                       </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {ord.status === 'Completed' && (
+                          <>
+                            <button
+                              onClick={() => {
+                                setSelectedOrderForReturn(ord);
+                                const initialReturn = {};
+                                ord.items.forEach((it, idx) => { initialReturn[idx] = it.qty; });
+                                setReturnItemsState(initialReturn);
+                                setReturnModal(true);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 text-[11px] font-semibold transition flex items-center gap-1"
+                              title="Process Customer Return & Restock"
+                            >
+                              <RotateCcw className="w-3 h-3" />
+                              <span>Return</span>
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedOrderForVoid(ord);
+                                setVoidModal(true);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 text-[11px] font-semibold transition flex items-center gap-1"
+                              title="Void Transaction & Restore Stock"
+                            >
+                              <Ban className="w-3 h-3" />
+                              <span>Void</span>
+                            </button>
+                          </>
+                        )}
+                        {ord.status === 'Partially Refunded' && (
+                          <button
+                            onClick={() => {
+                              setSelectedOrderForReturn(ord);
+                              const initialReturn = {};
+                              ord.items.forEach((it, idx) => { initialReturn[idx] = it.qty; });
+                              setReturnItemsState(initialReturn);
+                              setReturnModal(true);
+                            }}
+                            className="px-2.5 py-1 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 text-[11px] font-semibold transition"
+                          >
+                            Refund More
+                          </button>
+                        )}
+                        {ord.refundReceipts && ord.refundReceipts.length > 0 && (
+                          <button
+                            onClick={() => setActiveCreditNote(ord.refundReceipts[0])}
+                            className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-mono text-[10px] transition"
+                            title="View Credit Note / Refund Receipt"
+                          >
+                            Credit Note
+                          </button>
+                        )}
+                        {ord.status === 'Voided' && (
+                          <span className="text-[11px] text-slate-500 font-mono italic">Stock Restored</span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -1179,6 +1273,274 @@ export const PosPage = () => {
                 className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Void Order Confirmation */}
+      {voidModal && selectedOrderForVoid && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2 text-rose-400">
+                <Ban className="w-5 h-5" />
+                <h3 className="font-bold text-white text-base">Void Transaction #{selectedOrderForVoid.orderNumber}</h3>
+              </div>
+              <button onClick={() => setVoidModal(false)} className="text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 text-xs text-rose-300 space-y-1">
+              <p className="font-bold">⚠️ Warning: Irreversible Action</p>
+              <p className="text-[11px] opacity-90">
+                Voiding this transaction will cancel the sale of <strong>${selectedOrderForVoid.total.toFixed(2)}</strong>, reverse gross revenue, and restock all {selectedOrderForVoid.items.length} items back to inventory catalog.
+              </p>
+            </div>
+
+            <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs space-y-1 font-mono">
+              <div className="flex justify-between text-slate-400">
+                <span>Original Cashier:</span>
+                <span className="text-white">{selectedOrderForVoid.cashier}</span>
+              </div>
+              <div className="flex justify-between text-slate-400">
+                <span>Payment Tender:</span>
+                <span className="text-white">{selectedOrderForVoid.paymentMethod}</span>
+              </div>
+              <div className="flex justify-between text-slate-400">
+                <span>Total Reversal:</span>
+                <span className="text-rose-400 font-bold">${selectedOrderForVoid.total.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              voidPosOrder(selectedOrderForVoid.id, voidReason);
+              setVoidModal(false);
+              setSelectedOrderForVoid(null);
+            }} className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-400 mb-1 font-semibold">Reason for Void</label>
+                <select
+                  value={voidReason}
+                  onChange={(e) => setVoidReason(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-rose-500"
+                >
+                  <option value="Cashier Scanning Error">Cashier Scanning Error</option>
+                  <option value="Customer Cancelled / Walked Out">Customer Cancelled / Walked Out</option>
+                  <option value="Duplicate Charge / Terminal Glitch">Duplicate Charge / Terminal Glitch</option>
+                  <option value="Incorrect Payment Tender Selected">Incorrect Payment Tender Selected</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setVoidModal(false)}
+                  className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold shadow-lg shadow-rose-600/25"
+                >
+                  Confirm Void & Restock →
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Return & Refund Selector */}
+      {returnModal && selectedOrderForReturn && (() => {
+        // Compute return totals from returnItemsState
+        const returnLineItems = selectedOrderForReturn.items.map((it, idx) => {
+          const qty = Number(returnItemsState[idx]) || 0;
+          return { ...it, qty };
+        }).filter(it => it.qty > 0);
+
+        const refundSub = returnLineItems.reduce((sum, it) => sum + (it.price * it.qty), 0);
+        const refundTx = refundSub * (currentOrg.taxRate / 100);
+        const refundTot = Number((refundSub + refundTx).toFixed(2));
+
+        return (
+          <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 overflow-y-auto animate-in fade-in">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl my-8">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center gap-2 text-purple-400">
+                  <RotateCcw className="w-5 h-5" />
+                  <div>
+                    <h3 className="font-bold text-white text-base">Process Return & Refund</h3>
+                    <p className="text-[11px] text-slate-400">Receipt #{selectedOrderForReturn.orderNumber} • Paid: ${selectedOrderForReturn.total.toFixed(2)}</p>
+                  </div>
+                </div>
+                <button onClick={() => setReturnModal(false)} className="text-slate-400 hover:text-white">✕</button>
+              </div>
+
+              {/* Items Return Selector */}
+              <div className="space-y-2">
+                <label className="block text-slate-300 text-xs font-bold">Select Items & Quantities to Return</label>
+                <div className="bg-slate-950 rounded-xl border border-slate-800 divide-y divide-slate-800/60 max-h-52 overflow-y-auto p-2">
+                  {selectedOrderForReturn.items.map((it, idx) => {
+                    const currentQty = returnItemsState[idx] !== undefined ? returnItemsState[idx] : it.qty;
+                    return (
+                      <div key={idx} className="py-2 px-1 flex items-center justify-between gap-3 text-xs">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-white truncate">{it.name}</p>
+                          <p className="text-[11px] text-slate-400 font-mono">${it.price.toFixed(2)} each (Orig: {it.qty})</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] text-slate-400">Return:</span>
+                          <select
+                            value={currentQty}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value, 10);
+                              setReturnItemsState(prev => ({ ...prev, [idx]: val }));
+                            }}
+                            className="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-white font-mono font-bold outline-none"
+                          >
+                            {Array.from({ length: it.qty + 1 }, (_, i) => (
+                              <option key={i} value={i}>{i}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Refund Ledger Preview */}
+              <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-xs space-y-1.5 font-mono">
+                <div className="flex justify-between text-slate-400">
+                  <span>Items Subtotal Refund:</span>
+                  <span className="text-white">${refundSub.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-slate-400">
+                  <span>Sales Tax ({currentOrg.taxRate}%) Refund:</span>
+                  <span className="text-white">${refundTx.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-bold text-sm text-white pt-1.5 border-t border-slate-800">
+                  <span>Total Due to Customer:</span>
+                  <span className="text-emerald-400">${refundTot.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (returnLineItems.length === 0 || refundTot <= 0) return;
+                const creditNote = refundPosOrder({
+                  orderId: selectedOrderForReturn.id,
+                  itemsToRefund: returnLineItems,
+                  refundMethod: returnTender === 'Original Payment Method' ? selectedOrderForReturn.paymentMethod : returnTender,
+                  reason: returnReason
+                });
+                setReturnModal(false);
+                setSelectedOrderForReturn(null);
+                if (creditNote) setActiveCreditNote(creditNote);
+              }} className="space-y-3 text-xs">
+                <div>
+                  <label className="block text-slate-400 mb-1 font-semibold">Reason for Return</label>
+                  <select
+                    value={returnReason}
+                    onChange={(e) => setReturnReason(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-purple-500"
+                  >
+                    <option value="Customer Changed Mind">Customer Changed Mind</option>
+                    <option value="Defective / Damaged Item">Defective / Damaged Item</option>
+                    <option value="Wrong Model / Specifications">Wrong Model / Specifications</option>
+                    <option value="Exchange for Alternate Item">Exchange for Alternate Item</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-400 mb-1 font-semibold">Refund Tender Method</label>
+                  <select
+                    value={returnTender}
+                    onChange={(e) => setReturnTender(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-purple-500"
+                  >
+                    <option value="Original Payment Method">Original Payment Method ({selectedOrderForReturn.paymentMethod})</option>
+                    <option value="Cash Drawer">Cash Drawer</option>
+                    <option value="Credit Card Refund (Terminal)">Credit Card Refund (Terminal)</option>
+                    <option value="Store Credit Voucher">Store Credit Voucher</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setReturnModal(false)}
+                    className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={refundTot <= 0}
+                    className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold shadow-lg shadow-purple-600/25 disabled:opacity-40"
+                  >
+                    Issue Refund (${refundTot.toFixed(2)}) →
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Modal: Credit Note / Refund Receipt Viewer */}
+      {activeCreditNote && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl text-center">
+            <div className="w-12 h-12 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center mx-auto">
+              <RotateCcw className="w-6 h-6" />
+            </div>
+
+            <div>
+              <h3 className="font-bold text-white text-base">Credit Note / Return Receipt</h3>
+              <p className="text-xs text-slate-400 font-mono mt-0.5">{activeCreditNote.id}</p>
+            </div>
+
+            <div className="bg-slate-950 p-4 rounded-xl text-left text-xs font-mono space-y-2 border border-slate-800">
+              <div className="flex justify-between text-slate-400 pb-1 border-b border-slate-800">
+                <span>Original Order: {activeCreditNote.orderNumber}</span>
+                <span>{activeCreditNote.date}</span>
+              </div>
+              <div className="py-1 text-[11px] text-slate-400">
+                Reason: <strong className="text-slate-200">{activeCreditNote.reason}</strong>
+              </div>
+              <div className="space-y-1">
+                {activeCreditNote.items.map((it, i) => (
+                  <div key={i} className="flex justify-between text-slate-300">
+                    <span>{it.qty}x {it.name} (Restocked)</span>
+                    <span className="text-white">${(it.qty * it.price).toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="pt-2 border-t border-slate-800 flex justify-between font-bold text-sm">
+                <span className="text-purple-300">Total Refunded:</span>
+                <span className="text-emerald-400">${activeCreditNote.refundTotal.toFixed(2)}</span>
+              </div>
+              <div className="text-[10px] text-slate-500 text-center pt-2">
+                Refunded via {activeCreditNote.refundMethod} • Inventory Automatically Restocked
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => window.print()}
+                className="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs transition"
+              >
+                Print Credit Note
+              </button>
+              <button
+                onClick={() => setActiveCreditNote(null)}
+                className="flex-1 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition"
+              >
+                Done
               </button>
             </div>
           </div>

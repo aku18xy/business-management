@@ -263,7 +263,7 @@ export const AppProvider = ({ children }) => {
       orderNumber,
       cashier: currentUser.name,
       date: "Just now",
-      items: posCart.map(item => ({ name: item.name, qty: item.qty, price: item.price })),
+      items: posCart.map(item => ({ id: item.id, sku: item.sku, name: item.name, qty: item.qty, price: item.price })),
       subtotal,
       tax,
       total,
@@ -294,11 +294,111 @@ export const AppProvider = ({ children }) => {
   };
 
   // ==========================================
+  // POS RETURNS & VOID ORDER METHODS
+  // ==========================================
+  const voidPosOrder = (orderId, reason = 'Cashier Scanning Error / Order Cancelled') => {
+    const target = posOrders.find(o => o.id === orderId);
+    if (!target || target.status === 'Voided') return null;
+
+    // 1. Restore stock to inventory catalog
+    setPosCatalog(prev =>
+      prev.map(prod => {
+        const matchingItem = target.items.find(i => i.id === prod.id || i.name === prod.name);
+        if (matchingItem) {
+          return { ...prod, stock: prod.stock + matchingItem.qty };
+        }
+        return prod;
+      })
+    );
+
+    // 2. Mark order as Voided
+    const updatedOrder = {
+      ...target,
+      status: 'Voided',
+      voidReason: reason,
+      voidedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      voidedBy: currentUser.name
+    };
+
+    setPosOrders(prev => prev.map(o => o.id === orderId ? updatedOrder : o));
+
+    addAuditLog(
+      'POS_ORDER_VOIDED',
+      `Voided order ${target.orderNumber} ($${target.total.toFixed(2)}). Restocked items to inventory. Reason: ${reason}`
+    );
+
+    return updatedOrder;
+  };
+
+  const refundPosOrder = ({ orderId, itemsToRefund, refundMethod, reason }) => {
+    const target = posOrders.find(o => o.id === orderId);
+    if (!target || target.status === 'Voided' || target.status === 'Refunded') return null;
+
+    // Calculate refund amounts
+    const refundSubtotal = itemsToRefund.reduce((sum, it) => sum + (it.price * it.qty), 0);
+    const refundTax = refundSubtotal * (currentOrg.taxRate / 100);
+    const refundTotal = Number((refundSubtotal + refundTax).toFixed(2));
+
+    // 1. Restore returned stock to inventory catalog
+    setPosCatalog(prev =>
+      prev.map(prod => {
+        const returnedItem = itemsToRefund.find(i => i.id === prod.id || i.name === prod.name);
+        if (returnedItem) {
+          return { ...prod, stock: prod.stock + returnedItem.qty };
+        }
+        return prod;
+      })
+    );
+
+    // 2. Determine if full or partial refund
+    const existingRefunded = Number(target.refundedAmount) || 0;
+    const newTotalRefunded = Number((existingRefunded + refundTotal).toFixed(2));
+    const isFullRefund = newTotalRefunded >= (target.total - 0.05);
+
+    const creditNoteId = `CN-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const refundReceipt = {
+      id: creditNoteId,
+      orderId: target.id,
+      orderNumber: target.orderNumber,
+      date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      refundSubtotal,
+      refundTax,
+      refundTotal,
+      refundMethod: refundMethod || target.paymentMethod,
+      reason: reason || 'Customer Return',
+      cashier: currentUser.name,
+      items: itemsToRefund
+    };
+
+    const updatedOrder = {
+      ...target,
+      status: isFullRefund ? 'Refunded' : 'Partially Refunded',
+      refundedAmount: newTotalRefunded,
+      refundReceipts: [...(target.refundReceipts || []), refundReceipt]
+    };
+
+    setPosOrders(prev => prev.map(o => o.id === orderId ? updatedOrder : o));
+
+    addAuditLog(
+      'POS_ORDER_REFUNDED',
+      `Issued Credit Note ${creditNoteId} for $${refundTotal.toFixed(2)} on ${target.orderNumber} via ${refundMethod}. Reason: ${reason}`
+    );
+
+    return refundReceipt;
+  };
+
+  // ==========================================
   // FR-802: REGISTER SHIFT & CASH DRAWER RECONCILIATION METHODS
   // ==========================================
   const shiftCashSales = posOrders
-    .filter(o => o.paymentMethod === 'Cash Drawer')
-    .reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+    .filter(o => o.paymentMethod === 'Cash Drawer' && o.status !== 'Voided')
+    .reduce((sum, o) => {
+      if (o.status === 'Refunded') return sum;
+      if (o.status === 'Partially Refunded') {
+        return sum + Math.max(0, Number(o.total) - (Number(o.refundedAmount) || 0));
+      }
+      return sum + (Number(o.total) || 0);
+    }, 0);
 
   const shiftCashDropsTotal = posShift && posShift.cashDrops
     ? posShift.cashDrops.reduce((sum, d) => sum + (Number(d.amount) || 0), 0)
@@ -385,8 +485,23 @@ export const AppProvider = ({ children }) => {
   // REAL-TIME EXECUTIVE TELEMETRY SYNTHESIS
   // POS orders and inventory reflect live in Cockpit KPIs
   // ==========================================
-  const posSalesTotal = posOrders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
-  const posSalesSubtotal = posOrders.reduce((sum, order) => sum + (Number(order.subtotal) || 0), 0);
+  const posSalesTotal = posOrders.reduce((sum, order) => {
+    if (order.status === 'Voided' || order.status === 'Refunded') return sum;
+    if (order.status === 'Partially Refunded') {
+      return sum + Math.max(0, Number(order.total) - (Number(order.refundedAmount) || 0));
+    }
+    return sum + (Number(order.total) || 0);
+  }, 0);
+
+  const posSalesSubtotal = posOrders.reduce((sum, order) => {
+    if (order.status === 'Voided' || order.status === 'Refunded') return sum;
+    if (order.status === 'Partially Refunded') {
+      const netRatio = 1 / (1 + (currentOrg.taxRate / 100));
+      const net = Math.max(0, Number(order.total) - (Number(order.refundedAmount) || 0));
+      return sum + (net * netRatio);
+    }
+    return sum + (Number(order.subtotal) || 0);
+  }, 0);
   const posSalesTax = posOrders.reduce((sum, order) => sum + (Number(order.tax) || 0), 0);
 
   // Dynamic gross revenue = baseline revenue + real-time POS receipts
@@ -480,7 +595,10 @@ export const AppProvider = ({ children }) => {
         shiftExpectedCash,
         openRegisterShift,
         addCashDrop,
-        closeRegisterShift
+        closeRegisterShift,
+        // POS Returns & Void
+        voidPosOrder,
+        refundPosOrder
       }}
     >
       {children}
