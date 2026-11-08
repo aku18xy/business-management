@@ -115,10 +115,10 @@
       meta: {
         projectName: "NexusBMS — Enterprise Business Management System",
         documentCode: "SRS-BMS-2026-V3",
-        version: "1.4.0",
+        version: "1.5.0",
         lastUpdated: "2026-11-09",
         author: "Product Owner & Google Antigravity Agent",
-        status: "Phase 1 & Phase 2 Operational (100%) • POS Kiosk & Item Admin Active • Vercel Ready",
+        status: "Phase 1, 2 & POS Fully Operational • Comprehensive FR Refinement • Production Deployed",
         targetPlatform: "React Web Application hosted on Vercel",
         agentDirective: "Use this living SRS and Master Plan as the single source of truth. When requirements or modules are edited or marked 'Build Ready', implement the corresponding components, routes, and database schemas."
       },
@@ -222,57 +222,57 @@
         {
           id: "MOD-01",
           code: "AUTH-CORE",
-          name: "Identity, RBAC & Organization Settings",
+          name: "Identity, RBAC & Organization Governance",
           category: "Core Platform",
           priority: "P0 - Critical",
           status: "Build Ready / Implemented",
-          description: "Centralized authentication, multi-branch organization settings, granular role permissions, and immutable security audit logs.",
+          description: "Centralized authentication, multi-branch organization settings, 4-tier granular role permissions (Super Admin, Operations Manager, Sales & Stock Staff, Compliance Auditor), and immutable security audit logs.",
           userStories: [
-            "As a Super Admin, I can define custom roles (e.g., Sales Manager, Warehouse Clerk, Accountant) with module-level read/write/approve permissions.",
-            "As an Admin, I can configure company branding, base currency, fiscal year, and tax rates.",
-            "As a Compliance Officer, I can inspect a timestamped audit log of every record creation, modification, or deletion."
+            "As a Super Admin, I can govern cross-module capabilities, switch simulation roles, and enforce strict action-level security policies.",
+            "As an Admin, I can configure company branding, corporate tax rate, fiscal calendar, and subsidiary branches.",
+            "As a Compliance Auditor, I can inspect timestamped, SHA-verified forensic audit logs with 1-click JSON export."
           ],
           requirements: [
             { id: "FR-101", title: "Role-Based Access Control (RBAC) Matrix & Permission Governance", priority: "Must Have", complexity: "Medium", acceptance: "Enforce 4-tier role hierarchy (Super Admin, Operations Manager, Sales & Stock Staff, Compliance Auditor) across all core modules with dynamic UI adaptation, action-level permission guards, and visual RBAC matrix inspection." },
-            { id: "FR-102", title: "Multi-Branch / Multi-Currency Support", priority: "Must Have", complexity: "Medium", acceptance: "Transactions record branch ID and currency exchange rate at time of entry." },
-            { id: "FR-103", title: "System-Wide Audit Trail", priority: "Must Have", complexity: "Low", acceptance: "All mutations log actor_id, entity_type, entity_id, before_json, after_json, and timestamp." }
+            { id: "FR-102", title: "Multi-Branch & Global Currency Governance", priority: "Must Have", complexity: "Medium", acceptance: "Enable dynamic subsidiary branch switching (e.g., NY HQ, London, Singapore, Tokyo) with branch-scoped operations, localized currency notation (USD, GBP, SGD, JPY), corporate tax rate assignment, and branch-tagged transaction logging." },
+            { id: "FR-103", title: "Tamper-Evident Forensic Audit Trail", priority: "Must Have", complexity: "Low", acceptance: "Provide immutable, timestamped forensic audit logging for all critical mutations (role assumption, branch creation, deal advancement, POS shift open/close, order voids) with SHA hash integrity verification and JSON audit export." }
           ]
         },
         {
           id: "MOD-02",
           code: "EXEC-DASH",
-          name: "Executive Command Center & KPI Dashboard",
+          name: "Executive Command Center & Real-Time BI",
           category: "Analytics & BI",
           priority: "P0 - Critical",
           status: "Build Ready / Implemented",
-          description: "Real-time operational cockpit displaying revenue trends, cash position, receivables aging, inventory alerts, and team tasks.",
+          description: "Real-time operational cockpit displaying revenue trends, cash position, receivables aging, inventory alerts, and centralized approval workflows.",
           userStories: [
-            "As a Business Owner, I want to see net revenue, gross margin, and cash on hand for Today, MTD, QTD, and YTD at a glance.",
-            "As an Operations Manager, I want actionable alert cards for overdue invoices, low-stock SKUs, and pending leave/expense approvals."
+            "As a Business Owner, I want to see net revenue, gross margin, cash on hand, and weighted deal forecast with period-over-period trend analysis.",
+            "As an Operations Manager, I want actionable alert cards for overdue invoices, low-stock SKUs, and pending approvals."
           ],
           requirements: [
-            { id: "FR-201", title: "Real-Time Financial & Operational KPI Cards", priority: "Must Have", complexity: "Medium", acceptance: "Displays Revenue, Expenses, Net Profit, Active Deals, and Open Tasks with period-over-period % change." },
-            { id: "FR-202", title: "Interactive Revenue vs Expense Cashflow Chart", priority: "Must Have", complexity: "Medium", acceptance: "Filterable by date range and business unit/branch." },
-            { id: "FR-203", title: "Unified Action Inbox (Pending Approvals)", priority: "Should Have", complexity: "Low", acceptance: "One-click Approve/Reject for purchase orders, expense claims, and leave requests." }
+            { id: "FR-201", title: "Real-Time Financial & Operational KPI Telemetry", priority: "Must Have", complexity: "Medium", acceptance: "Displays live telemetry across Gross Revenue, Operational Expenses, Net Operating Profit, Weighted Pipeline Value, and Active Shift Cash Float with period-over-period trend analysis and branch filtering." },
+            { id: "FR-202", title: "Interactive Revenue vs Expense Cashflow Visualizer", priority: "Must Have", complexity: "Medium", acceptance: "Render responsive, pure-SVG multi-period cashflow chart comparing incoming revenue against outgoing operating expenditures with branch comparison and interactive data inspection." },
+            { id: "FR-203", title: "Unified Executive Action Inbox (Approvals Workflow)", priority: "Should Have", complexity: "Low", acceptance: "Centralize corporate approval requests (Purchase Orders, Expense Claims, Customer Credit Extensions) with 1-click Approve/Reject, role clearance validation (Admin/Manager), and automated audit trail dispatch." }
           ]
         },
         {
           id: "MOD-03",
           code: "CRM-SALES",
-          name: "CRM, Lead Pipeline & Quotations",
+          name: "CRM, Lead Pipeline & Quotations Engine",
           category: "Revenue & Customer",
           priority: "P0 - Critical",
           status: "Build Ready / Implemented",
-          description: "End-to-end customer lifecycle management from lead capture and deal pipeline tracking to quotation generation and order conversion.",
+          description: "End-to-end customer lifecycle management from account directory and deal pipeline tracking to quotation generation and order conversion.",
           userStories: [
-            "As a Sales Rep, I can drag-and-drop deals across pipeline stages and log calls, emails, and meeting notes.",
-            "As a Sales Manager, I can generate branded PDF quotations with line-item discounts and convert accepted quotes into invoices with one click."
+            "As a Sales Rep, I can drag-and-drop deals across pipeline stages, update customer profiles, and generate 1-click quotations.",
+            "As a Sales Manager, I can review deal probabilities, monitor pipeline velocity, and audit customer credit limits."
           ],
           requirements: [
-            { id: "FR-301", title: "360° Customer & Contact Directory", priority: "Must Have", complexity: "Low", acceptance: "Stores contact info, credit limit, tax ID, linked deals, invoices, and support tickets." },
-            { id: "FR-302", title: "Editable Client Profiles & Account Lifecycle", priority: "Must Have", complexity: "Low", acceptance: "Enables sales reps and administrators to edit client corporate details, key contacts, email, phone, industry vertical, credit limits, and account status with automated audit trail logging." },
-            { id: "FR-302-B", title: "Kanban Deal Pipeline & Forecasting", priority: "Must Have", complexity: "Medium", acceptance: "Calculates weighted pipeline value based on deal stage probability." },
-            { id: "FR-303", title: "Quotation Builder & 1-Click Sales Order/Invoice Conversion", priority: "Must Have", complexity: "Medium", acceptance: "Converts approved quote into a Sales Order and reserves inventory automatically." }
+            { id: "FR-301", title: "360° Customer Directory & Account Telemetry", priority: "Must Have", complexity: "Low", acceptance: "Comprehensive customer accounts index with corporate tax IDs, billing contacts, linked pipeline opportunities, assigned credit limits, and account lifecycle status tracking." },
+            { id: "FR-302", title: "Editable Client Profiles & Account Lifecycle Governance", priority: "Must Have", complexity: "Low", acceptance: "In-line and modal profile editor for client company metadata, credit terms, contact details, and account active/hold status with audit logging on every modification." },
+            { id: "FR-302-B", title: "Interactive Kanban Deal Pipeline & Weighted Forecasting", priority: "Must Have", complexity: "Medium", acceptance: "Interactive multi-stage Kanban board (Lead, Contact Made, Needs Analysis, Proposal Sent, Negotiation, Closed Won) with drag/dropdown stage movement, weighted deal valuation, and win-probability calculation." },
+            { id: "FR-303", title: "Dynamic Quotation Builder & 1-Click Order Conversion", priority: "Must Have", complexity: "Medium", acceptance: "Dynamic quote generation with auto-calculated 8.5% sales tax, commercial discounts, line-item pricing, and automated deal advancement to 'Proposal Sent' stage upon generation." }
           ]
         },
         {
@@ -288,51 +288,51 @@
             "As a Purchasing Officer, I can issue Purchase Orders to vendors and record partial or full Goods Received Notes (GRN) to update stock levels."
           ],
           requirements: [
-            { id: "FR-401", title: "Master Product & Service Catalog", priority: "Must Have", complexity: "Medium", acceptance: "Supports SKU, barcode, unit of measure, cost price, selling price, tax code, and batch/serial tracking." },
-            { id: "FR-402", title: "Multi-Warehouse Stock Ledger & Reorder Alerts", priority: "Must Have", complexity: "High", acceptance: "Tracks On-Hand, Committed (in Sales Orders), and Available-to-Promise stock across locations." },
-            { id: "FR-403", title: "Vendor Management & Purchase Order (PO) Workflow", priority: "Must Have", complexity: "Medium", acceptance: "Draft -> Pending Approval -> Issued -> Goods Received -> Billed lifecycle." }
+            { id: "FR-401", title: "Master Product & SKU Hierarchy Governance", priority: "Must Have", complexity: "Medium", acceptance: "Global SKU hierarchy supporting barcodes, units of measure, tiered retail/cost pricing, tax categories, and serialized/batch inventory tracking across distributed locations." },
+            { id: "FR-402", title: "Multi-Warehouse Real-Time Stock Ledger & Reorder Engine", priority: "Must Have", complexity: "High", acceptance: "Tracks On-Hand, Committed (in Sales Orders), and Available-to-Promise stock across locations with automated reorder trigger algorithms." },
+            { id: "FR-403", title: "Vendor Procurement & Purchase Order (PO) Lifecycle", priority: "Must Have", complexity: "Medium", acceptance: "End-to-end procurement workflow: Draft -> Pending Approval -> Issued -> Goods Received Note (GRN) -> Billed with automated stock intake." }
           ]
         },
         {
           id: "MOD-05",
           code: "FIN-ACCT",
-          name: "Finance, Invoicing & Accounting Ledger",
+          name: "Finance, Multi-Currency Invoicing & General Ledger",
           category: "Finance & Compliance",
           priority: "P0 - Critical",
           status: "Build Ready / Implemented",
-          description: "Comprehensive financial management covering invoicing, bill payments, expense claims, bank reconciliation, and financial statements.",
+          description: "Comprehensive financial management covering invoicing, bill payments, expense claims, bank reconciliation, and GAAP/IFRS financial statements.",
           userStories: [
-            "As an Accountant, I can track paid, partially paid, and overdue customer invoices and record multi-method payments.",
-            "As a CFO, I can generate accurate Profit & Loss, Balance Sheet, and Tax Summary reports for any accounting period."
+            "As an Accountant, I can track paid, partially paid, and overdue customer invoices and reconcile multi-method tenders.",
+            "As a CFO, I can generate real-time Profit & Loss, Balance Sheet, and Tax Summary reports across operating branches."
           ],
           requirements: [
-            { id: "FR-501", title: "Accounts Receivable (AR) & Automated Invoicing", priority: "Must Have", complexity: "Medium", acceptance: "Supports recurring invoices, partial payments, credit notes, and aging buckets (0-30, 31-60, 61-90, 90+ days)." },
-            { id: "FR-502", title: "Accounts Payable (AP) & Employee Expense Claims", priority: "Must Have", complexity: "Medium", acceptance: "Receipt attachment upload, category tagging, and manager approval routing." },
-            { id: "FR-503", title: "Chart of Accounts, Journal Entries & Financial Statements", priority: "Must Have", complexity: "High", acceptance: "Auto-posts ledger entries from invoices, bills, and payroll; exports P&L and Balance Sheet." }
+            { id: "FR-501", title: "Automated Accounts Receivable (AR) & Invoice Lifecycle", priority: "Must Have", complexity: "Medium", acceptance: "Automated billing engine supporting recurring invoices, partial payment reconciliation, credit memo generation, and aged debt tracking (0-30, 31-60, 61-90, 90+ days)." },
+            { id: "FR-502", title: "Accounts Payable (AP) & Employee Expense Reconciliation", priority: "Must Have", complexity: "Medium", acceptance: "Vendor invoice matching, employee reimbursable expense submissions with receipt attachments, and multi-tier approval routing." },
+            { id: "FR-503", title: "Chart of Accounts, Auto-Journals & Financial Statements", priority: "Must Have", complexity: "High", acceptance: "Double-entry general ledger with automatic posting from sales and procurement, GAAP/IFRS compliant Chart of Accounts, and real-time Balance Sheet and P&L generation." }
           ]
         },
         {
           id: "MOD-06",
           code: "HRM-PAY",
-          name: "Human Resources (HRM), Attendance & Payroll",
+          name: "Human Resources (HRM), Roster & Payroll Engine",
           category: "People & Culture",
           priority: "P1 - High",
           status: "Build Ready / Implemented",
-          description: "Complete workforce management including employee records, time & attendance, leave balances, performance reviews, and monthly payroll.",
+          description: "Complete workforce management including employee records, time & attendance, leave balances, performance reviews, and monthly payroll batch processing.",
           userStories: [
             "As an Employee, I can clock in/out, view my leave balance, submit leave requests, and download my monthly payslips.",
             "As an HR Manager, I can run monthly payroll in one batch factoring in base salary, overtime, allowances, and statutory deductions."
           ],
           requirements: [
-            { id: "FR-601", title: "Employee Directory & Contract Management", priority: "Must Have", complexity: "Low", acceptance: "Stores personal profile, job title, department, reporting manager, salary structure, and documents." },
-            { id: "FR-602", title: "Time Tracking, Shift Roster & Leave Management", priority: "Must Have", complexity: "Medium", acceptance: "Tracks annual, sick, and unpaid leave balances with calendar conflict detection." },
-            { id: "FR-603", title: "Payroll Calculation Engine & Payslip Generator", priority: "Should Have", complexity: "High", acceptance: "Computes gross pay, deductions, net pay, and posts total payroll journal to Finance." }
+            { id: "FR-601", title: "Enterprise Personnel Directory & Digital Contracts", priority: "Must Have", complexity: "Low", acceptance: "Personnel management storing contracts, job architecture, departmental hierarchies, compensation structures, and compliance documents." },
+            { id: "FR-602", title: "Time Tracking, Shift Rostering & Leave Governance", priority: "Must Have", complexity: "Medium", acceptance: "Biometric and web time-clock tracking, weekly shift rosters, and multi-tier annual/sick/unpaid leave balance tracking with approval workflows." },
+            { id: "FR-603", title: "Automated Payroll Calculation & Payslip Generator", priority: "Should Have", complexity: "High", acceptance: "Automated batch payroll processor computing gross salary, overtime, tax withholdings, and statutory deductions with direct ledger journal integration." }
           ]
         },
         {
           id: "MOD-07",
           code: "PROJ-OPS",
-          name: "Project, Task & Service Delivery Management",
+          name: "Project Workspaces, Timesheets & Service Delivery",
           category: "Operations & Delivery",
           priority: "P1 - High",
           status: "Build Ready / Implemented",
@@ -342,8 +342,8 @@
             "As an Agency Owner, I can convert billable project hours and expenses directly into a client invoice."
           ],
           requirements: [
-            { id: "FR-701", title: "Project Workspaces, Milestones & Kanban Task Boards", priority: "Must Have", complexity: "Medium", acceptance: "Supports task dependencies, priority labels, checklists, file attachments, and comments." },
-            { id: "FR-702", title: "Billable Timesheets & Project Profitability Tracker", priority: "Should Have", complexity: "Medium", acceptance: "Compares budgeted hours/cost vs actual logged hours to show real-time project margin." }
+            { id: "FR-701", title: "Agile Project Workspaces, Milestones & Task Boards", priority: "Must Have", complexity: "Medium", acceptance: "Agile project workspaces with milestone tracking, task dependencies, priority tags, checklists, and collaborative activity streams." },
+            { id: "FR-702", title: "Billable Timesheets & Margin Profitability Tracker", priority: "Should Have", complexity: "Medium", acceptance: "Live time tracking on billable client deliverables with planned vs actual budget variance and gross margin profitability calculations." }
           ]
         },
         {
@@ -360,10 +360,10 @@
             "As an Auditor, I can track shift variance, returns, voids, and item catalog mutations in the immutable audit trail."
           ],
           requirements: [
-            { id: "FR-801", title: "Dedicated Standalone POS Kiosk Terminal (/pos)", priority: "Must Have", complexity: "Medium", acceptance: "Distraction-free countertop layout with barcode auto-focus, category touch tiles, cart operations, split tenders, receipt printing, and cashier PIN lock." },
-            { id: "FR-802", title: "Register Shift & Cash Drawer Reconciliation", priority: "Must Have", complexity: "Low", acceptance: "Logs opening float, cash sales, vault cash drops, drawer count verification, and closing Z-report." },
-            { id: "FR-803", title: "Returns, Refunds & Void Order Lifecycle", priority: "Must Have", complexity: "Medium", acceptance: "Processes returns and item voids with real-time stock replenishment, revenue/tax adjustment, and audit logging." },
-            { id: "FR-804", title: "Back-Office POS Catalog & Register Fleet Administration", priority: "Must Have", complexity: "Medium", acceptance: "Centralized console in BMS to create/edit POS items, retail prices, tile styling, quick-key favorites, and monitor register drawer floats across stores." }
+            { id: "FR-801", title: "Dedicated Standalone Countertop POS Kiosk Terminal (/pos)", priority: "Must Have", complexity: "Medium", acceptance: "Distraction-free countertop touch kiosk served at standalone route /pos with instant barcode autofocus [F2], category quick-tiles, multi-tender split payment (Cash, Card, QR), digital receipt printing, and cashier PIN lock [F9]." },
+            { id: "FR-802", title: "Register Shift, Cash Float & Z-Report Reconciliation", priority: "Must Have", complexity: "Low", acceptance: "Strict cash drawer governance enforcing opening float initialization, real-time cash sales tracking, vault drop management, closing count entry, and Z-report generation with trading suspension when register is closed." },
+            { id: "FR-803", title: "Omnichannel Returns, Refunds & Void Order Lifecycle", priority: "Must Have", complexity: "Medium", acceptance: "Omnichannel return and order void workflow supporting itemized returns, refund method allocation (Cash Drawer, Card, Credit Note), inventory restoration, and audit log generation." },
+            { id: "FR-804", title: "Back-Office POS Catalog, Pricing & Fleet Administration", priority: "Must Have", complexity: "Medium", acceptance: "Centralized management console (/pos-management) for product catalog creation, pricing adjustments, quick-key toggle configuration, register drawer float auditing, and transaction ledger inspection with RBAC editing restrictions." }
           ]
         },
         {
@@ -379,8 +379,8 @@
             "As an Accountant, I get automatic anomaly alerts for duplicate vendor bills or unusual expense spikes."
           ],
           requirements: [
-            { id: "FR-901", title: "Natural Language Business Query Copilot", priority: "Could Have", complexity: "High", acceptance: "Answers questions across CRM, Inventory, and Finance data using Vercel AI SDK." },
-            { id: "FR-902", title: "Automated Stock Reorder & Cashflow Forecasting", priority: "Could Have", complexity: "High", acceptance: "Predicts 30/60/90-day stockout dates and cash balances based on historical velocity." }
+            { id: "FR-901", title: "Natural Language Business Intelligence Query Copilot", priority: "Could Have", complexity: "High", acceptance: "Enterprise assistant powered by Vercel AI SDK and Gemini delivering conversational business intelligence over CRM, inventory, POS, and financial data." },
+            { id: "FR-902", title: "Automated Demand Forecasting & Stockout Prediction", priority: "Could Have", complexity: "High", acceptance: "Predictive machine learning algorithms anticipating stockout dates, inventory turnover velocity, and 90-day cashflow runway projections." }
           ]
         }
       ],
