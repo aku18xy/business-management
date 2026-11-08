@@ -53,12 +53,12 @@ export const Dashboard = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start md:self-auto bg-slate-900/90 p-1.5 rounded-xl border border-slate-800">
+        <div className="flex items-center gap-1.5 self-start md:self-auto bg-slate-900/90 p-1.5 rounded-xl border border-slate-800 overflow-x-auto max-w-full">
           {['Today', 'MTD', 'QTD', 'YTD'].map(range => (
             <button
               key={range}
               onClick={() => setDateRange(range)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
                 dateRange === range
                   ? 'bg-indigo-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
@@ -181,7 +181,7 @@ export const Dashboard = () => {
           </div>
 
           {/* Simple custom SVG chart for zero-dependency reliability */}
-          <div className="h-64 w-full flex items-end gap-3 pt-6 px-2">
+          <div className="h-64 w-full flex items-end gap-2 sm:gap-3 pt-6 px-1 sm:px-2 overflow-x-auto pb-1">
             {liveChartData.map((item, idx) => {
               const maxVal = 320000;
               const revHeight = Math.min(100, (item.revenue / maxVal) * 100);
@@ -189,7 +189,7 @@ export const Dashboard = () => {
               const isLive = item.month.includes('Live');
 
               return (
-                <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group">
+                <div key={idx} className="flex-1 min-w-[34px] flex flex-col items-center h-full justify-end group">
                   <div className="text-[10px] font-mono text-slate-400 opacity-0 group-hover:opacity-100 transition mb-1">
                     ${Math.round(item.revenue / 1000)}k
                   </div>

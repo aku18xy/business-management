@@ -30,6 +30,7 @@ export const PosPage = () => {
     currentUser
   } = useApp();
 
+  const cartRef = React.useRef(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [activeTab, setActiveTab] = useState('terminal'); // 'terminal' | 'orders'
@@ -174,7 +175,7 @@ export const PosPage = () => {
           </div>
 
           {/* Right: Active Order Cart & Fast Checkout */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-2xl h-fit min-h-[520px]">
+          <div ref={cartRef} className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-2xl h-fit min-h-[520px]">
             <div>
               <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
                 <div className="flex items-center gap-2">
@@ -259,6 +260,26 @@ export const PosPage = () => {
               </button>
             </div>
           </div>
+
+          {/* Mobile Sticky Floating Cart Bar */}
+          {posCart.length > 0 && (
+            <div className="lg:hidden fixed bottom-16 left-3 right-3 z-30 animate-in slide-in-from-bottom duration-200">
+              <button
+                onClick={() => cartRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 text-white font-bold py-3 px-4 rounded-2xl shadow-2xl flex items-center justify-between border border-emerald-400/30"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 bg-black/30 rounded-lg">
+                    <ShoppingCart className="w-4 h-4 text-emerald-300" />
+                  </span>
+                  <span className="text-xs">{posCart.reduce((s, i) => s + i.qty, 0)} Items In Cart</span>
+                </div>
+                <span className="text-xs font-mono font-bold bg-black/40 px-3 py-1 rounded-xl">
+                  ${total.toFixed(2)} • Checkout →
+                </span>
+              </button>
+            </div>
+          )}
         </div>
       )}
 

@@ -76,6 +76,13 @@ export const AppProvider = ({ children }) => {
   const [isDark, setIsDark] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [commandOpen, setCommandOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Helper to change tab and close mobile drawer
+  const navigateToTab = (tabId) => {
+    setActiveTab(tabId);
+    setMobileMenuOpen(false);
+  };
 
   // Sync state to LocalStorage
   useEffect(() => {
@@ -330,8 +337,11 @@ export const AppProvider = ({ children }) => {
         setIsDark,
         activeTab,
         setActiveTab,
+        navigateToTab,
         commandOpen,
         setCommandOpen,
+        mobileMenuOpen,
+        setMobileMenuOpen,
         kpis: dynamicKpis,
         allUsers: INITIAL_USERS,
         // Phase 2 exports

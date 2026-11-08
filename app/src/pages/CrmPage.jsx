@@ -195,7 +195,7 @@ export const CrmPage = () => {
       </div>
 
       {/* CRM Subtabs */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+      <div className="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto no-scrollbar">
         {[
           { id: 'pipeline', label: `Kanban Pipeline (${deals.length})` },
           { id: 'customers', label: `Customer Accounts (${customers.length})` },
@@ -204,7 +204,7 @@ export const CrmPage = () => {
           <button
             key={tab.id}
             onClick={() => setActiveSubTab(tab.id)}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
               activeSubTab === tab.id
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
@@ -219,7 +219,7 @@ export const CrmPage = () => {
           VIEW 1: KANBAN PIPELINE
          ===================================================================== */}
       {activeSubTab === 'pipeline' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 overflow-x-auto pb-4">
+        <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
           {pipelineStages.map((stage) => {
             const stageDeals = deals.filter(d => d.stage === stage.id);
             const stageTotal = stageDeals.reduce((sum, d) => sum + d.value, 0);
@@ -227,7 +227,7 @@ export const CrmPage = () => {
             return (
               <div
                 key={stage.id}
-                className="bg-slate-900/70 border border-slate-800 rounded-2xl p-3 flex flex-col justify-between min-h-[460px]"
+                className="min-w-[280px] md:min-w-0 snap-center shrink-0 md:shrink bg-slate-900/70 border border-slate-800 rounded-2xl p-3 flex flex-col justify-between min-h-[460px]"
               >
                 <div>
                   {/* Stage Header */}

@@ -10,13 +10,14 @@ import {
   ExternalLink,
   ChevronDown,
   Users2,
-  Store
+  Store,
+  X
 } from 'lucide-react';
 
 export const Sidebar = () => {
   const {
     activeTab,
-    setActiveTab,
+    navigateToTab,
     currentUser,
     allUsers,
     switchUser,
@@ -25,7 +26,9 @@ export const Sidebar = () => {
     setSelectedBranch,
     approvals,
     deals,
-    userPermissions
+    userPermissions,
+    mobileMenuOpen,
+    setMobileMenuOpen
   } = useApp();
 
   const pendingCount = approvals.filter(a => a.status === 'Pending').length;
@@ -75,8 +78,8 @@ export const Sidebar = () => {
     }
   ];
 
-  return (
-    <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between select-none">
+  const renderContent = (isMobile = false) => (
+    <div className="flex flex-col justify-between h-full min-h-full">
       <div>
         {/* Organization Brand Header */}
         <div className="p-4 border-b border-slate-800 flex items-center justify-between">
@@ -91,9 +94,20 @@ export const Sidebar = () => {
               <p className="text-[11px] text-slate-400 font-medium">Enterprise Suite</p>
             </div>
           </div>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-            Phase 1+2
-          </span>
+          
+          {isMobile ? (
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              aria-label="Close menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          ) : (
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              Phase 1+2
+            </span>
+          )}
         </div>
 
         {/* Branch Context Selector */}
@@ -132,7 +146,7 @@ export const Sidebar = () => {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => navigateToTab(item.id)}
                 className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-between transition ${
                   active
                     ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 shadow-sm'
@@ -195,7 +209,7 @@ export const Sidebar = () => {
       </div>
 
       {/* User Session & Role Simulation Switcher */}
-      <div className="p-3 border-t border-slate-800 bg-slate-950/40">
+      <div className="p-3 border-t border-slate-800 bg-slate-950/40 mt-auto">
         <div className="flex items-center justify-between mb-2">
           <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             Active Role (RBAC)
@@ -221,7 +235,10 @@ export const Sidebar = () => {
           {allUsers.map((u) => (
             <button
               key={u.id}
-              onClick={() => switchUser(u.id)}
+              onClick={() => {
+                switchUser(u.id);
+                if (isMobile) setMobileMenuOpen(false);
+              }}
               className={`flex-1 text-[10px] py-1 px-1.5 rounded text-center font-medium transition ${
                 currentUser.id === u.id
                   ? 'bg-indigo-600 text-white font-bold'
@@ -234,6 +251,28 @@ export const Sidebar = () => {
           ))}
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Persistent Sidebar */}
+      <aside className="hidden md:flex w-64 bg-slate-900 border-r border-slate-800 flex-col justify-between select-none shrink-0 h-screen sticky top-0 overflow-y-auto">
+        {renderContent(false)}
+      </aside>
+
+      {/* Mobile Drawer Backdrop & Modal Overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex animate-in fade-in duration-150">
+          <div
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <aside className="relative w-72 max-w-[85vw] bg-slate-900 border-r border-slate-800 z-10 flex flex-col justify-between h-full overflow-y-auto shadow-2xl">
+            {renderContent(true)}
+          </aside>
+        </div>
+      )}
+    </>
   );
 };
