@@ -1,0 +1,6 @@
+{
+  "name": "bms-plan-srs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Business Management System (BMS) — Interactive Project Plan & Software Requirements Specification (SRS) built with React HTML"
+}
