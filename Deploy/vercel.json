@@ -4,9 +4,9 @@
   "rewrites": [
     { "source": "/plan", "destination": "/plan/index.html" },
     { "source": "/plan/(.*)", "destination": "/plan/$1" },
-    { "source": "/pos", "destination": "/pos/index.html" },
-    { "source": "/pos/(.*)", "destination": "/pos/index.html" },
+    { "source": "/pos", "destination": "/index.html" },
+    { "source": "/pos/(.*)", "destination": "/index.html" },
     { "source": "/assets/(.*)", "destination": "/assets/$1" },
-    { "source": "/((?!assets|plan|pos|.*\\.[a-zA-Z0-9]+$).*)", "destination": "/index.html" }
+    { "source": "/((?!assets|plan|.*\\.[a-zA-Z0-9]+$).*)", "destination": "/index.html" }
   ]
 }
