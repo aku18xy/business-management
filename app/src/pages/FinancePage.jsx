@@ -444,7 +444,7 @@ export const FinancePage = () => {
             </div>
 
             <div className="text-xs text-slate-400">
-              Total Outstanding: <strong className="text-amber-400 font-mono">${totalAr.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>
+              Total Outstanding: <strong className="text-amber-400 font-mono">{formatRM(totalAr)}</strong>
             </div>
           </div>
 
@@ -488,12 +488,12 @@ export const FinancePage = () => {
                         </td>
 
                         <td className="py-3.5 px-4 font-mono font-bold text-white">
-                          ${inv.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          {formatRM(inv.total)}
                         </td>
 
                         <td className="py-3.5 px-4 font-mono font-bold text-sm">
                           <span className={inv.balanceDue > 0 ? 'text-amber-400' : 'text-slate-500'}>
-                            ${inv.balanceDue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            {formatRM(inv.balanceDue)}
                           </span>
                         </td>
 
@@ -594,7 +594,7 @@ export const FinancePage = () => {
                       </td>
 
                       <td className="py-3.5 px-4 font-mono font-bold text-sm text-white">
-                        ${b.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        {formatRM(b.amount)}
                       </td>
 
                       <td className="py-3.5 px-4 text-center">
@@ -690,10 +690,10 @@ export const FinancePage = () => {
                               <span className="text-slate-200">{ln.accountName}</span>
                             </td>
                             <td className="py-1.5 px-3 text-right text-emerald-400 font-bold">
-                              {ln.debit > 0 ? `$${ln.debit.toFixed(2)}` : '—'}
+                              {ln.debit > 0 ? formatRM(ln.debit) : '—'}
                             </td>
                             <td className="py-1.5 px-3 text-right text-indigo-400 font-bold">
-                              {ln.credit > 0 ? `$${ln.credit.toFixed(2)}` : '—'}
+                              {ln.credit > 0 ? formatRM(ln.credit) : '—'}
                             </td>
                           </tr>
                         ))}
@@ -701,8 +701,8 @@ export const FinancePage = () => {
                       <tfoot>
                         <tr className="border-t border-slate-800 text-xs font-bold">
                           <td className="py-1.5 px-3 text-slate-400">Total Parity Balance:</td>
-                          <td className="py-1.5 px-3 text-right text-emerald-400">${debitTotal.toFixed(2)}</td>
-                          <td className="py-1.5 px-3 text-right text-indigo-400">${creditTotal.toFixed(2)}</td>
+                          <td className="py-1.5 px-3 text-right text-emerald-400">{formatRM(debitTotal)}</td>
+                          <td className="py-1.5 px-3 text-right text-indigo-400">{formatRM(creditTotal)}</td>
                         </tr>
                       </tfoot>
                     </table>
@@ -734,7 +734,7 @@ export const FinancePage = () => {
                     <th className="py-3 px-4">Classification</th>
                     <th className="py-3 px-4">Sub-Type</th>
                     <th className="py-3 px-4 text-center">Normal Balance</th>
-                    <th className="py-3 px-4 text-right font-mono">Current Balance ($)</th>
+                    <th className="py-3 px-4 text-right font-mono">Current Balance (RM)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60 font-sans">
@@ -812,12 +812,12 @@ export const FinancePage = () => {
                 <div>
                   <div className="flex items-center justify-between font-bold text-slate-300 pb-1">
                     <span className="uppercase text-[11px] tracking-wider text-slate-400">Total Operating Revenues</span>
-                    <span className="font-mono text-white">${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    <span className="font-mono text-white">{formatRM(totalRevenue)}</span>
                   </div>
                   <div className="pl-3 space-y-1 text-slate-400">
-                    <div className="flex justify-between"><span>Commercial Enterprise Revenue (4010)</span><span className="font-mono">$245,000.00</span></div>
-                    <div className="flex justify-between"><span>Countertop POS Retail Revenue (4020)</span><span className="font-mono">$39,500.00</span></div>
-                    <div className="flex justify-between"><span>Professional Services & Consulting (4030)</span><span className="font-mono">$18,000.00</span></div>
+                    <div className="flex justify-between"><span>Commercial Enterprise Revenue (4010)</span><span className="font-mono">{formatRM(315000)}</span></div>
+                    <div className="flex justify-between"><span>Countertop POS Retail Revenue (4020)</span><span className="font-mono">{formatRM(48500)}</span></div>
+                    <div className="flex justify-between"><span>Professional Services & Consulting (4030)</span><span className="font-mono">{formatRM(21000)}</span></div>
                   </div>
                 </div>
 
@@ -825,38 +825,38 @@ export const FinancePage = () => {
                 <div className="pt-2 border-t border-slate-800/80">
                   <div className="flex items-center justify-between font-bold text-slate-300 pb-1">
                     <span className="uppercase text-[11px] tracking-wider text-slate-400">Cost of Goods Sold (COGS)</span>
-                    <span className="font-mono text-rose-400">(${totalCogs.toLocaleString(undefined, { minimumFractionDigits: 2 })})</span>
+                    <span className="font-mono text-rose-400">({formatRM(totalCogs)})</span>
                   </div>
                   <div className="pl-3 space-y-1 text-slate-400">
-                    <div className="flex justify-between"><span>Hardware & POS Direct Materials (5010)</span><span className="font-mono">$74,200.00</span></div>
-                    <div className="flex justify-between"><span>Freight, Customs & Duties (5020)</span><span className="font-mono">$6,800.00</span></div>
+                    <div className="flex justify-between"><span>Hardware & POS Direct Materials (5010)</span><span className="font-mono">{formatRM(94200)}</span></div>
+                    <div className="flex justify-between"><span>Freight, Customs & Duties (5020)</span><span className="font-mono">{formatRM(8800)}</span></div>
                   </div>
                 </div>
 
                 {/* Gross Profit */}
                 <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 flex justify-between font-bold text-sm">
                   <span className="text-white">Gross Operating Profit</span>
-                  <span className="font-mono text-emerald-400">${grossProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  <span className="font-mono text-emerald-400">{formatRM(grossProfit)}</span>
                 </div>
 
                 {/* OPEX */}
                 <div className="pt-2 border-t border-slate-800/80">
                   <div className="flex items-center justify-between font-bold text-slate-300 pb-1">
                     <span className="uppercase text-[11px] tracking-wider text-slate-400">Operating Expenses (OPEX)</span>
-                    <span className="font-mono text-rose-400">(${totalOpex.toLocaleString(undefined, { minimumFractionDigits: 2 })})</span>
+                    <span className="font-mono text-rose-400">({formatRM(totalOpex)})</span>
                   </div>
                   <div className="pl-3 space-y-1 text-slate-400">
-                    <div className="flex justify-between"><span>Salaries, Wages & Benefits (6010)</span><span className="font-mono">$42,000.00</span></div>
-                    <div className="flex justify-between"><span>Cloud Infrastructure & Software (6020)</span><span className="font-mono">$8,400.00</span></div>
-                    <div className="flex justify-between"><span>Depot Facilities & Office Leases (6030)</span><span className="font-mono">$14,500.00</span></div>
-                    <div className="flex justify-between"><span>Marketing & Customer Acquisition (6040)</span><span className="font-mono">$6,100.00</span></div>
+                    <div className="flex justify-between"><span>Employee Salaries, EPF (KWSP) & SOCSO (6010)</span><span className="font-mono">{formatRM(52000)}</span></div>
+                    <div className="flex justify-between"><span>Cloud Infrastructure & Software (6020)</span><span className="font-mono">{formatRM(9400)}</span></div>
+                    <div className="flex justify-between"><span>Depot Facilities & Office Leases (6030)</span><span className="font-mono">{formatRM(18500)}</span></div>
+                    <div className="flex justify-between"><span>Marketing & Customer Acquisition (6040)</span><span className="font-mono">{formatRM(7100)}</span></div>
                   </div>
                 </div>
 
                 {/* Net Profit */}
                 <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-950/40 via-indigo-950/30 to-slate-950 border border-emerald-500/40 flex justify-between font-bold text-base shadow-lg">
                   <span className="text-white">Net Operating Income</span>
-                  <span className="font-mono text-emerald-400">${netIncome.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                  <span className="font-mono text-emerald-400">{formatRM(netIncome)}</span>
                 </div>
               </div>
             </div>
@@ -866,7 +866,7 @@ export const FinancePage = () => {
               <div className="border-b border-slate-800 pb-3 flex items-center justify-between">
                 <div>
                   <h4 className="text-base font-bold text-white">Balance Sheet (Statement of Financial Position)</h4>
-                  <p className="text-xs text-slate-400">As of {new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</p>
+                  <p className="text-xs text-slate-400">As of {new Date().toLocaleDateString('en-GB', { month: 'short', day: '2-digit', year: 'numeric' })}</p>
                 </div>
                 <span className="text-xs font-mono font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
                   A = L + E Verified
@@ -878,13 +878,13 @@ export const FinancePage = () => {
                 <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
                   <div className="flex justify-between font-bold text-sm text-white">
                     <span>Total Assets</span>
-                    <span className="font-mono text-emerald-400">${totalAssets.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    <span className="font-mono text-emerald-400">{formatRM(totalAssets)}</span>
                   </div>
                   <div className="space-y-1 text-slate-400 pl-2">
-                    <div className="flex justify-between"><span>Cash & Bank Equivalents (1010)</span><span className="font-mono">${cashAccount.toLocaleString()}</span></div>
-                    <div className="flex justify-between"><span>Accounts Receivable (1100)</span><span className="font-mono">${totalAr.toLocaleString()}</span></div>
-                    <div className="flex justify-between"><span>Merchandise & ERP Inventory (1200)</span><span className="font-mono">$48,500.00</span></div>
-                    <div className="flex justify-between"><span>Property & Equipment (1500)</span><span className="font-mono">$85,000.00</span></div>
+                    <div className="flex justify-between"><span>Cash & Bank Equivalents (1010)</span><span className="font-mono">{formatRM(cashAccount)}</span></div>
+                    <div className="flex justify-between"><span>Accounts Receivable (1100)</span><span className="font-mono">{formatRM(totalAr)}</span></div>
+                    <div className="flex justify-between"><span>Merchandise & ERP Inventory (1200)</span><span className="font-mono">{formatRM(168200)}</span></div>
+                    <div className="flex justify-between"><span>Property & Equipment (1500)</span><span className="font-mono">{formatRM(185000)}</span></div>
                   </div>
                 </div>
 
@@ -892,12 +892,12 @@ export const FinancePage = () => {
                 <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
                   <div className="flex justify-between font-bold text-sm text-white">
                     <span>Total Liabilities</span>
-                    <span className="font-mono text-amber-400">${totalLiabilities.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    <span className="font-mono text-amber-400">{formatRM(totalLiabilities)}</span>
                   </div>
                   <div className="space-y-1 text-slate-400 pl-2">
-                    <div className="flex justify-between"><span>Accounts Payable (2010)</span><span className="font-mono">${totalAp.toLocaleString()}</span></div>
-                    <div className="flex justify-between"><span>Sales Tax & VAT Collected (2020)</span><span className="font-mono">$14,210.00</span></div>
-                    <div className="flex justify-between"><span>Accrued Payroll & Benefits (2100)</span><span className="font-mono">$24,500.00</span></div>
+                    <div className="flex justify-between"><span>Accounts Payable (2010)</span><span className="font-mono">{formatRM(totalAp)}</span></div>
+                    <div className="flex justify-between"><span>SST Payable to JKDM / Customs (2020)</span><span className="font-mono">{formatRM(22410)}</span></div>
+                    <div className="flex justify-between"><span>Accrued Statutory EPF & SOCSO (2100)</span><span className="font-mono">{formatRM(34500)}</span></div>
                   </div>
                 </div>
 
@@ -905,11 +905,11 @@ export const FinancePage = () => {
                 <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
                   <div className="flex justify-between font-bold text-sm text-white">
                     <span>Total Shareholders' Equity</span>
-                    <span className="font-mono text-purple-400">${totalEquity.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                    <span className="font-mono text-purple-400">{formatRM(totalEquity)}</span>
                   </div>
                   <div className="space-y-1 text-slate-400 pl-2">
-                    <div className="flex justify-between"><span>Common Paid-in Capital (3010)</span><span className="font-mono">$350,000.00</span></div>
-                    <div className="flex justify-between"><span>Retained Earnings & Current Period P&L</span><span className="font-mono">${(totalEquity - 350000).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span></div>
+                    <div className="flex justify-between"><span>Ordinary Paid-in Share Capital (3010)</span><span className="font-mono">{formatRM(500000)}</span></div>
+                    <div className="flex justify-between"><span>Retained Earnings & Current Period P&L</span><span className="font-mono">{formatRM(totalEquity - 500000)}</span></div>
                   </div>
                 </div>
 
@@ -917,7 +917,7 @@ export const FinancePage = () => {
                 <div className="p-3 rounded-xl bg-indigo-950/30 border border-indigo-500/30 flex items-center justify-between text-xs text-indigo-300">
                   <span>Accounting Equation Balance:</span>
                   <span className="font-mono font-bold text-emerald-400">
-                    Assets (${totalAssets.toLocaleString()}) = Liabilities + Equity (${(totalLiabilities + totalEquity).toLocaleString()})
+                    Assets ({formatRM(totalAssets)}) = Liabilities + Equity ({formatRM(totalLiabilities + totalEquity)})
                   </span>
                 </div>
               </div>
@@ -1032,12 +1032,12 @@ export const FinancePage = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Remaining Balance:</span>
-                <span className="font-mono text-amber-400 font-bold">${selectedInvoiceForPay.balanceDue.toFixed(2)}</span>
+                <span className="font-mono text-amber-400 font-bold">{formatRM(selectedInvoiceForPay.balanceDue)}</span>
               </div>
             </div>
 
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Payment Amount Received ($) *</label>
+              <label className="text-xs text-slate-400 block mb-1">Payment Amount Received (RM) *</label>
               <input
                 type="number"
                 step="0.01"
@@ -1184,12 +1184,12 @@ export const FinancePage = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Disbursement Amount:</span>
-                <span className="font-mono text-emerald-400 font-bold text-sm">${selectedBillForPay.amount.toFixed(2)}</span>
+                <span className="font-mono text-emerald-400 font-bold text-sm">{formatRM(selectedBillForPay.amount)}</span>
               </div>
             </div>
 
             <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300">
-              Disbursement will draw funds from <strong>JPMorgan Operating Cash (1010)</strong> and post a debit voucher to <strong>Accounts Payable (2010)</strong>.
+              Disbursement will draw funds from <strong>Maybank Operating Cash (1010)</strong> and post a debit voucher to <strong>Accounts Payable (2010)</strong>.
             </div>
 
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
