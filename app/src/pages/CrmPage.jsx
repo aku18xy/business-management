@@ -17,7 +17,8 @@ import {
   ArrowRight,
   CheckCircle2,
   X,
-  Pencil
+  Pencil,
+  ShieldCheck
 } from 'lucide-react';
 
 export const CrmPage = () => {

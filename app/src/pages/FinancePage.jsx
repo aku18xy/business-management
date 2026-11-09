@@ -80,27 +80,27 @@ export const FinancePage = () => {
   const [jrnAmount, setJrnAmount] = useState('');
 
   // Calculations
-  const totalAr = invoices.reduce((sum, inv) => sum + (inv.status === 'Paid' ? 0 : inv.balanceDue), 0);
-  const totalAp = vendorBills.reduce((sum, bill) => sum + (bill.status === 'Paid' ? 0 : (bill.amount - bill.paidAmount)), 0);
-  const cashAccount = chartOfAccounts.find(a => a.code === '1010')?.balance || 548500;
-  const overdueAr = invoices.filter(i => i.status === 'Overdue').reduce((sum, i) => sum + i.balanceDue, 0);
+  const totalAr = (invoices || []).reduce((sum, inv) => sum + (inv.status === 'Paid' ? 0 : (inv.balanceDue || 0)), 0);
+  const totalAp = (vendorBills || []).reduce((sum, bill) => sum + (bill.status === 'Paid' ? 0 : ((bill.amount || 0) - (bill.paidAmount || 0))), 0);
+  const cashAccount = (chartOfAccounts || []).find(a => a.code === '1010')?.balance || 548500;
+  const overdueAr = (invoices || []).filter(i => i.status === 'Overdue').reduce((sum, i) => sum + (i.balanceDue || 0), 0);
 
   // Financial Statements computations
-  const totalRevenue = chartOfAccounts.filter(a => a.category === 'Revenue').reduce((sum, a) => sum + a.balance, 0);
-  const totalCogs = chartOfAccounts.filter(a => a.code.startsWith('50')).reduce((sum, a) => sum + a.balance, 0);
+  const totalRevenue = (chartOfAccounts || []).filter(a => a.category === 'Revenue').reduce((sum, a) => sum + (a.balance || 0), 0);
+  const totalCogs = (chartOfAccounts || []).filter(a => a.code?.startsWith('50')).reduce((sum, a) => sum + (a.balance || 0), 0);
   const grossProfit = totalRevenue - totalCogs;
-  const totalOpex = chartOfAccounts.filter(a => a.code.startsWith('60')).reduce((sum, a) => sum + a.balance, 0);
+  const totalOpex = (chartOfAccounts || []).filter(a => a.code?.startsWith('60')).reduce((sum, a) => sum + (a.balance || 0), 0);
   const netIncome = grossProfit - totalOpex;
 
-  const totalAssets = chartOfAccounts.filter(a => a.category === 'Asset').reduce((sum, a) => sum + a.balance, 0);
-  const totalLiabilities = chartOfAccounts.filter(a => a.category === 'Liability').reduce((sum, a) => sum + a.balance, 0);
-  const totalEquity = chartOfAccounts.filter(a => a.category === 'Equity').reduce((sum, a) => sum + a.balance, 0) + netIncome;
+  const totalAssets = (chartOfAccounts || []).filter(a => a.category === 'Asset').reduce((sum, a) => sum + (a.balance || 0), 0);
+  const totalLiabilities = (chartOfAccounts || []).filter(a => a.category === 'Liability').reduce((sum, a) => sum + (a.balance || 0), 0);
+  const totalEquity = (chartOfAccounts || []).filter(a => a.category === 'Equity').reduce((sum, a) => sum + (a.balance || 0), 0) + netIncome;
 
   // Filtered Invoices
-  const filteredInvoices = invoices.filter(inv => {
+  const filteredInvoices = (invoices || []).filter(inv => {
     const matchesSearch =
-      inv.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inv.customerName.toLowerCase().includes(searchQuery.toLowerCase());
+      (inv.invoiceNumber || '').toLowerCase().includes((searchQuery || '').toLowerCase()) ||
+      (inv.customerName || '').toLowerCase().includes((searchQuery || '').toLowerCase());
     const matchesStatus = statusFilter === 'All' || inv.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -276,7 +276,7 @@ export const FinancePage = () => {
         <div className="glass-panel p-4 rounded-2xl border border-slate-800 space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span>Operating Cash & Bank (1010)</span>
-            <DollarSign className="w-4 h-4 text-emerald-400" />
+            <Banknote className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-2xl font-black font-mono text-white">
@@ -286,7 +286,7 @@ export const FinancePage = () => {
               Liquid
             </span>
           </div>
-          <p className="text-[11px] text-slate-500">JPMorgan Chase Corporate Treasury</p>
+          <p className="text-[11px] text-slate-500">Malayan Banking Berhad (Maybank Corporate)</p>
         </div>
 
         {/* Accounts Receivable */}
@@ -301,11 +301,11 @@ export const FinancePage = () => {
             </span>
             {overdueAr > 0 && (
               <span className="text-[10px] text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded font-bold border border-rose-500/20">
-                ${overdueAr.toLocaleString()} Overdue
+                RM {overdueAr.toLocaleString()} Overdue
               </span>
             )}
           </div>
-          <p className="text-[11px] text-slate-500">Unsettled customer invoices ({invoices.filter(i => i.balanceDue > 0).length})</p>
+          <p className="text-[11px] text-slate-500">Unsettled customer invoices ({(invoices || []).filter(i => (i.balanceDue || 0) > 0).length})</p>
         </div>
 
         {/* Accounts Payable */}
@@ -336,10 +336,10 @@ export const FinancePage = () => {
               {formatRM(netIncome)}
             </span>
             <span className="text-[10px] text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded font-bold border border-purple-500/20">
-              {Math.round((netIncome / totalRevenue) * 100)}% Margin
+              {totalRevenue > 0 ? Math.round((netIncome / totalRevenue) * 100) : 0}% Margin
             </span>
           </div>
-          <p className="text-[11px] text-slate-500">Revenue ${totalRevenue.toLocaleString()} - COGS & OPEX</p>
+          <p className="text-[11px] text-slate-500">Revenue RM {totalRevenue.toLocaleString()} - COGS & OPEX</p>
         </div>
       </div>
 

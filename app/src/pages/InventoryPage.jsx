@@ -297,7 +297,7 @@ export const InventoryPage = () => {
         <div className="glass-panel p-4 rounded-2xl border border-slate-800 space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span>Inventory Asset Valuation</span>
-            <DollarSign className="w-4 h-4 text-emerald-400" />
+            <Banknote className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-2xl font-black font-mono text-white">
