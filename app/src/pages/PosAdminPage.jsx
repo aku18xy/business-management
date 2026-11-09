@@ -718,7 +718,7 @@ export const PosAdminPage = () => {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">POS Price ($) *</label>
+                <label className="text-xs text-slate-400 block mb-1">POS Price (RM) *</label>
                 <input
                   type="number"
                   step="0.01"
@@ -730,7 +730,7 @@ export const PosAdminPage = () => {
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Unit Cost ($)</label>
+                <label className="text-xs text-slate-400 block mb-1">Unit Cost (RM)</label>
                 <input
                   type="number"
                   step="0.01"
@@ -856,7 +856,7 @@ export const PosAdminPage = () => {
               </div>
 
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Unit Cost ($)</label>
+                <label className="text-xs text-slate-400 block mb-1">Unit Cost (RM)</label>
                 <input
                   type="number"
                   step="0.01"

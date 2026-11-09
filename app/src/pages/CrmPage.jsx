@@ -18,7 +18,8 @@ import {
   CheckCircle2,
   X,
   Pencil,
-  ShieldCheck
+  ShieldCheck,
+  GripVertical
 } from 'lucide-react';
 
 export const CrmPage = () => {
@@ -41,6 +42,10 @@ export const CrmPage = () => {
   const [showNewDealModal, setShowNewDealModal] = useState(false);
   const [showNewCustomerModal, setShowNewCustomerModal] = useState(false);
   const [selectedDealForQuote, setSelectedDealForQuote] = useState(null);
+
+  // Drag and Drop state (FR-302-B Kanban)
+  const [draggingDealId, setDraggingDealId] = useState(null);
+  const [dragOverStageId, setDragOverStageId] = useState(null);
 
   // Edit Customer Modal State (FR-302)
   const [editingCustomer, setEditingCustomer] = useState(null);
@@ -200,7 +205,7 @@ export const CrmPage = () => {
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
           <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Pipeline Value</span>
           <div className="text-2xl font-black text-white mt-1">
-            ${totalPipelineValue.toLocaleString()}
+            {formatRM(totalPipelineValue)}
           </div>
           <span className="text-[11px] text-slate-400 font-mono mt-0.5 block">
             Across {deals.length} active opportunities
@@ -209,7 +214,7 @@ export const CrmPage = () => {
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4">
           <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Weighted Forecast</span>
           <div className="text-2xl font-black text-indigo-400 mt-1">
-            ${Math.round(weightedPipelineValue).toLocaleString()}
+            {formatRM(Math.round(weightedPipelineValue))}
           </div>
           <span className="text-[11px] text-emerald-400 font-mono mt-0.5 block">
             Probability adjusted revenue
@@ -255,11 +260,44 @@ export const CrmPage = () => {
           {pipelineStages.map((stage) => {
             const stageDeals = deals.filter(d => d.stage === stage.id);
             const stageTotal = stageDeals.reduce((sum, d) => sum + d.value, 0);
+            const isDragOver = dragOverStageId === stage.id;
 
             return (
               <div
                 key={stage.id}
-                className="min-w-[280px] md:min-w-0 snap-center shrink-0 md:shrink bg-slate-900/70 border border-slate-800 rounded-2xl p-3 flex flex-col justify-between min-h-[460px]"
+                onDragOver={(e) => {
+                  if (!userPermissions?.canManageDeals) return;
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = 'move';
+                  if (dragOverStageId !== stage.id) {
+                    setDragOverStageId(stage.id);
+                  }
+                }}
+                onDragEnter={(e) => {
+                  if (!userPermissions?.canManageDeals) return;
+                  e.preventDefault();
+                  setDragOverStageId(stage.id);
+                }}
+                onDragLeave={(e) => {
+                  if (!userPermissions?.canManageDeals) return;
+                  if (e.currentTarget.contains(e.relatedTarget)) return;
+                  setDragOverStageId(null);
+                }}
+                onDrop={(e) => {
+                  if (!userPermissions?.canManageDeals) return;
+                  e.preventDefault();
+                  const dealId = e.dataTransfer.getData('text/plain') || draggingDealId;
+                  if (dealId) {
+                    updateDealStage(dealId, stage.id);
+                  }
+                  setDraggingDealId(null);
+                  setDragOverStageId(null);
+                }}
+                className={`min-w-[280px] md:min-w-0 snap-center shrink-0 md:shrink rounded-2xl p-3 flex flex-col justify-between min-h-[460px] transition-all duration-150 ${
+                  isDragOver
+                    ? 'bg-indigo-950/30 border-2 border-indigo-500 ring-2 ring-indigo-500/40 shadow-xl shadow-indigo-500/10'
+                    : 'bg-slate-900/70 border border-slate-800'
+                }`}
               >
                 <div>
                   {/* Stage Header */}
@@ -273,65 +311,100 @@ export const CrmPage = () => {
                   </div>
 
                   <div className="text-[11px] font-mono text-slate-400 mb-3">
-                    Vol: <strong className="text-white">${stageTotal.toLocaleString()}</strong>
+                    Vol: <strong className="text-white">{formatRM(stageTotal)}</strong>
                   </div>
 
                   {/* Stage Cards */}
                   <div className="space-y-2.5">
-                    {stageDeals.map((deal) => (
-                      <div
-                        key={deal.id}
-                        className="bg-slate-950/80 border border-slate-800/80 hover:border-slate-700 rounded-xl p-3 space-y-2 shadow-sm transition group"
-                      >
-                        <div className="flex items-start justify-between gap-1">
-                          <h4 className="text-xs font-bold text-white group-hover:text-indigo-300 transition line-clamp-1">
-                            {deal.title}
-                          </h4>
-                          <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                            deal.priority === 'High' ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-400'
-                          }`}>
-                            {deal.priority}
-                          </span>
-                        </div>
+                    {stageDeals.map((deal) => {
+                      const isBeingDragged = draggingDealId === deal.id;
 
-                        <p className="text-[11px] text-slate-400 truncate">
-                          {deal.customerName}
-                        </p>
+                      return (
+                        <div
+                          key={deal.id}
+                          draggable={userPermissions?.canManageDeals}
+                          onDragStart={(e) => {
+                            if (!userPermissions?.canManageDeals) return;
+                            e.dataTransfer.setData('text/plain', deal.id);
+                            e.dataTransfer.effectAllowed = 'move';
+                            setDraggingDealId(deal.id);
+                          }}
+                          onDragEnd={() => {
+                            setDraggingDealId(null);
+                            setDragOverStageId(null);
+                          }}
+                          className={`bg-slate-950/80 rounded-xl p-3 space-y-2 shadow-sm transition-all duration-150 group select-none ${
+                            userPermissions?.canManageDeals
+                              ? 'cursor-grab active:cursor-grabbing hover:border-indigo-500/70 hover:shadow-md'
+                              : ''
+                          } ${
+                            isBeingDragged
+                              ? 'opacity-30 border-2 border-dashed border-indigo-400 scale-[0.98]'
+                              : 'border border-slate-800/80'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-1">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              {userPermissions?.canManageDeals && (
+                                <GripVertical className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 shrink-0" />
+                              )}
+                              <h4 className="text-xs font-bold text-white group-hover:text-indigo-300 transition line-clamp-1">
+                                {deal.title}
+                              </h4>
+                            </div>
+                            <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 ${
+                              deal.priority === 'High' ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-400'
+                            }`}>
+                              {deal.priority}
+                            </span>
+                          </div>
 
-                        <div className="flex items-center justify-between text-xs font-mono font-extrabold text-emerald-400 pt-1">
-                          <span>{formatRM(deal.value)}</span>
-                          <span className="text-[10px] text-slate-500 font-sans font-normal">
-                            {deal.owner}
-                          </span>
-                        </div>
+                          <p className="text-[11px] text-slate-400 truncate">
+                            {deal.customerName}
+                          </p>
 
-                        {/* Quick Stage Mover Selector */}
-                        <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between gap-1">
-                          <select
-                            disabled={!userPermissions?.canManageDeals}
-                            value={deal.stage}
-                            onChange={(e) => updateDealStage(deal.id, e.target.value)}
-                            className={`bg-slate-900 border border-slate-700 rounded px-1.5 py-0.5 text-[10px] text-slate-300 outline-none w-24 ${
-                              !userPermissions?.canManageDeals ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                          >
-                            {pipelineStages.map(s => (
-                              <option key={s.id} value={s.id}>{s.title}</option>
-                            ))}
-                          </select>
+                          <div className="flex items-center justify-between text-xs font-mono font-extrabold text-emerald-400 pt-1">
+                            <span>{formatRM(deal.value)}</span>
+                            <span className="text-[10px] text-slate-500 font-sans font-normal">
+                              {deal.owner}
+                            </span>
+                          </div>
 
-                          {deal.stage !== 'won' && deal.stage !== 'proposal' && userPermissions?.canManageDeals && (
-                            <button
-                              onClick={() => handleQuickQuote(deal)}
-                              className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-semibold transition"
-                              title="Generate quote and move to Proposal Sent"
+                          {/* Quick Stage Mover Selector */}
+                          <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between gap-1">
+                            <select
+                              disabled={!userPermissions?.canManageDeals}
+                              value={deal.stage}
+                              onChange={(e) => updateDealStage(deal.id, e.target.value)}
+                              className={`bg-slate-900 border border-slate-700 rounded px-1.5 py-0.5 text-[10px] text-slate-300 outline-none w-24 ${
+                                !userPermissions?.canManageDeals ? 'opacity-50 cursor-not-allowed' : ''
+                              }`}
                             >
-                              + Quote
-                            </button>
-                          )}
+                              {pipelineStages.map(s => (
+                                <option key={s.id} value={s.id}>{s.title}</option>
+                              ))}
+                            </select>
+
+                            {deal.stage !== 'won' && deal.stage !== 'proposal' && userPermissions?.canManageDeals && (
+                              <button
+                                onClick={() => handleQuickQuote(deal)}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 font-semibold transition"
+                                title="Generate quote and move to Proposal Sent"
+                              >
+                                + Quote
+                              </button>
+                            )}
+                          </div>
                         </div>
+                      );
+                    })}
+
+                    {/* Drop target placeholder indicator */}
+                    {isDragOver && (
+                      <div className="h-14 rounded-xl border-2 border-dashed border-indigo-500/60 bg-indigo-500/10 flex items-center justify-center text-xs text-indigo-300 font-semibold animate-pulse">
+                        Drop deal into {stage.title}
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
 
@@ -385,10 +458,10 @@ export const CrmPage = () => {
                       {cust.industry}
                     </td>
                     <td className="py-3.5 px-4 font-mono font-bold text-slate-200">
-                      ${cust.creditLimit.toLocaleString()}
+                      {formatRM(cust.creditLimit)}
                     </td>
                     <td className="py-3.5 px-4 font-mono font-bold text-amber-400">
-                      ${cust.outstandingBalance.toLocaleString()}
+                      {formatRM(cust.outstandingBalance)}
                     </td>
                     <td className="py-3.5 px-4">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -458,12 +531,12 @@ export const CrmPage = () => {
                   {qt.items.map((it, idx) => (
                     <div key={idx} className="py-1.5 flex items-center justify-between">
                       <span className="text-slate-300">{it.qty}x {it.description}</span>
-                      <span className="font-mono font-semibold text-slate-200">${it.total.toLocaleString()}</span>
+                      <span className="font-mono font-semibold text-slate-200">{formatRM(it.total)}</span>
                     </div>
                   ))}
                   <div className="pt-2 flex items-center justify-between font-bold text-sm">
                     <span className="text-slate-400">Total Contract Value:</span>
-                    <span className="font-mono text-emerald-400">${qt.total.toLocaleString()}</span>
+                    <span className="font-mono text-emerald-400">{formatRM(qt.total)}</span>
                   </div>
                 </div>
               </div>
@@ -505,7 +578,7 @@ export const CrmPage = () => {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Estimated Value ($) *</label>
+                <label className="text-xs text-slate-400 block mb-1">Estimated Value (RM) *</label>
                 <input
                   type="number"
                   value={newDealValue}

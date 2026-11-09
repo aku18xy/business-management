@@ -1594,7 +1594,7 @@ export const PosTerminalPage = () => {
             </p>
 
             <div>
-              <label className="text-xs text-slate-400 block mb-1">Drop Amount ($)</label>
+              <label className="text-xs text-slate-400 block mb-1">Drop Amount (RM)</label>
               <input
                 type="number"
                 step="10"
