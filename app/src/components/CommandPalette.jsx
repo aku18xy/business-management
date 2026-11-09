@@ -11,6 +11,7 @@ import {
   FileCheck2,
   Users2,
   Store,
+  Boxes,
   X
 } from 'lucide-react';
 
@@ -49,6 +50,13 @@ export const CommandPalette = () => {
       icon: Users2,
       group: 'Sales & Revenue',
       run: () => setActiveTab('crm')
+    },
+    {
+      id: 'nav_inventory',
+      label: 'Manage ERP Inventory, Warehouses & POs (Phase 3)',
+      icon: Boxes,
+      group: 'Operations & SCM',
+      run: () => setActiveTab('inventory')
     },
     {
       id: 'nav_pos_terminal',

@@ -66,6 +66,7 @@ export const ROLE_PERMISSIONS = {
     canManageDeals: true,
     canManageCatalog: true,
     canOperatePos: true,
+    canManageInventory: true,
     canApproveTransactions: true,
     canExportReports: true,
     canViewAuditLogs: true,
@@ -78,30 +79,33 @@ export const ROLE_PERMISSIONS = {
     canManageDeals: true,
     canManageCatalog: true,
     canOperatePos: true,
+    canManageInventory: true,
     canApproveTransactions: true,
     canExportReports: true,
     canViewAuditLogs: true,
     canManageOrg: false,
     badgeColor: "bg-indigo-500/20 text-indigo-300 border-indigo-500/40",
-    description: "Operations Lead: CRM deal management, POS catalog & shift reconciliation, transaction approvals."
+    description: "Operations Lead: CRM deal management, POS catalog, ERP warehouse stock & procurement approvals."
   },
   Staff: {
     canViewDashboard: true,
     canManageDeals: true,
     canManageCatalog: false,
     canOperatePos: true,
+    canManageInventory: false,
     canApproveTransactions: false,
     canExportReports: false,
     canViewAuditLogs: false,
     canManageOrg: false,
     badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
-    description: "Field Associate: CRM sales activity, countertop POS kiosk trade & cash drawer operation."
+    description: "Field Associate: CRM sales activity, countertop POS kiosk trade & stock count requisition."
   },
   Auditor: {
     canViewDashboard: true,
     canManageDeals: false,
     canManageCatalog: false,
     canOperatePos: false,
+    canManageInventory: false,
     canApproveTransactions: false,
     canExportReports: true,
     canViewAuditLogs: true,
@@ -114,6 +118,7 @@ export const ROLE_PERMISSIONS = {
 export const RBAC_MODULE_MATRIX = [
   { module: "Executive Cockpit & BI", capability: "View revenue, margin & cashflow telemetry", admin: "Full Access", manager: "Full Access", staff: "Standard KPIs", auditor: "Read-Only" },
   { module: "CRM & Sales Deals", capability: "Manage pipeline stages, quotations & client profiles", admin: "Read / Write", manager: "Read / Write", staff: "Read / Write", auditor: "Read-Only" },
+  { module: "ERP Inventory & SCM (Phase 3)", capability: "Stock adjustments, warehouse transfers, PO approvals, GRN intake", admin: "Full Control", manager: "Full Control", staff: "Read / Requisition", auditor: "Read-Only" },
   { module: "POS Retail Terminal", capability: "Open shift float, ring sales, barcode scan, tender", admin: "Allowed", manager: "Allowed", staff: "Allowed", auditor: "Restricted" },
   { module: "POS Item Catalog Admin", capability: "Create products, modify prices, delete SKUs", admin: "Full Control", manager: "Full Control", staff: "Restricted", auditor: "Restricted" },
   { module: "Executive Action Inbox", capability: "Approve/Reject Purchase Orders & Expense Claims", admin: "Authorized", manager: "Authorized", staff: "Submit Only", auditor: "Restricted" },
@@ -551,3 +556,405 @@ export const INITIAL_SHIFT_HISTORY = [
     notes: "$5.00 coin change shortage reported and approved by Store Manager."
   }
 ];
+
+// ============================================================================
+// PHASE 3: ERP INVENTORY, WAREHOUSE & PROCUREMENT (FR-401, FR-402, FR-403)
+// ============================================================================
+
+export const INITIAL_WAREHOUSES = [
+  {
+    id: "wh_ny",
+    name: "New York Global Logistics Hub",
+    code: "WH-NY-01",
+    location: "Long Island City, NY",
+    capacitySqFt: 55000,
+    manager: "Marcus Vance",
+    branchId: "br_ny",
+    status: "Active",
+    isPrimary: true
+  },
+  {
+    id: "wh_ldn",
+    name: "London Distribution Center",
+    code: "WH-LDN-01",
+    location: "Heathrow Cargo Terminal, London",
+    capacitySqFt: 35000,
+    manager: "Sophie Taylor",
+    branchId: "br_ldn",
+    status: "Active",
+    isPrimary: false
+  },
+  {
+    id: "wh_sg",
+    name: "Singapore Asia-Pacific Depo",
+    code: "WH-SG-01",
+    location: "Jurong Logistics Park, Singapore",
+    capacitySqFt: 25000,
+    manager: "Kenji Sato",
+    branchId: "br_sg",
+    status: "Active",
+    isPrimary: false
+  }
+];
+
+export const INITIAL_INVENTORY_ITEMS = [
+  {
+    id: "inv_1",
+    sku: "SKU-HW-101",
+    name: "Nexus Smart POS Touch Terminal Kiosk",
+    category: "Hardware",
+    unitOfMeasure: "pcs",
+    costPrice: 480.00,
+    retailPrice: 899.99,
+    reorderPoint: 30,
+    reorderQty: 50,
+    barcode: "847291002341",
+    supplierId: "ven_1",
+    warehouseStock: {
+      wh_ny: 45,
+      wh_ldn: 25,
+      wh_sg: 15
+    },
+    committedStock: 12,
+    leadTimeDays: 14,
+    status: "Optimal"
+  },
+  {
+    id: "inv_2",
+    sku: "SKU-HW-102",
+    name: "Industrial 2D Barcode Scanner USB-C",
+    category: "Hardware",
+    unitOfMeasure: "pcs",
+    costPrice: 45.00,
+    retailPrice: 119.50,
+    reorderPoint: 40,
+    reorderQty: 80,
+    barcode: "771900192834",
+    supplierId: "ven_1",
+    warehouseStock: {
+      wh_ny: 75,
+      wh_ldn: 40,
+      wh_sg: 25
+    },
+    committedStock: 8,
+    leadTimeDays: 10,
+    status: "Optimal"
+  },
+  {
+    id: "inv_3",
+    sku: "SKU-HW-103",
+    name: "Thermal Receipt Printer 80mm ESC/POS",
+    category: "Hardware",
+    unitOfMeasure: "pcs",
+    costPrice: 95.00,
+    retailPrice: 240.00,
+    reorderPoint: 35,
+    reorderQty: 40,
+    barcode: "928301192831",
+    supplierId: "ven_3",
+    warehouseStock: {
+      wh_ny: 32,
+      wh_ldn: 18,
+      wh_sg: 12
+    },
+    committedStock: 6,
+    leadTimeDays: 12,
+    status: "Optimal"
+  },
+  {
+    id: "inv_4",
+    sku: "SKU-CS-201",
+    name: "High-Grade Thermal Paper Rolls 80x80mm (Box of 50)",
+    category: "Consumables",
+    unitOfMeasure: "box",
+    costPrice: 18.50,
+    retailPrice: 49.99,
+    reorderPoint: 50,
+    reorderQty: 100,
+    barcode: "192830192831",
+    supplierId: "ven_2",
+    warehouseStock: {
+      wh_ny: 14,
+      wh_ldn: 6,
+      wh_sg: 4
+    },
+    committedStock: 10,
+    leadTimeDays: 4,
+    status: "Low Stock"
+  },
+  {
+    id: "inv_5",
+    sku: "SKU-HW-104",
+    name: "Heavy-Duty Steel Cash Drawer (RJ11 Kickout)",
+    category: "Hardware",
+    unitOfMeasure: "pcs",
+    costPrice: 42.00,
+    retailPrice: 99.00,
+    reorderPoint: 25,
+    reorderQty: 30,
+    barcode: "661820192839",
+    supplierId: "ven_1",
+    warehouseStock: {
+      wh_ny: 28,
+      wh_ldn: 12,
+      wh_sg: 8
+    },
+    committedStock: 4,
+    leadTimeDays: 14,
+    status: "Optimal"
+  },
+  {
+    id: "inv_6",
+    sku: "SKU-RM-301",
+    name: "ARM Cortex Quad-Core System-on-Module (OEM Component)",
+    category: "Raw Materials",
+    unitOfMeasure: "pcs",
+    costPrice: 38.00,
+    retailPrice: 85.00,
+    reorderPoint: 40,
+    reorderQty: 100,
+    barcode: "441920192812",
+    supplierId: "ven_4",
+    warehouseStock: {
+      wh_ny: 6,
+      wh_ldn: 2,
+      wh_sg: 1
+    },
+    committedStock: 5,
+    leadTimeDays: 18,
+    status: "Critical"
+  },
+  {
+    id: "inv_7",
+    sku: "SKU-CS-202",
+    name: "Encrypted RFID Keycard Staff Badges (Pack of 100)",
+    category: "Consumables",
+    unitOfMeasure: "pack",
+    costPrice: 12.00,
+    retailPrice: 35.00,
+    reorderPoint: 30,
+    reorderQty: 50,
+    barcode: "551920192855",
+    supplierId: "ven_2",
+    warehouseStock: {
+      wh_ny: 48,
+      wh_ldn: 30,
+      wh_sg: 17
+    },
+    committedStock: 2,
+    leadTimeDays: 5,
+    status: "Optimal"
+  },
+  {
+    id: "inv_8",
+    sku: "SKU-HW-105",
+    name: "Mobile Barcode Scanner Handheld Android Terminal",
+    category: "Hardware",
+    unitOfMeasure: "pcs",
+    costPrice: 165.00,
+    retailPrice: 349.00,
+    reorderPoint: 20,
+    reorderQty: 25,
+    barcode: "881920192844",
+    supplierId: "ven_1",
+    warehouseStock: {
+      wh_ny: 18,
+      wh_ldn: 9,
+      wh_sg: 5
+    },
+    committedStock: 3,
+    leadTimeDays: 14,
+    status: "Optimal"
+  }
+];
+
+export const INITIAL_VENDORS = [
+  {
+    id: "ven_1",
+    name: "Shenzhen Microtronics Corp",
+    code: "VEND-SZ-01",
+    category: "Hardware & Assembly",
+    country: "China",
+    contactPerson: "Zhang Wei",
+    email: "procurement@microtronics.cn",
+    phone: "+86 755 8329 1100",
+    paymentTerms: "Net 30",
+    rating: 4.8,
+    activeOrdersCount: 1,
+    status: "Approved"
+  },
+  {
+    id: "ven_2",
+    name: "Continental Paper & Packaging Co",
+    code: "VEND-USA-02",
+    category: "Consumables & POS Rolls",
+    country: "United States",
+    contactPerson: "Brian Campbell",
+    email: "orders@continentalpaper.com",
+    phone: "+1 (312) 555-8821",
+    paymentTerms: "Net 15",
+    rating: 4.6,
+    activeOrdersCount: 1,
+    status: "Approved"
+  },
+  {
+    id: "ven_3",
+    name: "Seiko Epson Components Corp",
+    code: "VEND-JPN-03",
+    category: "Printhead Mechanisms",
+    country: "Japan",
+    contactPerson: "Takashi Tanaka",
+    email: "industrial@seiko-epson.jp",
+    phone: "+81 3 5321 4400",
+    paymentTerms: "Net 45",
+    rating: 4.9,
+    activeOrdersCount: 0,
+    status: "Approved"
+  },
+  {
+    id: "ven_4",
+    name: "Apex Embedded Systems & Silicon",
+    code: "VEND-TWN-04",
+    category: "Semiconductors & SoM",
+    country: "Taiwan",
+    contactPerson: "Mei-Ling Hsu",
+    email: "supply@apex-silicon.tw",
+    phone: "+886 2 2788 9911",
+    paymentTerms: "Net 30",
+    rating: 4.7,
+    activeOrdersCount: 0,
+    status: "Approved"
+  }
+];
+
+export const INITIAL_PURCHASE_ORDERS = [
+  {
+    id: "po_1001",
+    poNumber: "PO-2026-1001",
+    vendorId: "ven_1",
+    vendorName: "Shenzhen Microtronics Corp",
+    destinationWarehouseId: "wh_ny",
+    destinationWarehouseName: "New York Global Logistics Hub",
+    createdAt: "2026-11-05",
+    expectedDate: "2026-11-16",
+    status: "Issued", // Draft | Pending Approval | Issued | Received | Billed
+    items: [
+      {
+        sku: "SKU-HW-101",
+        name: "Nexus Smart POS Touch Terminal Kiosk",
+        qty: 50,
+        unitCost: 480.00,
+        totalCost: 24000.00
+      }
+    ],
+    subtotal: 24000.00,
+    tax: 2040.00,
+    total: 26040.00,
+    paymentTerms: "Net 30",
+    notes: "Production batch for Q4 retail expansion."
+  },
+  {
+    id: "po_1002",
+    poNumber: "PO-2026-1002",
+    vendorId: "ven_2",
+    vendorName: "Continental Paper & Packaging Co",
+    destinationWarehouseId: "wh_ny",
+    destinationWarehouseName: "New York Global Logistics Hub",
+    createdAt: "2026-11-07",
+    expectedDate: "2026-11-12",
+    status: "Pending Approval",
+    items: [
+      {
+        sku: "SKU-CS-201",
+        name: "High-Grade Thermal Paper Rolls 80x80mm (Box of 50)",
+        qty: 100,
+        unitCost: 18.50,
+        totalCost: 1850.00
+      }
+    ],
+    subtotal: 1850.00,
+    tax: 157.25,
+    total: 2007.25,
+    paymentTerms: "Net 15",
+    notes: "Urgent replenishment for low stock alert at NY warehouse."
+  },
+  {
+    id: "po_1003",
+    poNumber: "PO-2026-0994",
+    vendorId: "ven_3",
+    vendorName: "Seiko Epson Components Corp",
+    destinationWarehouseId: "wh_ny",
+    destinationWarehouseName: "New York Global Logistics Hub",
+    createdAt: "2026-10-24",
+    expectedDate: "2026-11-02",
+    status: "Received",
+    grnNumber: "GRN-2026-0881",
+    receivedAt: "2026-11-08 11:20",
+    items: [
+      {
+        sku: "SKU-HW-103",
+        name: "Thermal Receipt Printer 80mm ESC/POS",
+        qty: 40,
+        unitCost: 95.00,
+        totalCost: 3800.00
+      }
+    ],
+    subtotal: 3800.00,
+    tax: 323.00,
+    total: 4123.00,
+    paymentTerms: "Net 45",
+    notes: "Verified by Quality Inspection. Stock absorbed into NY warehouse."
+  }
+];
+
+export const INITIAL_STOCK_MOVEMENTS = [
+  {
+    id: "mov_1",
+    timestamp: "2026-11-08 11:20",
+    type: "Goods Received (GRN)",
+    sku: "SKU-HW-103",
+    productName: "Thermal Receipt Printer 80mm ESC/POS",
+    qty: "+40",
+    warehouseName: "New York Global Logistics Hub",
+    reference: "GRN-2026-0881",
+    actor: "Alex Sterling (Admin)",
+    notes: "Absorbed from PO-2026-0994"
+  },
+  {
+    id: "mov_2",
+    timestamp: "2026-11-08 14:15",
+    type: "POS Countertop Sale",
+    sku: "SKU-HW-102",
+    productName: "Industrial 2D Barcode Scanner USB-C",
+    qty: "-1",
+    warehouseName: "New York Global Logistics Hub",
+    reference: "POS-2026-9901",
+    actor: "Alex Sterling (Admin)",
+    notes: "Dispensed via Terminal REG-01"
+  },
+  {
+    id: "mov_3",
+    timestamp: "2026-11-07 09:40",
+    type: "Inter-Warehouse Transfer",
+    sku: "SKU-HW-101",
+    productName: "Nexus Smart POS Touch Terminal Kiosk",
+    qty: "-20 / +20",
+    warehouseName: "NY Hub → London Center",
+    reference: "TRF-2026-012",
+    actor: "Marcus Vance (Staff)",
+    notes: "Rebalance stock for EU rollout"
+  },
+  {
+    id: "mov_4",
+    timestamp: "2026-11-06 16:30",
+    type: "Manual Stock Adjustment",
+    sku: "SKU-CS-201",
+    productName: "Thermal Paper Rolls 80x80mm",
+    qty: "-2",
+    warehouseName: "New York Global Logistics Hub",
+    reference: "ADJ-2026-044",
+    actor: "Elena Rostova (Manager)",
+    notes: "Damaged box discarded during audit"
+  }
+];
+

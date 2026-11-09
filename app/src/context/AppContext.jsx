@@ -13,7 +13,12 @@ import {
   INITIAL_POS_ORDERS,
   PIPELINE_STAGES,
   INITIAL_ACTIVE_SHIFT,
-  INITIAL_SHIFT_HISTORY
+  INITIAL_SHIFT_HISTORY,
+  INITIAL_WAREHOUSES,
+  INITIAL_INVENTORY_ITEMS,
+  INITIAL_VENDORS,
+  INITIAL_PURCHASE_ORDERS,
+  INITIAL_STOCK_MOVEMENTS
 } from '../data/mockData';
 
 const AppContext = createContext();
@@ -89,6 +94,34 @@ export const AppProvider = ({ children }) => {
 
   // True if there is an active open register shift
   const isShiftOpen = Boolean(posShift && (posShift.status === 'Open' || posShift.isOpen));
+
+  // ==========================================
+  // PHASE 3 STATE: ERP INVENTORY & SCM (FR-401, FR-402, FR-403)
+  // ==========================================
+  const [warehouses, setWarehouses] = useState(() => {
+    const saved = localStorage.getItem('nexus_warehouses');
+    return saved ? JSON.parse(saved) : INITIAL_WAREHOUSES;
+  });
+
+  const [inventoryItems, setInventoryItems] = useState(() => {
+    const saved = localStorage.getItem('nexus_inventory_items');
+    return saved ? JSON.parse(saved) : INITIAL_INVENTORY_ITEMS;
+  });
+
+  const [vendors, setVendors] = useState(() => {
+    const saved = localStorage.getItem('nexus_vendors');
+    return saved ? JSON.parse(saved) : INITIAL_VENDORS;
+  });
+
+  const [purchaseOrders, setPurchaseOrders] = useState(() => {
+    const saved = localStorage.getItem('nexus_purchase_orders');
+    return saved ? JSON.parse(saved) : INITIAL_PURCHASE_ORDERS;
+  });
+
+  const [stockMovements, setStockMovements] = useState(() => {
+    const saved = localStorage.getItem('nexus_stock_movements');
+    return saved ? JSON.parse(saved) : INITIAL_STOCK_MOVEMENTS;
+  });
 
   // Theme mode & active navigation tab
   const [isDark, setIsDark] = useState(true);
@@ -171,6 +204,27 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('nexus_pos_shift_history', JSON.stringify(posShiftHistory));
   }, [posShiftHistory]);
+
+  // Phase 3 ERP Storage Sync
+  useEffect(() => {
+    localStorage.setItem('nexus_warehouses', JSON.stringify(warehouses));
+  }, [warehouses]);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_inventory_items', JSON.stringify(inventoryItems));
+  }, [inventoryItems]);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_vendors', JSON.stringify(vendors));
+  }, [vendors]);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_purchase_orders', JSON.stringify(purchaseOrders));
+  }, [purchaseOrders]);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_stock_movements', JSON.stringify(stockMovements));
+  }, [stockMovements]);
 
   // Role switching
   const switchUser = (userId) => {
@@ -605,6 +659,269 @@ export const AppProvider = ({ children }) => {
   };
 
   // ==========================================
+  // PHASE 3: ERP INVENTORY & SCM ACTIONS (FR-401, FR-402, FR-403)
+  // ==========================================
+  const addInventoryItem = (itemData) => {
+    const defaultWhId = warehouses[0]?.id || 'wh_ny';
+    const initStock = Number(itemData.initialStock) || 0;
+    const reorderPt = Number(itemData.reorderPoint) || 20;
+
+    const newItem = {
+      id: `inv_${Date.now()}`,
+      sku: itemData.sku.toUpperCase(),
+      name: itemData.name,
+      category: itemData.category || 'Hardware',
+      unitOfMeasure: itemData.unitOfMeasure || 'pcs',
+      costPrice: Number(itemData.costPrice) || 0,
+      retailPrice: Number(itemData.retailPrice) || 0,
+      reorderPoint: reorderPt,
+      reorderQty: Number(itemData.reorderQty) || 50,
+      barcode: itemData.barcode || `${Math.floor(100000000000 + Math.random() * 900000000000)}`,
+      supplierId: itemData.supplierId || vendors[0]?.id || 'ven_1',
+      warehouseStock: itemData.warehouseStock || { [defaultWhId]: initStock },
+      committedStock: 0,
+      leadTimeDays: Number(itemData.leadTimeDays) || 7,
+      status: initStock <= reorderPt ? 'Low Stock' : 'Optimal'
+    };
+    setInventoryItems(prev => [newItem, ...prev]);
+    addAuditLog('INVENTORY_SKU_CREATED', `Registered new master SKU ${newItem.sku} ("${newItem.name}")`);
+    return newItem;
+  };
+
+  const updateInventoryItem = (id, updates) => {
+    setInventoryItems(prev => prev.map(item => {
+      if (item.id === id) {
+        const updated = { ...item, ...updates };
+        const total = Object.values(updated.warehouseStock || {}).reduce((sum, q) => sum + (Number(q) || 0), 0);
+        updated.status = total === 0 ? 'Critical' : total <= updated.reorderPoint ? 'Low Stock' : 'Optimal';
+        return updated;
+      }
+      return item;
+    }));
+    addAuditLog('INVENTORY_SKU_UPDATED', `Updated product master specifications for SKU ID: ${id}`);
+  };
+
+  const adjustStock = (itemId, warehouseId, deltaQty, reason) => {
+    const item = inventoryItems.find(i => i.id === itemId);
+    const wh = warehouses.find(w => w.id === warehouseId);
+    if (!item) return;
+
+    const numDelta = Number(deltaQty) || 0;
+    const currentWhQty = item.warehouseStock?.[warehouseId] || 0;
+    const newWhQty = Math.max(0, currentWhQty + numDelta);
+
+    setInventoryItems(prev => prev.map(i => {
+      if (i.id === itemId) {
+        const newStockMap = { ...i.warehouseStock, [warehouseId]: newWhQty };
+        const total = Object.values(newStockMap).reduce((sum, q) => sum + (Number(q) || 0), 0);
+        const status = total === 0 ? 'Critical' : total <= i.reorderPoint ? 'Low Stock' : 'Optimal';
+        return { ...i, warehouseStock: newStockMap, status };
+      }
+      return i;
+    }));
+
+    const newMovement = {
+      id: `mov_${Date.now()}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      type: 'Manual Stock Adjustment',
+      sku: item.sku,
+      productName: item.name,
+      qty: numDelta >= 0 ? `+${numDelta}` : `${numDelta}`,
+      warehouseName: wh ? wh.name : warehouseId,
+      reference: `ADJ-${Date.now().toString().slice(-4)}`,
+      actor: `${currentUser.name} (${currentUser.role})`,
+      notes: reason || 'Audit / Inventory Count Adjustment'
+    };
+    setStockMovements(prev => [newMovement, ...prev]);
+
+    addAuditLog(
+      'STOCK_ADJUSTMENT',
+      `Adjusted ${item.sku} in ${wh?.name || warehouseId} by ${numDelta >= 0 ? '+' : ''}${numDelta} units. Reason: ${reason || 'Manual Correction'}`
+    );
+  };
+
+  const transferStock = (itemId, fromWarehouseId, toWarehouseId, transferQty) => {
+    const item = inventoryItems.find(i => i.id === itemId);
+    const fromWh = warehouses.find(w => w.id === fromWarehouseId);
+    const toWh = warehouses.find(w => w.id === toWarehouseId);
+    const qty = Math.max(1, Number(transferQty) || 1);
+
+    if (!item) return { success: false, message: 'Item not found' };
+    const fromQty = item.warehouseStock?.[fromWarehouseId] || 0;
+    if (fromQty < qty) {
+      return { success: false, message: `Insufficient stock in ${fromWh?.name}. Available: ${fromQty}` };
+    }
+
+    setInventoryItems(prev => prev.map(i => {
+      if (i.id === itemId) {
+        const newStockMap = {
+          ...i.warehouseStock,
+          [fromWarehouseId]: fromQty - qty,
+          [toWarehouseId]: (i.warehouseStock?.[toWarehouseId] || 0) + qty
+        };
+        const total = Object.values(newStockMap).reduce((sum, q) => sum + (Number(q) || 0), 0);
+        const status = total === 0 ? 'Critical' : total <= i.reorderPoint ? 'Low Stock' : 'Optimal';
+        return { ...i, warehouseStock: newStockMap, status };
+      }
+      return i;
+    }));
+
+    const newMovement = {
+      id: `mov_${Date.now()}`,
+      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      type: 'Inter-Warehouse Transfer',
+      sku: item.sku,
+      productName: item.name,
+      qty: `-${qty} / +${qty}`,
+      warehouseName: `${fromWh?.code || fromWarehouseId} → ${toWh?.code || toWarehouseId}`,
+      reference: `TRF-${Date.now().toString().slice(-4)}`,
+      actor: `${currentUser.name} (${currentUser.role})`,
+      notes: `Transferred ${qty} units from ${fromWh?.name} to ${toWh?.name}`
+    };
+    setStockMovements(prev => [newMovement, ...prev]);
+
+    addAuditLog(
+      'STOCK_TRANSFER',
+      `Transferred ${qty} units of ${item.sku} from ${fromWh?.name} to ${toWh?.name}`
+    );
+    return { success: true };
+  };
+
+  const createPurchaseOrder = (poData) => {
+    const vendor = vendors.find(v => v.id === poData.vendorId) || vendors[0];
+    const destinationWh = warehouses.find(w => w.id === poData.destinationWarehouseId) || warehouses[0];
+    const poNum = `PO-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const subtotal = (poData.items || []).reduce((acc, it) => acc + (Number(it.qty) * Number(it.unitCost)), 0);
+    const tax = subtotal * (currentOrg.taxRate / 100);
+    const total = subtotal + tax;
+
+    const requiresApproval = total >= 5000 || currentUser.role === 'Staff';
+    const initialStatus = requiresApproval ? 'Pending Approval' : 'Issued';
+
+    const newPo = {
+      id: `po_${Date.now()}`,
+      poNumber: poNum,
+      vendorId: vendor.id,
+      vendorName: vendor.name,
+      destinationWarehouseId: destinationWh.id,
+      destinationWarehouseName: destinationWh.name,
+      createdAt: new Date().toISOString().split('T')[0],
+      expectedDate: poData.expectedDate || new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0],
+      status: initialStatus,
+      items: poData.items || [],
+      subtotal,
+      tax,
+      total,
+      paymentTerms: vendor.paymentTerms || 'Net 30',
+      notes: poData.notes || 'Procurement order generated from BMS ERP.'
+    };
+
+    setPurchaseOrders(prev => [newPo, ...prev]);
+
+    if (requiresApproval) {
+      const approvalCard = {
+        id: `appr_po_${Date.now()}`,
+        type: 'Purchase Order',
+        title: `${poNum}: ${vendor.name} ($${total.toLocaleString(undefined, { minimumFractionDigits: 2 })})`,
+        requester: `${currentUser.name} (${currentUser.role})`,
+        department: 'Procurement & Supply Chain',
+        amount: `$${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+        status: 'Pending',
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+        priority: total > 20000 ? 'High' : 'Medium'
+      };
+      setApprovals(prev => [approvalCard, ...prev]);
+    }
+
+    addAuditLog(
+      'PURCHASE_ORDER_CREATED',
+      `Generated ${poNum} for ${vendor.name} totaling $${total.toFixed(2)} (${initialStatus})`
+    );
+    return newPo;
+  };
+
+  const receiveGoods = (poId) => {
+    const po = purchaseOrders.find(p => p.id === poId);
+    if (!po || po.status === 'Received') return false;
+
+    const grnNumber = `GRN-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const receivedTimestamp = new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+    setPurchaseOrders(prev => prev.map(p => {
+      if (p.id === poId) {
+        return {
+          ...p,
+          status: 'Received',
+          grnNumber,
+          receivedAt: receivedTimestamp
+        };
+      }
+      return p;
+    }));
+
+    setInventoryItems(prev => prev.map(item => {
+      const poItem = po.items.find(pi => pi.sku === item.sku);
+      if (poItem) {
+        const currentWhStock = item.warehouseStock?.[po.destinationWarehouseId] || 0;
+        const newStockMap = {
+          ...item.warehouseStock,
+          [po.destinationWarehouseId]: currentWhStock + Number(poItem.qty)
+        };
+        const total = Object.values(newStockMap).reduce((sum, q) => sum + (Number(q) || 0), 0);
+        const status = total === 0 ? 'Critical' : total <= item.reorderPoint ? 'Low Stock' : 'Optimal';
+        return {
+          ...item,
+          warehouseStock: newStockMap,
+          status
+        };
+      }
+      return item;
+    }));
+
+    const newMovements = po.items.map((pi, idx) => ({
+      id: `mov_${Date.now()}_${idx}`,
+      timestamp: receivedTimestamp,
+      type: 'Goods Received (GRN)',
+      sku: pi.sku,
+      productName: pi.name,
+      qty: `+${pi.qty}`,
+      warehouseName: po.destinationWarehouseName,
+      reference: grnNumber,
+      actor: `${currentUser.name} (${currentUser.role})`,
+      notes: `Received against ${po.poNumber} from ${po.vendorName}`
+    }));
+
+    setStockMovements(prev => [...newMovements, ...prev]);
+
+    addAuditLog(
+      'GOODS_RECEIVED_NOTE',
+      `Processed ${grnNumber} for ${po.poNumber}. Absorbed ${po.items.length} line item(s) into ${po.destinationWarehouseName}`
+    );
+    return grnNumber;
+  };
+
+  const addVendor = (vendorData) => {
+    const newVen = {
+      id: `ven_${Date.now()}`,
+      name: vendorData.name,
+      code: vendorData.code || `VEND-${Date.now().toString().slice(-4)}`,
+      category: vendorData.category || 'General Supplier',
+      country: vendorData.country || 'United States',
+      contactPerson: vendorData.contactPerson || 'Vendor Lead',
+      email: vendorData.email || 'orders@vendor.com',
+      phone: vendorData.phone || '+1 555-0100',
+      paymentTerms: vendorData.paymentTerms || 'Net 30',
+      rating: 5.0,
+      activeOrdersCount: 0,
+      status: 'Approved'
+    };
+    setVendors(prev => [newVen, ...prev]);
+    addAuditLog('VENDOR_REGISTERED', `Added approved vendor supplier: ${newVen.name} (${newVen.code})`);
+    return newVen;
+  };
+
+  // ==========================================
   // REAL-TIME EXECUTIVE TELEMETRY SYNTHESIS
   // POS orders and inventory reflect live in Cockpit KPIs
   // ==========================================
@@ -640,6 +957,22 @@ export const AppProvider = ({ children }) => {
   const dynamicLowStockCount = posCatalog.filter(p => p.stock < 15).length;
   const dynamicCriticalCount = posCatalog.filter(p => p.stock < 5).length;
 
+  // Phase 3 ERP inventory valuation & low-stock telemetry across all warehouses
+  const totalInventoryValuation = inventoryItems.reduce((acc, item) => {
+    const totalItemQty = Object.values(item.warehouseStock || {}).reduce((sum, q) => sum + (Number(q) || 0), 0);
+    return acc + (item.costPrice * totalItemQty);
+  }, 0);
+
+  const totalInventoryRetailValue = inventoryItems.reduce((acc, item) => {
+    const totalItemQty = Object.values(item.warehouseStock || {}).reduce((sum, q) => sum + (Number(q) || 0), 0);
+    return acc + (item.retailPrice * totalItemQty);
+  }, 0);
+
+  const erpLowStockCount = inventoryItems.filter(item => {
+    const totalItemQty = Object.values(item.warehouseStock || {}).reduce((sum, q) => sum + (Number(q) || 0), 0);
+    return totalItemQty <= item.reorderPoint;
+  }).length;
+
   const dynamicKpis = {
     ...INITIAL_KPIS,
     revenue: {
@@ -662,7 +995,11 @@ export const AppProvider = ({ children }) => {
       ...INITIAL_KPIS.inventoryAlerts,
       lowStockCount: dynamicLowStockCount,
       criticalCount: dynamicCriticalCount,
-      totalSKUs: posCatalog.length
+      totalSKUs: posCatalog.length,
+      erpSKUs: inventoryItems.length,
+      erpValuation: totalInventoryValuation,
+      erpRetailValue: totalInventoryRetailValue,
+      erpLowStockCount: erpLowStockCount
     }
   };
 
@@ -703,6 +1040,19 @@ export const AppProvider = ({ children }) => {
         quotations,
         createQuotation,
         pipelineStages: PIPELINE_STAGES,
+        // Phase 3 exports: ERP Inventory, Warehouse & Procurement (FR-401, FR-402, FR-403)
+        warehouses,
+        inventoryItems,
+        vendors,
+        purchaseOrders,
+        stockMovements,
+        addInventoryItem,
+        updateInventoryItem,
+        adjustStock,
+        transferStock,
+        createPurchaseOrder,
+        receiveGoods,
+        addVendor,
         // Standalone Terminal & Path Navigation
         currentPath,
         navigateToPath,

@@ -115,10 +115,10 @@
       meta: {
         projectName: "NexusBMS — Enterprise Business Management System",
         documentCode: "SRS-BMS-2026-V3",
-        version: "1.5.0",
+        version: "1.6.0",
         lastUpdated: "2026-11-09",
         author: "Product Owner & Google Antigravity Agent",
-        status: "Phase 1, 2 & POS Fully Operational • Comprehensive FR Refinement • Production Deployed",
+        status: "Phases 1, 2, POS & 3 (ERP Inventory & SCM) Operational (100%) • Multi-Warehouse & GRN Active • Vercel Ready",
         targetPlatform: "React Web Application hosted on Vercel",
         agentDirective: "Use this living SRS and Master Plan as the single source of truth. When requirements or modules are edited or marked 'Build Ready', implement the corresponding components, routes, and database schemas."
       },
@@ -168,15 +168,17 @@
         },
         {
           id: "PHASE-3",
-          phase: "Phase 3: Inventory, Supply Chain & Procurement",
+          phase: "Phase 3: Inventory, Warehouse & Procurement (ERP)",
           duration: "Weeks 5 - 6",
-          status: "In Progress",
-          progress: 55,
+          status: "Operational",
+          progress: 100,
           deliverables: [
-            "Product & SKU Catalog with categories, variants, and pricing tiers",
-            "Multi-location Warehouse Stock tracking & automated low-stock reorder alerts",
-            "Supplier Directory & Purchase Order (PO) lifecycle management",
-            "Goods Received Notes (GRN) and stock adjustment audit logs"
+            "Master Product & SKU Catalog with multi-category hierarchy and FIFO cost/retail pricing (FR-401)",
+            "Multi-location Warehouse Stock tracking (NY, London, Singapore) & automated reorder alerts (FR-402)",
+            "Inter-warehouse stock transfer workflow with automated movement logging and validation (FR-402)",
+            "Commercial Vendor Directory with credit terms, performance ratings, and order telemetry (FR-403)",
+            "Purchase Order (PO) lifecycle with approval routing to Executive Action Inbox for POs >= $5,000 (FR-403)",
+            "Goods Received Notes (GRN) workflow with 1-click inventory absorption and immutable audit logging (FR-403)"
           ]
         },
         {
@@ -281,7 +283,7 @@
           name: "Inventory, Warehouse & Procurement (ERP)",
           category: "Operations & Supply Chain",
           priority: "P0 - Critical",
-          status: "Build Ready / Implemented",
+          status: "Operational (100%)",
           description: "Real-time stock control, multi-warehouse transfers, bill of materials (BOM), supplier management, and purchase order automation.",
           userStories: [
             "As an Inventory Controller, I receive automatic alerts when any SKU falls below its minimum reorder point.",

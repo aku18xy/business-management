@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import {
   LayoutDashboard,
   Users2,
+  Boxes,
   Store,
   FileCheck2,
   Menu
@@ -33,6 +34,13 @@ export const MobileBottomNav = () => {
       label: 'Deals',
       icon: Users2,
       badge: deals.length > 0 ? `${deals.length}` : null,
+      visible: true
+    },
+    {
+      id: 'inventory',
+      label: 'Inventory',
+      icon: Boxes,
+      badge: null,
       visible: true
     },
     {

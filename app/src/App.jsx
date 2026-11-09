@@ -6,6 +6,7 @@ import { MobileBottomNav } from './components/MobileBottomNav';
 import { CommandPalette } from './components/CommandPalette';
 import { Dashboard } from './pages/Dashboard';
 import { CrmPage } from './pages/CrmPage';
+import { InventoryPage } from './pages/InventoryPage';
 import { PosTerminalPage } from './pages/PosTerminalPage';
 import { PosAdminPage } from './pages/PosAdminPage';
 import { ApprovalsPage } from './pages/ApprovalsPage';
@@ -40,6 +41,7 @@ export function App() {
           <div className="max-w-7xl mx-auto">
             {activeTab === 'dashboard' && <Dashboard />}
             {activeTab === 'crm' && <CrmPage />}
+            {activeTab === 'inventory' && <InventoryPage />}
             {activeTab === 'pos' && <PosAdminPage />}
             {activeTab === 'approvals' && <ApprovalsPage />}
             {activeTab === 'audit' && <AuditPage />}

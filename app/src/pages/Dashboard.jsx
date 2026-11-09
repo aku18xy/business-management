@@ -141,22 +141,23 @@ export const Dashboard = () => {
         {/* Metric 4: Operational Alerts */}
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition">
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-medium uppercase tracking-wider">Inventory & Approvals</span>
+            <span className="text-xs font-medium uppercase tracking-wider">ERP Stock & Approvals</span>
             <div className="p-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-black text-rose-400 tracking-tight">
-            {kpis.inventoryAlerts.lowStockCount} Low Stock
+          <div className="text-2xl font-black text-rose-400 tracking-tight flex items-baseline justify-between">
+            <span>{kpis.inventoryAlerts.erpLowStockCount || kpis.inventoryAlerts.lowStockCount} Low Stock</span>
+            <button
+              onClick={() => setActiveTab('inventory')}
+              className="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 font-sans"
+            >
+              View ERP →
+            </button>
           </div>
           <div className="flex items-center justify-between text-xs text-slate-400 mt-2">
-            <span>Pending Approvals: <strong className="text-amber-400">{pendingApprovals.length}</strong></span>
-            <button
-              onClick={() => setActiveTab('approvals')}
-              className="text-indigo-400 hover:text-indigo-300 font-semibold"
-            >
-              Resolve →
-            </button>
+            <span>Valuation: <strong className="text-emerald-400">${(kpis.inventoryAlerts.erpValuation || 48500).toLocaleString(undefined, { maximumFractionDigits: 0 })}</strong></span>
+            <span>Pending: <strong className="text-amber-400">{pendingApprovals.length}</strong></span>
           </div>
         </div>
       </div>

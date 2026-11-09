@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Users2,
   Store,
+  Boxes,
   X
 } from 'lucide-react';
 
@@ -26,6 +27,7 @@ export const Sidebar = () => {
     setSelectedBranch,
     approvals,
     deals,
+    inventoryItems,
     userPermissions,
     mobileMenuOpen,
     setMobileMenuOpen
@@ -46,6 +48,13 @@ export const Sidebar = () => {
       label: 'CRM & Sales Deals',
       icon: Users2,
       badge: `${deals.length}`,
+      visible: true
+    },
+    {
+      id: 'inventory',
+      label: 'ERP Inventory & SCM',
+      icon: Boxes,
+      badge: `${inventoryItems?.length || 8}`,
       visible: true
     },
     {
@@ -105,7 +114,7 @@ export const Sidebar = () => {
             </button>
           ) : (
             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              Phase 1+2
+              Phase 1-3 Active
             </span>
           )}
         </div>
@@ -193,15 +202,15 @@ export const Sidebar = () => {
             </span>
             <div className="space-y-1.5 text-xs text-slate-500">
               <div className="flex items-center justify-between py-1">
-                <span>Phase 3: ERP Inventory</span>
-                <span className="text-[10px] font-mono bg-slate-800 px-1.5 py-0.5 rounded">Next Up</span>
-              </div>
-              <div className="flex items-center justify-between py-1">
                 <span>Phase 4: Finance & Ledger</span>
-                <span className="text-[10px] font-mono bg-slate-800 px-1.5 py-0.5 rounded">Planned</span>
+                <span className="text-[10px] font-mono bg-slate-800 px-1.5 py-0.5 rounded text-indigo-300">Next Up</span>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span>Phase 5: HRM & Payroll</span>
+                <span className="text-[10px] font-mono bg-slate-800 px-1.5 py-0.5 rounded">Planned</span>
+              </div>
+              <div className="flex items-center justify-between py-1">
+                <span>Phase 6: Project Delivery</span>
                 <span className="text-[10px] font-mono bg-slate-800 px-1.5 py-0.5 rounded">Planned</span>
               </div>
             </div>
