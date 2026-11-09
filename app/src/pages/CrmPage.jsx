@@ -19,7 +19,10 @@ import {
   X,
   Pencil,
   ShieldCheck,
-  GripVertical
+  GripVertical,
+  Download,
+  Receipt,
+  FileCheck
 } from 'lucide-react';
 
 export const CrmPage = () => {
@@ -33,6 +36,9 @@ export const CrmPage = () => {
     pipelineStages,
     quotations,
     createQuotation,
+    updateQuotationStatus,
+    createInvoice,
+    navigateToTab,
     currentOrg,
     userPermissions
   } = useApp();
@@ -145,6 +151,237 @@ export const CrmPage = () => {
     alert(`Quotation successfully generated for "${deal.customerName}"! Deal advanced to Proposal Sent.`);
   };
 
+  // State for Invoice Generation success feedback
+  const [invoicingSuccess, setInvoicingSuccess] = useState(null);
+
+  // FR-304: Official Quotation PDF Export & Document Generation
+  const handleDownloadQuotationPDF = (qt) => {
+    const cust = customers.find(c => c.id === qt.customerId) || {};
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Please allow popup windows in your browser to download/print the Quotation PDF.');
+      return;
+    }
+
+    const itemsRows = (qt.items || []).map((it, idx) => `
+      <tr style="border-bottom: 1px solid #e2e8f0;">
+        <td style="padding: 10px 12px; font-family: monospace; color: #64748b;">${idx + 1}</td>
+        <td style="padding: 10px 12px; font-weight: 600; color: #1e293b;">${it.description}</td>
+        <td style="padding: 10px 12px; text-align: center; color: #334155;">${it.qty || 1}</td>
+        <td style="padding: 10px 12px; text-align: right; font-family: monospace; color: #334155;">${formatRM(it.unitPrice || it.total)}</td>
+        <td style="padding: 10px 12px; text-align: right; font-family: monospace; font-weight: 700; color: #0f172a;">${formatRM(it.total)}</td>
+      </tr>
+    `).join('');
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Quotation_${qt.id}_${(qt.customerName || 'Client').replace(/[^a-zA-Z0-9]/g, '_')}</title>
+        <style>
+          @page { size: A4; margin: 15mm; }
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #0f172a; margin: 0; padding: 24px; font-size: 13px; line-height: 1.5; background: #fff; }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 18px; border-bottom: 2px solid #4f46e5; margin-bottom: 24px; }
+          .brand-title { font-size: 20px; font-weight: 800; color: #1e1b4b; letter-spacing: -0.5px; margin: 0 0 4px 0; }
+          .company-meta { font-size: 11px; color: #475569; line-height: 1.4; }
+          .quote-badge { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-block; margin-bottom: 6px; }
+          .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+          .box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; }
+          .box-title { font-size: 10px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; color: #64748b; margin-bottom: 6px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+          th { background: #f1f5f9; padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #475569; border-bottom: 2px solid #cbd5e1; }
+          .summary-table { width: 340px; margin-left: auto; margin-bottom: 30px; }
+          .summary-table td { padding: 6px 12px; font-size: 12px; }
+          .summary-table .total-row td { border-top: 2px solid #0f172a; font-size: 15px; font-weight: 800; color: #047857; padding-top: 8px; }
+          .terms { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; font-size: 11px; color: #475569; margin-bottom: 30px; }
+          .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; }
+          .sig-line { border-top: 1px solid #94a3b8; padding-top: 8px; font-size: 11px; color: #475569; }
+          .print-btn { background: #4f46e5; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
+          @media print { .no-print { display: none; } body { padding: 0; } }
+        </style>
+      </head>
+      <body>
+        <div class="no-print" style="text-align: right; margin-bottom: 15px;">
+          <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+        </div>
+
+        <div class="header">
+          <div>
+            <h1 class="brand-title">NEXUS ENTERPRISE SOLUTIONS SDN. BHD.</h1>
+            <div class="company-meta">
+              <strong>Registration:</strong> 202401038291 (1543820-K) &bull; <strong>SST No:</strong> W10-2401-32000088 &bull; <strong>TIN:</strong> C25893010020<br>
+              Level 28, Menara Shell, 211 Jalan Tun Sambanthan, KL Sentral, 50470 Kuala Lumpur, Malaysia<br>
+              Tel: +60 3-2788 8800 &bull; Email: billing@nexusbms.my &bull; Web: https://nexus-bms.vercel.app
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div class="quote-badge">FORMAL COMMERCIAL QUOTATION</div>
+            <div style="font-size: 18px; font-weight: 800; font-family: monospace; color: #0f172a;">${qt.id}</div>
+            <div style="font-size: 11px; color: #64748b; margin-top: 2px;">Date: ${qt.date}</div>
+            <div style="font-size: 11px; color: #e11d48; font-weight: 600;">Valid Until: ${qt.validUntil}</div>
+          </div>
+        </div>
+
+        <div class="meta-grid">
+          <div class="box">
+            <div class="box-title">Client / Quotation Recipient</div>
+            <div style="font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 2px;">${qt.customerName}</div>
+            <div style="font-size: 12px; color: #475569;">
+              ${cust.contactPerson ? `Attn: ${cust.contactPerson}<br>` : ''}
+              ${cust.email ? `Email: ${cust.email}<br>` : ''}
+              ${cust.phone ? `Phone: ${cust.phone}<br>` : ''}
+              ${cust.industry ? `Industry: ${cust.industry}` : ''}
+            </div>
+          </div>
+          <div class="box">
+            <div class="box-title">Commercial & Settlement Terms</div>
+            <div style="font-size: 12px; color: #334155; line-height: 1.6;">
+              <strong>Payment Terms:</strong> Net 30 Days Credit<br>
+              <strong>Currency:</strong> Ringgit Malaysia (MYR / RM)<br>
+              <strong>Corporate Bank:</strong> Malayan Banking Berhad (Maybank)<br>
+              <strong>Account Number:</strong> 5140-1200-8899 (Nexus Solutions Sdn Bhd)
+            </div>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 40px;">#</th>
+              <th>Item Description & Scope of Work</th>
+              <th style="width: 70px; text-align: center;">Qty</th>
+              <th style="width: 130px; text-align: right;">Unit Price</th>
+              <th style="width: 140px; text-align: right;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsRows}
+          </tbody>
+        </table>
+
+        <table class="summary-table">
+          <tr>
+            <td style="color: #64748b;">Subtotal:</td>
+            <td style="text-align: right; font-family: monospace; font-weight: 600;">${formatRM(qt.subtotal || qt.total * 0.92)}</td>
+          </tr>
+          ${qt.discount ? `
+          <tr>
+            <td style="color: #64748b;">Commercial Discount:</td>
+            <td style="text-align: right; font-family: monospace; color: #e11d48;">-${formatRM(qt.discount)}</td>
+          </tr>` : ''}
+          <tr>
+            <td style="color: #64748b;">Malaysian SST (8%):</td>
+            <td style="text-align: right; font-family: monospace; font-weight: 600;">${formatRM(qt.tax || qt.total * 0.08)}</td>
+          </tr>
+          <tr class="total-row">
+            <td>Total Contract Value:</td>
+            <td style="text-align: right; font-family: monospace;">${formatRM(qt.total)}</td>
+          </tr>
+        </table>
+
+        <div class="terms">
+          <strong>Terms & Conditions:</strong><br>
+          1. Prices quoted are in Ringgit Malaysia (RM) and subject to statutory 8% Sales and Service Tax (SST).<br>
+          2. This quotation is valid until ${qt.validUntil}. Upon client confirmation, an official LHDN e-Invoicing compliant Tax Invoice will be issued.<br>
+          3. Deliveries and deployment schedules commence upon receipt of signed quotation or purchase order.
+        </div>
+
+        <div class="signatures">
+          <div>
+            <div style="height: 50px;"></div>
+            <div class="sig-line">
+              <strong>Authorized Signatory</strong><br>
+              Nexus Enterprise Solutions Sdn. Bhd.
+            </div>
+          </div>
+          <div>
+            <div style="height: 50px;"></div>
+            <div class="sig-line">
+              <strong>Client Acceptance & Confirmation</strong><br>
+              Name: ______________________ Date: ___________
+            </div>
+          </div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            setTimeout(function() { window.print(); }, 400);
+          };
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
+  // FR-305: 1-Click Direct Accounts Receivable (AR) Invoice Generation
+  const handleConvertToInvoice = (qt) => {
+    if (!userPermissions?.canManageDeals) {
+      alert('Your current role does not have permission to generate commercial invoices.');
+      return;
+    }
+
+    const subtotal = Number(qt.subtotal) || Number(qt.total) * 0.92;
+    const tax = Number(qt.tax) || (subtotal * (currentOrg.taxRate / 100));
+    const total = subtotal + tax;
+
+    const newInv = createInvoice({
+      customerId: qt.customerId,
+      customerName: qt.customerName,
+      customerEmail: qt.customerEmail,
+      quotationId: qt.id,
+      dealId: qt.dealId,
+      subtotal,
+      tax,
+      total,
+      items: qt.items || [
+        { description: `Enterprise Order based on Quotation ${qt.id}`, qty: 1, unitPrice: subtotal, total: subtotal }
+      ],
+      notes: `Commercial Tax Invoice converted from Quotation ${qt.id} on ${new Date().toLocaleDateString('en-GB')}.`
+    });
+
+    setInvoicingSuccess({
+      invoiceNumber: newInv.invoiceNumber,
+      customerName: qt.customerName,
+      total: newInv.total
+    });
+  };
+
+  // Direct Invoice generation for won deals on Kanban
+  const handleDirectDealInvoice = (deal) => {
+    if (!userPermissions?.canManageDeals) {
+      alert('Your current role does not have permission to generate commercial invoices.');
+      return;
+    }
+
+    const subtotal = deal.value * 0.92;
+    const tax = subtotal * (currentOrg.taxRate / 100);
+    const total = subtotal + tax;
+
+    const newInv = createInvoice({
+      customerId: deal.customerId,
+      customerName: deal.customerName,
+      dealId: deal.id,
+      subtotal,
+      tax,
+      total,
+      items: [
+        { description: deal.title, qty: 1, unitPrice: subtotal, total: subtotal }
+      ],
+      notes: `Commercial Tax Invoice issued for Won Opportunity: "${deal.title}".`
+    });
+
+    setInvoicingSuccess({
+      invoiceNumber: newInv.invoiceNumber,
+      customerName: deal.customerName,
+      total: newInv.total
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* CRM Header & Metric Strip */}
@@ -197,6 +434,37 @@ export const CrmPage = () => {
           <span>
             <strong>Forensic Compliance Mode (FR-101):</strong> Your active role ({userPermissions ? 'Auditor' : 'Guest'}) is restricted to read-only forensic inspection. Opportunity creation, customer modifications, and quotations are disabled.
           </span>
+        </div>
+      )}
+
+      {/* 1-Click Invoice Generation Success Notification Banner */}
+      {invoicingSuccess && (
+        <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xl">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white">Commercial Invoice Generated Successfully!</h4>
+              <p className="text-xs text-slate-300">
+                Tax Invoice <strong className="font-mono text-emerald-400">{invoicingSuccess.invoiceNumber}</strong> issued to <strong>{invoicingSuccess.customerName}</strong> for <strong>{formatRM(invoicingSuccess.total)}</strong> (including 8% SST). General Ledger double-entry posted.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigateToTab('finance')}
+              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow"
+            >
+              View in Finance & Ledger →
+            </button>
+            <button
+              onClick={() => setInvoicingSuccess(null)}
+              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white text-xs"
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
 
@@ -394,6 +662,17 @@ export const CrmPage = () => {
                                 + Quote
                               </button>
                             )}
+
+                            {deal.stage === 'won' && userPermissions?.canManageDeals && (
+                              <button
+                                onClick={() => handleDirectDealInvoice(deal)}
+                                className="text-[10px] px-2 py-0.5 rounded bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 font-bold transition flex items-center gap-1 shadow-sm"
+                                title="Convert Won Opportunity directly into Accounts Receivable Invoice (FR-305)"
+                              >
+                                <Receipt className="w-3 h-3" />
+                                <span>+ Invoice</span>
+                              </button>
+                            )}
                           </div>
                         </div>
                       );
@@ -538,6 +817,43 @@ export const CrmPage = () => {
                     <span className="text-slate-400">Total Contract Value:</span>
                     <span className="font-mono text-emerald-400">{formatRM(qt.total)}</span>
                   </div>
+                </div>
+
+                {/* FR-304 & FR-305: PDF Download & Invoice Generation Action Bar */}
+                <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                  <button
+                    onClick={() => handleDownloadQuotationPDF(qt)}
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition flex items-center gap-1.5 shadow-sm"
+                    title="Download Official PDF Quotation (FR-304)"
+                  >
+                    <Download className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Download PDF</span>
+                  </button>
+
+                  {qt.status === 'Invoiced' ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-mono px-2 py-1 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                        <span>Invoiced {qt.invoiceNumber ? `(${qt.invoiceNumber})` : ''}</span>
+                      </span>
+                      <button
+                        onClick={() => navigateToTab('finance')}
+                        className="text-xs text-indigo-400 hover:text-indigo-300 underline font-medium"
+                      >
+                        View in AR →
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      disabled={!userPermissions?.canManageDeals}
+                      onClick={() => handleConvertToInvoice(qt)}
+                      className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-emerald-600/20 disabled:opacity-40"
+                      title="Convert Quotation directly into Accounts Receivable Invoice (FR-305)"
+                    >
+                      <Receipt className="w-3.5 h-3.5" />
+                      <span>+ Generate Invoice (AR)</span>
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

@@ -115,10 +115,10 @@
       meta: {
         projectName: "NexusBMS — Malaysian Enterprise Business Management System (RM Edition)",
         documentCode: "SRS-BMS-2026-V3",
-        version: "1.7.0",
+        version: "1.8.0",
         lastUpdated: "2026-11-09",
         author: "Product Owner & Google Antigravity Agent",
-        status: "Phases 1-4 Operational (100%) • Malaysian Ringgit (RM), 8% SST, Multi-Branch Hubs & LHDN e-Invoicing Ready • Vercel Ready",
+        status: "Phases 1-4 Operational (100%) • CRM Quotation PDF & Direct AR Invoicing (FR-304, FR-305) Active • Malaysian System (RM / 8% SST)",
         targetPlatform: "React Web Application hosted on Vercel",
         agentDirective: "Use this living SRS and Master Plan as the single source of truth. When requirements or modules are edited or marked 'Build Ready', implement the corresponding components, routes, and database schemas."
       },
@@ -268,13 +268,16 @@
           description: "End-to-end customer lifecycle management from account directory and deal pipeline tracking to quotation generation and order conversion.",
           userStories: [
             "As a Sales Rep, I can drag-and-drop deals across pipeline stages, update customer profiles, and generate 1-click quotations.",
+            "As an Account Executive, I can download official PDF quotations with Malaysian SST breakdowns and convert accepted proposals directly into Accounts Receivable invoices.",
             "As a Sales Manager, I can review deal probabilities, monitor pipeline velocity, and audit customer credit limits."
           ],
           requirements: [
             { id: "FR-301", title: "360° Customer Directory & Account Telemetry", priority: "Must Have", complexity: "Low", acceptance: "Comprehensive customer accounts index with corporate tax IDs, billing contacts, linked pipeline opportunities, assigned credit limits, and account lifecycle status tracking." },
             { id: "FR-302", title: "Editable Client Profiles & Account Lifecycle Governance", priority: "Must Have", complexity: "Low", acceptance: "In-line and modal profile editor for client company metadata, credit terms, contact details, and account active/hold status with audit logging on every modification." },
             { id: "FR-302-B", title: "Interactive Kanban Deal Pipeline & Weighted Forecasting", priority: "Must Have", complexity: "Medium", acceptance: "Interactive multi-stage Kanban board (Lead, Contact Made, Needs Analysis, Proposal Sent, Negotiation, Closed Won) with drag/dropdown stage movement, weighted deal valuation, and win-probability calculation." },
-            { id: "FR-303", title: "Dynamic Quotation Builder & 1-Click Order Conversion", priority: "Must Have", complexity: "Medium", acceptance: "Dynamic quote generation with auto-calculated 8.5% sales tax, commercial discounts, line-item pricing, and automated deal advancement to 'Proposal Sent' stage upon generation." }
+            { id: "FR-303", title: "Dynamic Quotation Builder & Pricing Engine", priority: "Must Have", complexity: "Medium", acceptance: "Dynamic quote generation with auto-calculated 8% Malaysian SST, commercial discounts, line-item pricing, and automated deal advancement to 'Proposal Sent' stage upon generation." },
+            { id: "FR-304", title: "Official Quotation PDF Export & Document Generation", priority: "Must Have", complexity: "Medium", acceptance: "Export and download formal corporate PDF quotations featuring Nexus Enterprise Solutions Sdn. Bhd. letterhead, SST/TIN registration, customer billing details, line-item pricing, bank settlement info, and formal signature blocks." },
+            { id: "FR-305", title: "1-Click Direct Accounts Receivable (AR) Invoice Generation", priority: "Must Have", complexity: "High", acceptance: "Directly convert accepted Quotations or Won Deals into Accounts Receivable invoices (INV-2026-MY-XXXX) with automatic double-entry ledger posting (Debit: 1100 AR, Credit: 4010 Revenue, Credit: 2020 SST), status synchronization to 'Invoiced', and seamless navigation to Finance & Ledger." }
           ]
         },
         {

@@ -373,6 +373,12 @@ export const AppProvider = ({ children }) => {
     return newQuote;
   };
 
+  const updateQuotationStatus = (quoteId, status, invoiceNumber = null) => {
+    setQuotations(prev =>
+      prev.map(q => q.id === quoteId ? { ...q, status, invoiceNumber: invoiceNumber || q.invoiceNumber } : q)
+    );
+  };
+
   // ==========================================
   // POS METHODS
   // ==========================================
@@ -980,10 +986,10 @@ export const AppProvider = ({ children }) => {
   // PHASE 4: FINANCE, INVOICING & GENERAL LEDGER ACTIONS (FR-501, FR-502, FR-503)
   // ==========================================
   const createInvoice = (invData) => {
-    const invNum = `INV-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const invNum = invData.invoiceNumber || `INV-2026-MY-${Math.floor(1000 + Math.random() * 9000)}`;
     const subtotal = Number(invData.subtotal) || 0;
-    const tax = Number(invData.tax) || (subtotal * (currentOrg.taxRate / 100));
-    const total = subtotal + tax;
+    const tax = Number(invData.tax) !== undefined ? Number(invData.tax) : (subtotal * (currentOrg.taxRate / 100));
+    const total = Number(invData.total) || (subtotal + tax);
 
     const newInvoice = {
       id: `inv_rec_${Date.now()}`,
@@ -991,6 +997,8 @@ export const AppProvider = ({ children }) => {
       customerId: invData.customerId || customers[0]?.id || 'cust_101',
       customerName: invData.customerName || customers[0]?.name || 'Commercial Customer',
       customerEmail: invData.customerEmail || customers[0]?.email || 'billing@client.com',
+      eInvoiceStatus: "LHDN Validated",
+      lhdnUuid: `20261109-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
       issueDate: invData.issueDate || new Date().toISOString().split('T')[0],
       dueDate: invData.dueDate || new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
       subtotal,
@@ -1003,10 +1011,25 @@ export const AppProvider = ({ children }) => {
       items: invData.items || [
         { description: invData.description || 'Enterprise Commercial Products', qty: 1, unitPrice: subtotal, total: subtotal }
       ],
-      notes: invData.notes || 'Generated from NexusBMS Invoicing Engine.'
+      quotationId: invData.quotationId || null,
+      notes: invData.notes || `Generated from ${invData.quotationId ? `Quotation ${invData.quotationId}` : 'NexusBMS Invoicing Engine'}.`
     };
 
     setInvoices(prev => [newInvoice, ...prev]);
+
+    // Automatically update quotation status if converted from quote
+    if (invData.quotationId) {
+      setQuotations(prev =>
+        prev.map(q => q.id === invData.quotationId ? { ...q, status: 'Invoiced', invoiceNumber: invNum } : q)
+      );
+    }
+
+    // Automatically advance linked deal to won if applicable
+    if (invData.dealId) {
+      setDeals(prev =>
+        prev.map(d => d.id === invData.dealId ? { ...d, stage: 'won' } : d)
+      );
+    }
 
     // Automatic double-entry ledger posting (Debit: 1100 AR, Credit: 4010 Revenue, Credit: 2020 Tax)
     const newJrn = {
@@ -1025,7 +1048,7 @@ export const AppProvider = ({ children }) => {
     };
     setJournalEntries(prev => [newJrn, ...prev]);
 
-    addAuditLog('INVOICE_ISSUED', `Issued AR invoice ${invNum} to ${newInvoice.customerName} for RM ${total.toFixed(2)}`);
+    addAuditLog('INVOICE_ISSUED', `Issued AR invoice ${invNum} to ${newInvoice.customerName} for RM ${total.toFixed(2)}${invData.quotationId ? ` from Quotation ${invData.quotationId}` : ''}`);
     return newInvoice;
   };
 
@@ -1325,6 +1348,7 @@ export const AppProvider = ({ children }) => {
         updateDealStage,
         quotations,
         createQuotation,
+        updateQuotationStatus,
         pipelineStages: PIPELINE_STAGES,
         formatRM,
         formatCurrency,
