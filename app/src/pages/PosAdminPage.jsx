@@ -516,7 +516,7 @@ export const PosAdminPage = () => {
                   </div>
                   <div>
                     <h3 className="font-bold text-white text-sm">Register #1 — Main Counter</h3>
-                    <span className="text-[11px] text-slate-400">{selectedBranch?.name || 'Flagship Store'}</span>
+                    <span className="text-[11px] text-slate-400">{selectedBranch?.name || 'Kuala Lumpur HQ (KL Sentral)'}</span>
                   </div>
                 </div>
                 <span className="px-2.5 py-1 rounded text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
@@ -559,7 +559,7 @@ export const PosAdminPage = () => {
                 <span className="text-slate-400">Assigned Cashier:</span>
                 <span className="font-bold text-white flex items-center gap-1">
                   <UserCheck className="w-3.5 h-3.5 text-indigo-400" />
-                  Elena Rostova
+                  {posShift?.cashier || 'Nurul Elena'}
                 </span>
               </div>
             </div>

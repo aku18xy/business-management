@@ -29,13 +29,19 @@ import {
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const DATA_VERSION = 'nexus_v3_malaysia_rm_edition';
+  const DATA_VERSION = 'nexus_v4_malaysia_rm_stable';
 
-  // Check if saved state is older version
-  const isMigrated = typeof window !== 'undefined' && localStorage.getItem('nexus_system_version') === DATA_VERSION;
+  // Synchronous clean migration: purge stale legacy USD storage keys
+  if (typeof window !== 'undefined') {
+    if (localStorage.getItem('nexus_system_version') !== DATA_VERSION) {
+      localStorage.clear();
+      localStorage.setItem('nexus_system_version', DATA_VERSION);
+    }
+  }
+
   // Current user state (simulating RBAC active session)
   const [currentUser, setCurrentUser] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_user') : null;
+    const saved = localStorage.getItem('nexus_user');
     return saved ? JSON.parse(saved) : INITIAL_USERS[0];
   });
 
@@ -45,13 +51,13 @@ export const AppProvider = ({ children }) => {
 
   // Approvals workflow state
   const [approvals, setApprovals] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_approvals') : null;
+    const saved = localStorage.getItem('nexus_approvals');
     return saved ? JSON.parse(saved) : INITIAL_APPROVALS;
   });
 
   // Audit logs state
   const [auditLogs, setAuditLogs] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_audit_logs') : null;
+    const saved = localStorage.getItem('nexus_audit_logs');
     return saved ? JSON.parse(saved) : INITIAL_AUDIT_LOGS;
   });
 
@@ -59,17 +65,17 @@ export const AppProvider = ({ children }) => {
   // PHASE 2 STATE: CRM & PIPELINE
   // ==========================================
   const [customers, setCustomers] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_customers') : null;
+    const saved = localStorage.getItem('nexus_customers');
     return saved ? JSON.parse(saved) : INITIAL_CUSTOMERS;
   });
 
   const [deals, setDeals] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_deals') : null;
+    const saved = localStorage.getItem('nexus_deals');
     return saved ? JSON.parse(saved) : INITIAL_DEALS;
   });
 
   const [quotations, setQuotations] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_quotations') : null;
+    const saved = localStorage.getItem('nexus_quotations');
     return saved ? JSON.parse(saved) : INITIAL_QUOTATIONS;
   });
 
@@ -77,12 +83,12 @@ export const AppProvider = ({ children }) => {
   // PHASE 2 STATE: POS TERMINAL & INVENTORY
   // ==========================================
   const [posCatalog, setPosCatalog] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_pos_catalog') : null;
+    const saved = localStorage.getItem('nexus_pos_catalog');
     return saved ? JSON.parse(saved) : POS_CATALOG;
   });
 
   const [posOrders, setPosOrders] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_pos_orders') : null;
+    const saved = localStorage.getItem('nexus_pos_orders');
     return saved ? JSON.parse(saved) : INITIAL_POS_ORDERS;
   });
 
@@ -92,12 +98,12 @@ export const AppProvider = ({ children }) => {
   // FR-802: REGISTER SHIFT & CASH DRAWER RECONCILIATION
   // ==========================================
   const [posShift, setPosShift] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_pos_shift') : null;
+    const saved = localStorage.getItem('nexus_pos_shift');
     return saved ? JSON.parse(saved) : INITIAL_ACTIVE_SHIFT;
   });
 
   const [posShiftHistory, setPosShiftHistory] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_pos_shift_history') : null;
+    const saved = localStorage.getItem('nexus_pos_shift_history');
     return saved ? JSON.parse(saved) : INITIAL_SHIFT_HISTORY;
   });
 
@@ -108,27 +114,27 @@ export const AppProvider = ({ children }) => {
   // PHASE 3 STATE: ERP INVENTORY & SCM (FR-401, FR-402, FR-403)
   // ==========================================
   const [warehouses, setWarehouses] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_warehouses') : null;
+    const saved = localStorage.getItem('nexus_warehouses');
     return saved ? JSON.parse(saved) : INITIAL_WAREHOUSES;
   });
 
   const [inventoryItems, setInventoryItems] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_inventory_items') : null;
+    const saved = localStorage.getItem('nexus_inventory_items');
     return saved ? JSON.parse(saved) : INITIAL_INVENTORY_ITEMS;
   });
 
   const [vendors, setVendors] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_vendors') : null;
+    const saved = localStorage.getItem('nexus_vendors');
     return saved ? JSON.parse(saved) : INITIAL_VENDORS;
   });
 
   const [purchaseOrders, setPurchaseOrders] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_purchase_orders') : null;
+    const saved = localStorage.getItem('nexus_purchase_orders');
     return saved ? JSON.parse(saved) : INITIAL_PURCHASE_ORDERS;
   });
 
   const [stockMovements, setStockMovements] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_stock_movements') : null;
+    const saved = localStorage.getItem('nexus_stock_movements');
     return saved ? JSON.parse(saved) : INITIAL_STOCK_MOVEMENTS;
   });
 
@@ -136,22 +142,22 @@ export const AppProvider = ({ children }) => {
   // PHASE 4 STATE: FINANCE, INVOICING & GENERAL LEDGER (FR-501, FR-502, FR-503)
   // ==========================================
   const [chartOfAccounts, setChartOfAccounts] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_accounts') : null;
+    const saved = localStorage.getItem('nexus_accounts');
     return saved ? JSON.parse(saved) : INITIAL_ACCOUNTS;
   });
 
   const [invoices, setInvoices] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_invoices') : null;
+    const saved = localStorage.getItem('nexus_invoices');
     return saved ? JSON.parse(saved) : INITIAL_INVOICES;
   });
 
   const [vendorBills, setVendorBills] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_vendor_bills') : null;
+    const saved = localStorage.getItem('nexus_vendor_bills');
     return saved ? JSON.parse(saved) : INITIAL_VENDOR_BILLS;
   });
 
   const [journalEntries, setJournalEntries] = useState(() => {
-    const saved = isMigrated ? localStorage.getItem('nexus_journal_entries') : null;
+    const saved = localStorage.getItem('nexus_journal_entries');
     return saved ? JSON.parse(saved) : INITIAL_JOURNAL_ENTRIES;
   });
 
@@ -162,12 +168,6 @@ export const AppProvider = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Current URL path tracking (supports dedicated /pos terminal route)
-    useEffect(() => {
-    if (localStorage.getItem('nexus_system_version') !== DATA_VERSION) {
-      localStorage.setItem('nexus_system_version', DATA_VERSION);
-    }
-  }, []);
-
   const [currentPath, setCurrentPath] = useState(() => {
     if (typeof window !== 'undefined') {
       return window.location.pathname || '/';
@@ -622,7 +622,7 @@ export const AppProvider = ({ children }) => {
   // FR-802: REGISTER SHIFT & CASH DRAWER RECONCILIATION METHODS
   // ==========================================
   const shiftCashSales = posOrders
-    .filter(o => o.paymentMethod === 'Cash Drawer' && o.status !== 'Voided')
+    .filter(o => (o.paymentMethod === 'Cash Drawer' || o.paymentMethod?.toLowerCase().includes('cash')) && o.status !== 'Voided')
     .reduce((sum, o) => {
       if (o.status === 'Refunded') return sum;
       if (o.status === 'Partially Refunded') {
@@ -639,7 +639,7 @@ export const AppProvider = ({ children }) => {
     ? Number((posShift.openingFloat + shiftCashSales - shiftCashDropsTotal).toFixed(2))
     : 0;
 
-  const openRegisterShift = ({ openingFloat, notes = '', registerId = 'REG-01-FLAGSHIP' }) => {
+  const openRegisterShift = ({ openingFloat, notes = '', registerId = 'REG-01-KL-SENTRAL' }) => {
     const floatNum = parseFloat(openingFloat) || 0;
     const newShift = {
       id: `SHIFT-2026-${Math.floor(1000 + Math.random() * 9000)}`,

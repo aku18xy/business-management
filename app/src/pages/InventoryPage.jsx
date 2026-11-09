@@ -65,13 +65,13 @@ export const InventoryPage = () => {
   const [selectedPoForReceive, setSelectedPoForReceive] = useState(null);
 
   // Adjust Form
-  const [adjustWarehouseId, setAdjustWarehouseId] = useState(warehouses[0]?.id || 'wh_ny');
+  const [adjustWarehouseId, setAdjustWarehouseId] = useState(warehouses[0]?.id || 'wh_kl');
   const [adjustDelta, setAdjustDelta] = useState(0);
   const [adjustReason, setAdjustReason] = useState('Periodic Physical Stock Count');
 
   // Transfer Form
-  const [transferFromWh, setTransferFromWh] = useState(warehouses[0]?.id || 'wh_ny');
-  const [transferToWh, setTransferToWh] = useState(warehouses[1]?.id || 'wh_ldn');
+  const [transferFromWh, setTransferFromWh] = useState(warehouses[0]?.id || 'wh_kl');
+  const [transferToWh, setTransferToWh] = useState(warehouses[1]?.id || 'wh_pg');
   const [transferQty, setTransferQty] = useState(10);
 
   // Add SKU Form
@@ -79,7 +79,7 @@ export const InventoryPage = () => {
     sku: '',
     name: '',
     category: 'Hardware',
-    unitOfMeasure: 'pcs',
+    unitOfMeasure: 'unit',
     costPrice: '',
     retailPrice: '',
     initialStock: '',
@@ -90,7 +90,7 @@ export const InventoryPage = () => {
 
   // Create PO Form
   const [poVendorId, setPoVendorId] = useState(vendors[0]?.id || 'ven_1');
-  const [poWarehouseId, setPoWarehouseId] = useState(warehouses[0]?.id || 'wh_ny');
+  const [poWarehouseId, setPoWarehouseId] = useState(warehouses[0]?.id || 'wh_kl');
   const [poSelectedSku, setPoSelectedSku] = useState(inventoryItems[0]?.sku || '');
   const [poQty, setPoQty] = useState(50);
   const [poNotes, setPoNotes] = useState('');
@@ -100,7 +100,7 @@ export const InventoryPage = () => {
     name: '',
     code: '',
     category: 'Hardware & Components',
-    country: 'United States',
+    country: 'Malaysia',
     contactPerson: '',
     email: '',
     phone: '',

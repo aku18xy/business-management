@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { roundTo5Sen } from '../utils/format';
 import { useApp } from '../context/AppContext';
 import {
   ShoppingCart,
@@ -85,7 +86,7 @@ export const PosTerminalPage = () => {
 
   // Checkout modal
   const [checkoutModal, setCheckoutModal] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState('Cash Drawer');
+  const [selectedPayment, setSelectedPayment] = useState('Cash (RM - 5¢ Rounding)');
   const [cashTendered, setCashTendered] = useState('');
   const [customerName, setCustomerName] = useState('Walk-in Retail Guest');
   const [discountPercent, setDiscountPercent] = useState(0);
@@ -97,7 +98,7 @@ export const PosTerminalPage = () => {
   const [cashDropModal, setCashDropModal] = useState(false);
   const [dropAmount, setDropAmount] = useState('');
   const [dropReason, setDropReason] = useState('Midday Cash Drop to Vault Safe');
-  const [dropAuthorizer, setDropAuthorizer] = useState('Elena Rostova (Finance)');
+  const [dropAuthorizer, setDropAuthorizer] = useState('Nurul Elena (Finance)');
 
   const [reconcileModal, setReconcileModal] = useState(false);
   const [countedCashInput, setCountedCashInput] = useState('');
@@ -221,7 +222,7 @@ export const PosTerminalPage = () => {
     return `RM ${Number(amount || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  // Tender checkout (Enforcing FR-802: Orders blocked if shift is closed)
+  // Tender checkout (Enforcing FR-802: Orders blocked if shift is closed & BNM 5-sen cash rounding)
   const handleCompleteSale = () => {
     if (!isShiftActive) {
       alert('Cannot place order: Register shift is closed. Please open shift and record starting cash float first.');
@@ -230,19 +231,23 @@ export const PosTerminalPage = () => {
       return;
     }
     if (posCart.length === 0) return;
-    const tenderedVal = Number(cashTendered) || cartTotal;
-    const changeDue = Math.max(0, tenderedVal - cartTotal);
+    const isCash = selectedPayment?.includes('Cash');
+    const { roundedTotal, roundingAdjustment } = isCash ? roundTo5Sen(cartTotal) : { roundedTotal: cartTotal, roundingAdjustment: 0 };
+    const payableAmount = isCash ? roundedTotal : cartTotal;
+    const tenderedVal = Number(cashTendered) || payableAmount;
+    const changeDue = Math.max(0, tenderedVal - payableAmount);
 
     const receipt = completeCheckout({
       paymentMethod: selectedPayment,
       customerName,
       discountPercent,
-      cashTendered: (selectedPayment === 'Cash (RM - 5¢ Rounding)' || selectedPayment === 'Cash Drawer') ? tenderedVal : null,
-      changeDue: (selectedPayment === 'Cash (RM - 5¢ Rounding)' || selectedPayment === 'Cash Drawer') ? changeDue : 0,
+      cashTendered: isCash ? tenderedVal : null,
+      changeDue: isCash ? changeDue : 0,
+      roundingAdjustment: isCash ? roundingAdjustment : 0,
       subtotal: cartSubtotal,
       tax: cartTax,
-      total: cartTotal,
-      branchId: selectedBranch?.id || 'BR-HQ-01'
+      total: payableAmount,
+      branchId: selectedBranch?.id || 'br_kl'
     });
 
     if (!receipt) {
@@ -994,69 +999,93 @@ export const PosTerminalPage = () => {
             </div>
 
             {/* Payment Method Selector */}
-            <div className="grid grid-cols-3 gap-2">
-              {['DuitNow QR', 'Touch \'n Go eWallet', 'MyDebit / Visa Card', 'Cash (RM - 5¢ Rounding)'].map((method) => (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {['Cash (RM - 5¢ Rounding)', 'DuitNow QR', 'Touch \'n Go eWallet', 'MyDebit / Visa Card'].map((method) => (
                 <button
                   key={method}
+                  type="button"
                   onClick={() => setSelectedPayment(method)}
-                  className={`p-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1 ${
+                  className={`p-2.5 rounded-xl border text-xs font-bold transition flex flex-col items-center justify-center gap-1.5 ${
                     selectedPayment === method
-                      ? 'bg-indigo-600 text-white border-indigo-500 shadow'
+                      ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30'
                       : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
                   }`}
                 >
-                  {method === 'Cash Drawer' && <Banknote className="w-4 h-4" />}
-                  {method === 'Card Terminal' && <CreditCard className="w-4 h-4" />}
-                  {method === 'QR Pay' && <QrCode className="w-4 h-4" />}
-                  <span>{method}</span>
+                  {method.includes('Cash') && <Banknote className="w-4 h-4 text-emerald-400" />}
+                  {method.includes('DuitNow') && <QrCode className="w-4 h-4 text-rose-400" />}
+                  {method.includes('Touch') && <QrCode className="w-4 h-4 text-sky-400" />}
+                  {method.includes('Debit') && <CreditCard className="w-4 h-4 text-indigo-300" />}
+                  <span className="text-center text-[11px] leading-tight">{method}</span>
                 </button>
               ))}
             </div>
 
-            {(selectedPayment === 'Cash (RM - 5¢ Rounding)' || selectedPayment === 'Cash Drawer') && (
-              <div className="space-y-3 bg-slate-950 p-3 rounded-xl border border-slate-800">
-                <label className="text-xs text-slate-400 block font-medium">Cash Tendered by Customer</label>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-emerald-400 font-mono font-bold">RM</span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder={cartTotal.toFixed(2)}
-                    value={cashTendered}
-                    onChange={(e) => setCashTendered(e.target.value)}
-                    className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono text-base font-bold"
-                  />
-                </div>
+            {(selectedPayment === 'Cash (RM - 5¢ Rounding)' || selectedPayment?.includes('Cash')) && (() => {
+              const { roundedTotal, roundingAdjustment } = roundTo5Sen(cartTotal);
+              const cashPayable = roundedTotal;
+              const tenderNum = Number(cashTendered) || cashPayable;
+              const changeDue = Math.max(0, tenderNum - cashPayable);
 
-                {/* Quick Bills (Bank Negara Malaysia Ringgit Banknotes) */}
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  {[10, 20, 50, 100, 200].map((bill) => (
-                    <button
-                      key={bill}
-                      onClick={() => setCashTendered(String(bill))}
-                      className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs font-bold transition"
-                    >
-                      RM {bill}
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => setCashTendered(cartTotal.toFixed(2))}
-                    className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-400 font-mono text-xs font-bold transition"
-                  >
-                    Exact (RM {cartTotal.toFixed(2)})
-                  </button>
-                </div>
-
-                {Number(cashTendered) > cartTotal && (
-                  <div className="pt-2 border-t border-slate-800 flex justify-between text-xs">
-                    <span className="text-slate-400">Change Due to Customer:</span>
-                    <span className="font-mono font-extrabold text-emerald-400 text-sm">
-                      {formatMoney(Number(cashTendered) - cartTotal)}
+              return (
+                <div className="space-y-3 bg-slate-950 p-3 rounded-xl border border-slate-800">
+                  <div className="flex justify-between items-center text-xs pb-2 border-b border-slate-800">
+                    <span className="text-slate-400">Bank Negara 5¢ Rounding:</span>
+                    <span className="font-mono font-bold text-amber-400">
+                      {roundingAdjustment !== 0
+                        ? (roundingAdjustment > 0 ? `+RM ${roundingAdjustment.toFixed(2)}` : `-RM ${Math.abs(roundingAdjustment).toFixed(2)}`)
+                        : 'RM 0.00'}
                     </span>
                   </div>
-                )}
-              </div>
-            )}
+                  <div className="flex justify-between items-center text-xs pb-2 border-b border-slate-800">
+                    <span className="text-slate-300 font-bold">Net Cash Payable:</span>
+                    <span className="font-mono font-black text-emerald-400 text-sm">{formatMoney(cashPayable)}</span>
+                  </div>
+
+                  <label className="text-xs text-slate-400 block font-medium">Cash Tendered by Customer</label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-emerald-400 font-mono font-bold">RM</span>
+                    <input
+                      type="number"
+                      step="0.05"
+                      placeholder={cashPayable.toFixed(2)}
+                      value={cashTendered}
+                      onChange={(e) => setCashTendered(e.target.value)}
+                      className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white font-mono text-base font-bold"
+                    />
+                  </div>
+
+                  {/* Quick Bills (Bank Negara Malaysia Ringgit Banknotes) */}
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {[10, 20, 50, 100, 200].map((bill) => (
+                      <button
+                        key={bill}
+                        type="button"
+                        onClick={() => setCashTendered(String(bill))}
+                        className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs font-bold transition"
+                      >
+                        RM {bill}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setCashTendered(cashPayable.toFixed(2))}
+                      className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-400 font-mono text-xs font-bold transition"
+                    >
+                      Exact (RM {cashPayable.toFixed(2)})
+                    </button>
+                  </div>
+
+                  {Number(cashTendered) > cashPayable && (
+                    <div className="pt-2 border-t border-slate-800 flex justify-between text-xs">
+                      <span className="text-slate-400">Change Due to Customer:</span>
+                      <span className="font-mono font-extrabold text-emerald-400 text-sm">
+                        {formatMoney(changeDue)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             <div className="flex justify-end gap-2 pt-2">
               <button
@@ -1481,7 +1510,7 @@ export const PosTerminalPage = () => {
             <div className="text-center border-b border-dashed border-slate-300 pb-3">
               <span className="text-[10px] tracking-widest text-slate-500 block">*** DAILY REGISTER CLOSEOUT ***</span>
               <h2 className="text-base font-bold font-sans tracking-wide mt-0.5">OFFICIAL Z-REPORT</h2>
-              <p className="text-[10px] text-slate-600">{selectedBranch?.name || 'Flagship Megastore'}</p>
+              <p className="text-[10px] text-slate-600">{selectedBranch?.name || 'Kuala Lumpur HQ (KL Sentral)'}</p>
               <p className="text-[10px] text-slate-600">Register: {selectedShiftReport.registerId} • Shift #{selectedShiftReport.id}</p>
               <p className="text-[10px] text-slate-600">Opened: {selectedShiftReport.openedAt} • Closed: {selectedShiftReport.closedAt}</p>
               <p className="text-[10px] text-slate-600">Cashier: {selectedShiftReport.cashier}</p>

@@ -82,7 +82,7 @@ export const FinancePage = () => {
   // Calculations
   const totalAr = invoices.reduce((sum, inv) => sum + (inv.status === 'Paid' ? 0 : inv.balanceDue), 0);
   const totalAp = vendorBills.reduce((sum, bill) => sum + (bill.status === 'Paid' ? 0 : (bill.amount - bill.paidAmount)), 0);
-  const cashAccount = chartOfAccounts.find(a => a.code === '1010')?.balance || 428500;
+  const cashAccount = chartOfAccounts.find(a => a.code === '1010')?.balance || 548500;
   const overdueAr = invoices.filter(i => i.status === 'Overdue').reduce((sum, i) => sum + i.balanceDue, 0);
 
   // Financial Statements computations
