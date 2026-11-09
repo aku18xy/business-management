@@ -11,6 +11,7 @@ import {
   Users2,
   Store,
   Boxes,
+  Receipt,
   X
 } from 'lucide-react';
 
@@ -28,6 +29,7 @@ export const Sidebar = () => {
     approvals,
     deals,
     inventoryItems,
+    invoices,
     userPermissions,
     mobileMenuOpen,
     setMobileMenuOpen
@@ -55,6 +57,13 @@ export const Sidebar = () => {
       label: 'ERP Inventory & SCM',
       icon: Boxes,
       badge: `${inventoryItems?.length || 8}`,
+      visible: true
+    },
+    {
+      id: 'finance',
+      label: 'Finance & Ledger',
+      icon: Receipt,
+      badge: invoices?.filter(i => i.balanceDue > 0).length ? `${invoices.filter(i => i.balanceDue > 0).length}` : null,
       visible: true
     },
     {
@@ -113,8 +122,8 @@ export const Sidebar = () => {
               <X className="w-5 h-5" />
             </button>
           ) : (
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              Phase 1-3 Active
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+              v1.6 Enterprise
             </span>
           )}
         </div>
@@ -196,25 +205,7 @@ export const Sidebar = () => {
             </button>
           </div>
 
-          <div className="pt-4 mt-4 border-t border-slate-800/80 px-3">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 block mb-2">
-              Next Roadmap Phases
-            </span>
-            <div className="space-y-1.5 text-xs text-slate-500">
-              <div className="flex items-center justify-between py-1">
-                <span>Phase 4: Finance & Ledger</span>
-                <span className="text-[10px] font-mono bg-slate-800 px-1.5 py-0.5 rounded text-indigo-300">Next Up</span>
-              </div>
-              <div className="flex items-center justify-between py-1">
-                <span>Phase 5: HRM & Payroll</span>
-                <span className="text-[10px] font-mono bg-slate-800 px-1.5 py-0.5 rounded">Planned</span>
-              </div>
-              <div className="flex items-center justify-between py-1">
-                <span>Phase 6: Project Delivery</span>
-                <span className="text-[10px] font-mono bg-slate-800 px-1.5 py-0.5 rounded">Planned</span>
-              </div>
-            </div>
-          </div>
+
         </nav>
       </div>
 

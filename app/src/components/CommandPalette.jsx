@@ -12,6 +12,7 @@ import {
   Users2,
   Store,
   Boxes,
+  Receipt,
   X
 } from 'lucide-react';
 
@@ -57,6 +58,13 @@ export const CommandPalette = () => {
       icon: Boxes,
       group: 'Operations & SCM',
       run: () => setActiveTab('inventory')
+    },
+    {
+      id: 'nav_finance',
+      label: 'Open Finance, Invoicing & General Ledger (Phase 4)',
+      icon: Receipt,
+      group: 'Finance & Accounting',
+      run: () => setActiveTab('finance')
     },
     {
       id: 'nav_pos_terminal',

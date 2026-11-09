@@ -18,7 +18,11 @@ import {
   INITIAL_INVENTORY_ITEMS,
   INITIAL_VENDORS,
   INITIAL_PURCHASE_ORDERS,
-  INITIAL_STOCK_MOVEMENTS
+  INITIAL_STOCK_MOVEMENTS,
+  INITIAL_ACCOUNTS,
+  INITIAL_INVOICES,
+  INITIAL_VENDOR_BILLS,
+  INITIAL_JOURNAL_ENTRIES
 } from '../data/mockData';
 
 const AppContext = createContext();
@@ -123,6 +127,29 @@ export const AppProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : INITIAL_STOCK_MOVEMENTS;
   });
 
+  // ==========================================
+  // PHASE 4 STATE: FINANCE, INVOICING & GENERAL LEDGER (FR-501, FR-502, FR-503)
+  // ==========================================
+  const [chartOfAccounts, setChartOfAccounts] = useState(() => {
+    const saved = localStorage.getItem('nexus_accounts');
+    return saved ? JSON.parse(saved) : INITIAL_ACCOUNTS;
+  });
+
+  const [invoices, setInvoices] = useState(() => {
+    const saved = localStorage.getItem('nexus_invoices');
+    return saved ? JSON.parse(saved) : INITIAL_INVOICES;
+  });
+
+  const [vendorBills, setVendorBills] = useState(() => {
+    const saved = localStorage.getItem('nexus_vendor_bills');
+    return saved ? JSON.parse(saved) : INITIAL_VENDOR_BILLS;
+  });
+
+  const [journalEntries, setJournalEntries] = useState(() => {
+    const saved = localStorage.getItem('nexus_journal_entries');
+    return saved ? JSON.parse(saved) : INITIAL_JOURNAL_ENTRIES;
+  });
+
   // Theme mode & active navigation tab
   const [isDark, setIsDark] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -225,6 +252,23 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('nexus_stock_movements', JSON.stringify(stockMovements));
   }, [stockMovements]);
+
+  // Phase 4 Finance Storage Sync
+  useEffect(() => {
+    localStorage.setItem('nexus_accounts', JSON.stringify(chartOfAccounts));
+  }, [chartOfAccounts]);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_invoices', JSON.stringify(invoices));
+  }, [invoices]);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_vendor_bills', JSON.stringify(vendorBills));
+  }, [vendorBills]);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_journal_entries', JSON.stringify(journalEntries));
+  }, [journalEntries]);
 
   // Role switching
   const switchUser = (userId) => {
@@ -922,6 +966,237 @@ export const AppProvider = ({ children }) => {
   };
 
   // ==========================================
+  // PHASE 4: FINANCE, INVOICING & GENERAL LEDGER ACTIONS (FR-501, FR-502, FR-503)
+  // ==========================================
+  const createInvoice = (invData) => {
+    const invNum = `INV-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const subtotal = Number(invData.subtotal) || 0;
+    const tax = Number(invData.tax) || (subtotal * (currentOrg.taxRate / 100));
+    const total = subtotal + tax;
+
+    const newInvoice = {
+      id: `inv_rec_${Date.now()}`,
+      invoiceNumber: invNum,
+      customerId: invData.customerId || customers[0]?.id || 'cust_101',
+      customerName: invData.customerName || customers[0]?.name || 'Commercial Customer',
+      customerEmail: invData.customerEmail || customers[0]?.email || 'billing@client.com',
+      issueDate: invData.issueDate || new Date().toISOString().split('T')[0],
+      dueDate: invData.dueDate || new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+      subtotal,
+      tax,
+      total,
+      paidAmount: 0.00,
+      balanceDue: total,
+      status: 'Unpaid',
+      agingBucket: 'Current',
+      items: invData.items || [
+        { description: invData.description || 'Enterprise Commercial Products', qty: 1, unitPrice: subtotal, total: subtotal }
+      ],
+      notes: invData.notes || 'Generated from NexusBMS Invoicing Engine.'
+    };
+
+    setInvoices(prev => [newInvoice, ...prev]);
+
+    // Automatic double-entry ledger posting (Debit: 1100 AR, Credit: 4010 Revenue, Credit: 2020 Tax)
+    const newJrn = {
+      id: `jrn_${Date.now()}`,
+      entryNumber: `JRN-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      date: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      description: `Commercial Invoice Issued to ${newInvoice.customerName} (${invNum})`,
+      reference: invNum,
+      actor: `${currentUser.name} (${currentUser.role})`,
+      lines: [
+        { accountCode: "1100", accountName: "Accounts Receivable (Trade Debtors)", debit: total, credit: 0.00 },
+        { accountCode: "4010", accountName: "Commercial B2B Enterprise Revenue", debit: 0.00, credit: subtotal },
+        { accountCode: "2020", accountName: "Sales Tax Collected Payable", debit: 0.00, credit: tax }
+      ],
+      totalAmount: total
+    };
+    setJournalEntries(prev => [newJrn, ...prev]);
+
+    addAuditLog('INVOICE_ISSUED', `Issued AR invoice ${invNum} to ${newInvoice.customerName} for $${total.toFixed(2)}`);
+    return newInvoice;
+  };
+
+  const recordInvoicePayment = (invoiceId, paymentAmount, method = 'Wire Transfer') => {
+    const inv = invoices.find(i => i.id === invoiceId);
+    if (!inv || inv.status === 'Paid') return false;
+
+    const payNum = Number(paymentAmount) || inv.balanceDue;
+    const newPaidTotal = Math.min(inv.total, (Number(inv.paidAmount) || 0) + payNum);
+    const newBalance = Math.max(0, inv.total - newPaidTotal);
+    const newStatus = newBalance === 0 ? 'Paid' : 'Partially Paid';
+
+    setInvoices(prev => prev.map(i => {
+      if (i.id === invoiceId) {
+        return {
+          ...i,
+          paidAmount: newPaidTotal,
+          balanceDue: newBalance,
+          status: newStatus,
+          notes: `${i.notes || ''} [Payment of $${payNum.toFixed(2)} received via ${method} on ${new Date().toLocaleDateString()}]`.trim()
+        };
+      }
+      return i;
+    }));
+
+    // Post Double-Entry Journal: Debit 1010 Cash & Bank, Credit 1100 Accounts Receivable
+    const payJrn = {
+      id: `jrn_${Date.now()}`,
+      entryNumber: `JRN-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      date: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      description: `Payment Received on ${inv.invoiceNumber} (${method})`,
+      reference: inv.invoiceNumber,
+      actor: `${currentUser.name} (${currentUser.role})`,
+      lines: [
+        { accountCode: "1010", accountName: "Operating Cash & Bank (JPMorgan Chase)", debit: payNum, credit: 0.00 },
+        { accountCode: "1100", accountName: "Accounts Receivable (Trade Debtors)", debit: 0.00, credit: payNum }
+      ],
+      totalAmount: payNum
+    };
+    setJournalEntries(prev => [payJrn, ...prev]);
+
+    // Update account balances
+    setChartOfAccounts(prev => prev.map(acc => {
+      if (acc.code === "1010") return { ...acc, balance: acc.balance + payNum };
+      if (acc.code === "1100") return { ...acc, balance: Math.max(0, acc.balance - payNum) };
+      return acc;
+    }));
+
+    addAuditLog('INVOICE_PAYMENT_RECORDED', `Recorded payment of $${payNum.toFixed(2)} on ${inv.invoiceNumber} via ${method}. Status: ${newStatus}`);
+    return true;
+  };
+
+  const createVendorBill = (billData) => {
+    const billNum = `BILL-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const amt = Number(billData.amount) || 0;
+    const tax = amt * (currentOrg.taxRate / 100);
+    const total = amt + tax;
+
+    const newBill = {
+      id: `bill_${Date.now()}`,
+      billNumber: billNum,
+      vendorId: billData.vendorId || vendors[0]?.id || 'ven_1',
+      vendorName: billData.vendorName || vendors[0]?.name || 'Supplier Vendor',
+      poNumber: billData.poNumber || 'DIRECT-EXPENSE',
+      billDate: billData.billDate || new Date().toISOString().split('T')[0],
+      dueDate: billData.dueDate || new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
+      amount: total,
+      paidAmount: 0.00,
+      status: 'Awaiting Payment',
+      category: billData.category || 'Operating Expenses',
+      items: [
+        { description: billData.description || 'Vendor Commercial Billing', qty: 1, unitCost: amt, total: amt }
+      ],
+      tax,
+      paymentTerms: billData.paymentTerms || 'Net 30'
+    };
+
+    setVendorBills(prev => [newBill, ...prev]);
+
+    // Post Double-Entry Journal: Debit Expense / Asset, Debit Tax, Credit 2010 AP
+    const expenseAccountCode = billData.expenseAccountCode || "6020";
+    const jrn = {
+      id: `jrn_${Date.now()}`,
+      entryNumber: `JRN-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      date: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      description: `Vendor Bill Recognized - ${newBill.vendorName} (${billNum})`,
+      reference: billNum,
+      actor: `${currentUser.name} (${currentUser.role})`,
+      lines: [
+        { accountCode: expenseAccountCode, accountName: "Operating Expenses", debit: amt, credit: 0.00 },
+        { accountCode: "2020", accountName: "Sales Tax & VAT Input Credit", debit: tax, credit: 0.00 },
+        { accountCode: "2010", accountName: "Accounts Payable (Trade Creditors)", debit: 0.00, credit: total }
+      ],
+      totalAmount: total
+    };
+    setJournalEntries(prev => [jrn, ...prev]);
+
+    addAuditLog('VENDOR_BILL_CREATED', `Entered vendor bill ${billNum} from ${newBill.vendorName} for $${total.toFixed(2)}`);
+    return newBill;
+  };
+
+  const payVendorBill = (billId, paymentMethod = 'Bank ACH') => {
+    const bill = vendorBills.find(b => b.id === billId);
+    if (!bill || bill.status === 'Paid') return false;
+
+    setVendorBills(prev => prev.map(b => {
+      if (b.id === billId) {
+        return {
+          ...b,
+          paidAmount: b.amount,
+          status: 'Paid'
+        };
+      }
+      return b;
+    }));
+
+    // Post Double-Entry Journal: Debit 2010 AP, Credit 1010 Cash & Bank
+    const jrn = {
+      id: `jrn_${Date.now()}`,
+      entryNumber: `JRN-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      date: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      description: `Settled Vendor Bill ${bill.billNumber} to ${bill.vendorName} (${paymentMethod})`,
+      reference: bill.billNumber,
+      actor: `${currentUser.name} (${currentUser.role})`,
+      lines: [
+        { accountCode: "2010", accountName: "Accounts Payable (Trade Creditors)", debit: bill.amount, credit: 0.00 },
+        { accountCode: "1010", accountName: "Operating Cash & Bank (JPMorgan Chase)", debit: 0.00, credit: bill.amount }
+      ],
+      totalAmount: bill.amount
+    };
+    setJournalEntries(prev => [jrn, ...prev]);
+
+    // Update account balances
+    setChartOfAccounts(prev => prev.map(acc => {
+      if (acc.code === "1010") return { ...acc, balance: acc.balance - bill.amount };
+      if (acc.code === "2010") return { ...acc, balance: Math.max(0, acc.balance - bill.amount) };
+      return acc;
+    }));
+
+    addAuditLog('VENDOR_BILL_PAID', `Paid vendor bill ${bill.billNumber} ($${bill.amount.toFixed(2)}) to ${bill.vendorName} via ${paymentMethod}`);
+    return true;
+  };
+
+  const addJournalEntry = (entryData) => {
+    const entryNum = `JRN-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    const totalDebit = (entryData.lines || []).reduce((s, l) => s + (Number(l.debit) || 0), 0);
+    const totalCredit = (entryData.lines || []).reduce((s, l) => s + (Number(l.credit) || 0), 0);
+
+    if (Math.abs(totalDebit - totalCredit) > 0.01) {
+      return { success: false, message: `Debits ($${totalDebit.toFixed(2)}) must equal Credits ($${totalCredit.toFixed(2)}).` };
+    }
+
+    const newJrn = {
+      id: `jrn_${Date.now()}`,
+      entryNumber: entryNum,
+      date: entryData.date || new Date().toISOString().replace('T', ' ').substring(0, 16),
+      description: entryData.description || 'Manual General Ledger Adjustment',
+      reference: entryData.reference || `MAN-${Date.now().toString().slice(-4)}`,
+      actor: `${currentUser.name} (${currentUser.role})`,
+      lines: entryData.lines || [],
+      totalAmount: totalDebit
+    };
+
+    setJournalEntries(prev => [newJrn, ...prev]);
+
+    // Update affected account balances
+    setChartOfAccounts(prev => prev.map(acc => {
+      const line = entryData.lines.find(l => l.accountCode === acc.code);
+      if (line) {
+        const debit = Number(line.debit) || 0;
+        const credit = Number(line.credit) || 0;
+        const change = acc.normal === 'Debit' ? (debit - credit) : (credit - debit);
+        return { ...acc, balance: acc.balance + change };
+      }
+      return acc;
+    }));
+
+    addAuditLog('JOURNAL_ENTRY_POSTED', `Posted balanced double-entry voucher ${entryNum} for $${totalDebit.toFixed(2)}`);
+    return { success: true, entry: newJrn };
+  };
+
+  // ==========================================
   // REAL-TIME EXECUTIVE TELEMETRY SYNTHESIS
   // POS orders and inventory reflect live in Cockpit KPIs
   // ==========================================
@@ -1053,6 +1328,16 @@ export const AppProvider = ({ children }) => {
         createPurchaseOrder,
         receiveGoods,
         addVendor,
+        // Phase 4 exports: Finance, Invoicing & General Ledger (FR-501, FR-502, FR-503)
+        chartOfAccounts,
+        invoices,
+        vendorBills,
+        journalEntries,
+        createInvoice,
+        recordInvoicePayment,
+        createVendorBill,
+        payVendorBill,
+        addJournalEntry,
         // Standalone Terminal & Path Navigation
         currentPath,
         navigateToPath,

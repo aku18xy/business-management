@@ -12,6 +12,7 @@ import { PosAdminPage } from './pages/PosAdminPage';
 import { ApprovalsPage } from './pages/ApprovalsPage';
 import { AuditPage } from './pages/AuditPage';
 import { OrgSettingsPage } from './pages/OrgSettingsPage';
+import { FinancePage } from './pages/FinancePage';
 
 export function App() {
   const { activeTab, isDark, currentPath } = useApp();
@@ -42,6 +43,7 @@ export function App() {
             {activeTab === 'dashboard' && <Dashboard />}
             {activeTab === 'crm' && <CrmPage />}
             {activeTab === 'inventory' && <InventoryPage />}
+            {activeTab === 'finance' && <FinancePage />}
             {activeTab === 'pos' && <PosAdminPage />}
             {activeTab === 'approvals' && <ApprovalsPage />}
             {activeTab === 'audit' && <AuditPage />}

@@ -67,6 +67,7 @@ export const ROLE_PERMISSIONS = {
     canManageCatalog: true,
     canOperatePos: true,
     canManageInventory: true,
+    canManageFinance: true,
     canApproveTransactions: true,
     canExportReports: true,
     canViewAuditLogs: true,
@@ -80,12 +81,13 @@ export const ROLE_PERMISSIONS = {
     canManageCatalog: true,
     canOperatePos: true,
     canManageInventory: true,
+    canManageFinance: true,
     canApproveTransactions: true,
     canExportReports: true,
     canViewAuditLogs: true,
     canManageOrg: false,
     badgeColor: "bg-indigo-500/20 text-indigo-300 border-indigo-500/40",
-    description: "Operations Lead: CRM deal management, POS catalog, ERP warehouse stock & procurement approvals."
+    description: "Operations Lead & Finance Lead: CRM deals, ERP warehouse stock, AR/AP billing, and transaction approvals."
   },
   Staff: {
     canViewDashboard: true,
@@ -93,6 +95,7 @@ export const ROLE_PERMISSIONS = {
     canManageCatalog: false,
     canOperatePos: true,
     canManageInventory: false,
+    canManageFinance: false,
     canApproveTransactions: false,
     canExportReports: false,
     canViewAuditLogs: false,
@@ -106,6 +109,7 @@ export const ROLE_PERMISSIONS = {
     canManageCatalog: false,
     canOperatePos: false,
     canManageInventory: false,
+    canManageFinance: false,
     canApproveTransactions: false,
     canExportReports: true,
     canViewAuditLogs: true,
@@ -119,6 +123,7 @@ export const RBAC_MODULE_MATRIX = [
   { module: "Executive Cockpit & BI", capability: "View revenue, margin & cashflow telemetry", admin: "Full Access", manager: "Full Access", staff: "Standard KPIs", auditor: "Read-Only" },
   { module: "CRM & Sales Deals", capability: "Manage pipeline stages, quotations & client profiles", admin: "Read / Write", manager: "Read / Write", staff: "Read / Write", auditor: "Read-Only" },
   { module: "ERP Inventory & SCM (Phase 3)", capability: "Stock adjustments, warehouse transfers, PO approvals, GRN intake", admin: "Full Control", manager: "Full Control", staff: "Read / Requisition", auditor: "Read-Only" },
+  { module: "Finance & General Ledger (Phase 4)", capability: "AR Invoicing, AP Bill Payment, Journal Entries, P&L / Balance Sheet", admin: "Full Control", manager: "Full Control", staff: "Restricted", auditor: "Forensic Audit & Export" },
   { module: "POS Retail Terminal", capability: "Open shift float, ring sales, barcode scan, tender", admin: "Allowed", manager: "Allowed", staff: "Allowed", auditor: "Restricted" },
   { module: "POS Item Catalog Admin", capability: "Create products, modify prices, delete SKUs", admin: "Full Control", manager: "Full Control", staff: "Restricted", auditor: "Restricted" },
   { module: "Executive Action Inbox", capability: "Approve/Reject Purchase Orders & Expense Claims", admin: "Authorized", manager: "Authorized", staff: "Submit Only", auditor: "Restricted" },
@@ -957,4 +962,241 @@ export const INITIAL_STOCK_MOVEMENTS = [
     notes: "Damaged box discarded during audit"
   }
 ];
+
+// ============================================================================
+// PHASE 4: FINANCE, ACCOUNTING & INVOICING (FR-501, FR-502, FR-503)
+// ============================================================================
+
+export const INITIAL_ACCOUNTS = [
+  // 1000 - Assets
+  { code: "1010", name: "Operating Cash & Bank (JPMorgan Chase)", category: "Asset", subType: "Current Asset", balance: 428500.00, normal: "Debit" },
+  { code: "1020", name: "POS Terminal Cash Floats & Drawers", category: "Asset", subType: "Current Asset", balance: 2500.00, normal: "Debit" },
+  { code: "1100", name: "Accounts Receivable (Trade Debtors)", category: "Asset", subType: "Current Asset", balance: 112550.00, normal: "Debit" },
+  { code: "1200", name: "Merchandise & ERP Inventory Valuation", category: "Asset", subType: "Current Asset", balance: 48500.00, normal: "Debit" },
+  { code: "1500", name: "Property, Plant & Logistics Equipment", category: "Asset", subType: "Non-Current Asset", balance: 85000.00, normal: "Debit" },
+
+  // 2000 - Liabilities
+  { code: "2010", name: "Accounts Payable (Trade Creditors)", category: "Liability", subType: "Current Liability", balance: 32897.25, normal: "Credit" },
+  { code: "2020", name: "Sales Tax & VAT Collected Payable", category: "Liability", subType: "Current Liability", balance: 14210.00, normal: "Credit" },
+  { code: "2100", name: "Accrued Corporate Payroll & Benefits", category: "Liability", subType: "Current Liability", balance: 24500.00, normal: "Credit" },
+
+  // 3000 - Equity
+  { code: "3010", name: "Common Paid-in Capital & Equity", category: "Equity", subType: "Equity", balance: 350000.00, normal: "Credit" },
+  { code: "3020", name: "Retained Earnings (Prior Years)", category: "Equity", subType: "Equity", balance: 154442.75, normal: "Credit" },
+
+  // 4000 - Revenue
+  { code: "4010", name: "Commercial B2B Enterprise Revenue", category: "Revenue", subType: "Operating Revenue", balance: 245000.00, normal: "Credit" },
+  { code: "4020", name: "Countertop POS Retail Revenue", category: "Revenue", subType: "Operating Revenue", balance: 39500.00, normal: "Credit" },
+  { code: "4030", name: "Professional Consulting & Integration Services", category: "Revenue", subType: "Operating Revenue", balance: 18000.00, normal: "Credit" },
+
+  // 5000 - Cost of Goods Sold (COGS)
+  { code: "5010", name: "Cost of Goods Sold (Hardware & Assemblies)", category: "Expense", subType: "Direct Cost", balance: 74200.00, normal: "Debit" },
+  { code: "5020", name: "Shipping, Freight & Customs Duties", category: "Expense", subType: "Direct Cost", balance: 6800.00, normal: "Debit" },
+
+  // 6000 - Operating Expenses (OPEX)
+  { code: "6010", name: "Employee Salaries, Wages & Commissions", category: "Expense", subType: "Operating Expense", balance: 42000.00, normal: "Debit" },
+  { code: "6020", name: "Cloud Infrastructure & Software Subscriptions", category: "Expense", subType: "Operating Expense", balance: 8400.00, normal: "Debit" },
+  { code: "6030", name: "Depot Facilities & Office Leases", category: "Expense", subType: "Operating Expense", balance: 14500.00, normal: "Debit" },
+  { code: "6040", name: "Corporate Marketing & Client Acquisition", category: "Expense", subType: "Operating Expense", balance: 6100.00, normal: "Debit" }
+];
+
+export const INITIAL_INVOICES = [
+  {
+    id: "inv_rec_1",
+    invoiceNumber: "INV-2026-0881",
+    customerId: "cust_101",
+    customerName: "Apex Global Technologies",
+    customerEmail: "dmiller@apextech.com",
+    issueDate: "2026-10-15",
+    dueDate: "2026-11-14",
+    subtotal: 44700.46,
+    tax: 3799.54,
+    total: 48500.00,
+    paidAmount: 48500.00,
+    balanceDue: 0.00,
+    status: "Paid", // Paid | Partially Paid | Unpaid | Overdue
+    agingBucket: "Current", // Current | 1-30 Days | 31-60 Days | 61-90 Days | 90+ Days
+    items: [
+      { description: "Enterprise POS Fleet License & Integration", qty: 25, unitPrice: 1500.00, total: 37500.00 },
+      { description: "Hardware Peripherals Deployment Pack", qty: 25, unitPrice: 288.00, total: 7200.46 }
+    ],
+    notes: "Payment settled via Wire Transfer on Nov 02, 2026."
+  },
+  {
+    id: "inv_rec_2",
+    invoiceNumber: "INV-2026-0895",
+    customerId: "cust_102",
+    customerName: "Metro Logistics Express",
+    customerEmail: "sarah.jenkins@metrologistics.com",
+    issueDate: "2026-10-25",
+    dueDate: "2026-11-24",
+    subtotal: 29861.75,
+    tax: 2538.25,
+    total: 32400.00,
+    paidAmount: 15000.00,
+    balanceDue: 17400.00,
+    status: "Partially Paid",
+    agingBucket: "Current",
+    items: [
+      { description: "Warehouse Dispatch Scanner Terminals", qty: 60, unitPrice: 380.00, total: 22800.00 },
+      { description: "Barcode System Custom Setup & API Hook", qty: 1, unitPrice: 7061.75, total: 7061.75 }
+    ],
+    notes: "50% deposit received. Remaining balance net 30."
+  },
+  {
+    id: "inv_rec_3",
+    invoiceNumber: "INV-2026-0812",
+    customerId: "cust_103",
+    customerName: "Horizon Retail Systems",
+    customerEmail: "r.sterling@horizonretail.com",
+    issueDate: "2026-09-10",
+    dueDate: "2026-10-10",
+    subtotal: 17419.35,
+    tax: 1480.65,
+    total: 18900.00,
+    paidAmount: 0.00,
+    balanceDue: 18900.00,
+    status: "Overdue",
+    agingBucket: "31-60 Days",
+    items: [
+      { description: "Retail Point-of-Sale Hardware Bundle", qty: 15, unitPrice: 1161.29, total: 17419.35 }
+    ],
+    notes: "First automated reminder sent on Oct 15; follow-up call pending."
+  },
+  {
+    id: "inv_rec_4",
+    invoiceNumber: "INV-2026-0902",
+    customerId: "cust_104",
+    customerName: "Pacific Rim Import Corp",
+    customerEmail: "kenji.s@pacificrim.sg",
+    issueDate: "2026-11-02",
+    dueDate: "2026-12-02",
+    subtotal: 11751.15,
+    tax: 998.85,
+    total: 12750.00,
+    paidAmount: 0.00,
+    balanceDue: 12750.00,
+    status: "Unpaid",
+    agingBucket: "Current",
+    items: [
+      { description: "Annual BMS Multi-Branch Cloud Subscription", qty: 1, unitPrice: 11751.15, total: 11751.15 }
+    ],
+    notes: "Net 30 commercial terms granted."
+  }
+];
+
+export const INITIAL_VENDOR_BILLS = [
+  {
+    id: "bill_1",
+    billNumber: "BILL-2026-441",
+    vendorId: "ven_1",
+    vendorName: "Shenzhen Microtronics Corp",
+    poNumber: "PO-2026-1001",
+    billDate: "2026-11-05",
+    dueDate: "2026-12-05",
+    amount: 26040.00,
+    paidAmount: 0.00,
+    status: "Awaiting Payment", // Draft | Pending Approval | Awaiting Payment | Paid
+    category: "Hardware Inventory Procurement",
+    items: [
+      { description: "Nexus Smart POS Touch Terminal Kiosks", qty: 50, unitCost: 480.00, total: 24000.00 }
+    ],
+    tax: 2040.00,
+    paymentTerms: "Net 30"
+  },
+  {
+    id: "bill_2",
+    billNumber: "BILL-2026-442",
+    vendorId: "ven_2",
+    vendorName: "Continental Paper & Packaging Co",
+    poNumber: "PO-2026-1002",
+    billDate: "2026-11-07",
+    dueDate: "2026-11-22",
+    amount: 2007.25,
+    paidAmount: 2007.25,
+    status: "Paid",
+    category: "Consumables Inventory",
+    items: [
+      { description: "Thermal Paper Rolls 80x80mm (Box of 50)", qty: 100, unitCost: 18.50, total: 1850.00 }
+    ],
+    tax: 157.25,
+    paymentTerms: "Net 15"
+  },
+  {
+    id: "bill_3",
+    billNumber: "BILL-2026-439",
+    vendorId: "ven_aws",
+    vendorName: "Amazon Web Services Inc",
+    poNumber: "DIRECT-SUB",
+    billDate: "2026-10-31",
+    dueDate: "2026-11-15",
+    amount: 4850.00,
+    paidAmount: 0.00,
+    status: "Awaiting Payment",
+    category: "Cloud Infrastructure & Hosting",
+    items: [
+      { description: "Production EC2, RDS Aurora & Edge CDN Bandwidth", qty: 1, unitCost: 4850.00, total: 4850.00 }
+    ],
+    tax: 0.00,
+    paymentTerms: "Net 15"
+  }
+];
+
+export const INITIAL_JOURNAL_ENTRIES = [
+  {
+    id: "jrn_1",
+    entryNumber: "JRN-2026-091",
+    date: "2026-11-08 14:15",
+    description: "Countertop POS Terminal Daily Shift Reconciliation (REG-01)",
+    reference: "POS-2026-9901",
+    actor: "Alex Sterling (Admin)",
+    lines: [
+      { accountCode: "1020", accountName: "POS Terminal Cash Floats & Drawers", debit: 840.50, credit: 0.00 },
+      { accountCode: "4020", accountName: "Countertop POS Retail Revenue", debit: 0.00, credit: 774.65 },
+      { accountCode: "2020", accountName: "Sales Tax Collected Payable", debit: 0.00, credit: 65.85 }
+    ],
+    totalAmount: 840.50
+  },
+  {
+    id: "jrn_2",
+    entryNumber: "JRN-2026-092",
+    date: "2026-11-08 11:20",
+    description: "Goods Received Note Inventory Intake (GRN-2026-0881)",
+    reference: "PO-2026-0994",
+    actor: "Elena Rostova (Manager)",
+    lines: [
+      { accountCode: "1200", accountName: "Merchandise & ERP Inventory Valuation", debit: 3800.00, credit: 0.00 },
+      { accountCode: "2020", accountName: "Sales Tax Input Credit", debit: 323.00, credit: 0.00 },
+      { accountCode: "2010", accountName: "Accounts Payable (Trade Creditors)", debit: 0.00, credit: 4123.00 }
+    ],
+    totalAmount: 4123.00
+  },
+  {
+    id: "jrn_3",
+    entryNumber: "JRN-2026-093",
+    date: "2026-11-02 10:00",
+    description: "B2B Customer Invoice Settlement (Apex Global Technologies)",
+    reference: "INV-2026-0881",
+    actor: "Elena Rostova (Manager)",
+    lines: [
+      { accountCode: "1010", accountName: "Operating Cash & Bank (JPMorgan Chase)", debit: 48500.00, credit: 0.00 },
+      { accountCode: "1100", accountName: "Accounts Receivable (Trade Debtors)", debit: 0.00, credit: 48500.00 }
+    ],
+    totalAmount: 48500.00
+  },
+  {
+    id: "jrn_4",
+    entryNumber: "JRN-2026-094",
+    date: "2026-10-31 18:00",
+    description: "Monthly Cost of Goods Sold (COGS) Recognition",
+    reference: "MTH-CLOSE-OCT",
+    actor: "Elena Rostova (Manager)",
+    lines: [
+      { accountCode: "5010", accountName: "Cost of Goods Sold (Hardware & Assemblies)", debit: 28400.00, credit: 0.00 },
+      { accountCode: "1200", accountName: "Merchandise & ERP Inventory Valuation", debit: 0.00, credit: 28400.00 }
+    ],
+    totalAmount: 28400.00
+  }
+];
+
 
