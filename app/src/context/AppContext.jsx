@@ -94,6 +94,31 @@ export const AppProvider = ({ children }) => {
 
   const [posCart, setPosCart] = useState([]);
 
+  // FR-804: Product Category Governance
+  const INITIAL_POS_CATEGORIES = [
+    'Hardware',
+    'Consumables',
+    'Software',
+    'Accessories',
+    'Services',
+    'Networking'
+  ];
+
+  const [posCategories, setPosCategories] = useState(() => {
+    const saved = localStorage.getItem('nexus_pos_categories');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    return INITIAL_POS_CATEGORIES;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('nexus_pos_categories', JSON.stringify(posCategories));
+  }, [posCategories]);
+
   // ==========================================
   // FR-802: REGISTER SHIFT & CASH DRAWER RECONCILIATION
   // ==========================================
@@ -622,6 +647,19 @@ export const AppProvider = ({ children }) => {
       'POS_ITEM_DELETED',
       `Deleted POS retail item ${existing.sku} - "${existing.name}" from catalog`
     );
+  };
+
+  // FR-804: Admin Add New Product Category
+  const addPosCategory = (categoryName) => {
+    const trimmed = (categoryName || '').trim();
+    if (!trimmed) return { success: false, message: 'Category name cannot be empty.' };
+    if (posCategories.some(c => c.toLowerCase() === trimmed.toLowerCase())) {
+      return { success: false, message: `Category "${trimmed}" already exists.` };
+    }
+    const updated = [...posCategories, trimmed];
+    setPosCategories(updated);
+    addAuditLog('CATEGORY_CREATED', `Admin added new product category: "${trimmed}"`);
+    return { success: true, message: `Category "${trimmed}" created successfully.` };
   };
 
   // ==========================================
@@ -1379,8 +1417,10 @@ export const AppProvider = ({ children }) => {
         // Standalone Terminal & Path Navigation
         currentPath,
         navigateToPath,
-        // POS Catalog & Items
+        // POS Catalog & Items (FR-804 Category Governance)
         posCatalog,
+        posCategories,
+        addPosCategory,
         updatePosItem,
         addPosItem,
         deletePosItem,

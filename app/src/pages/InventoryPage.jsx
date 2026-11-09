@@ -1311,7 +1311,7 @@ export const InventoryPage = () => {
             </div>
 
             <div className="p-3 rounded-xl bg-indigo-950/30 border border-indigo-500/30 text-xs text-indigo-300">
-              Note: Orders exceeding $5,000 or submitted by Staff automatically route to the <strong>Executive Action Inbox</strong> for Manager approval before supplier release.
+              Note: Orders exceeding RM 5,000 or submitted by Staff automatically route to the <strong>Executive Action Inbox</strong> for Manager approval before supplier release.
             </div>
 
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">

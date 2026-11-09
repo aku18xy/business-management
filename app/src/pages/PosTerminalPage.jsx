@@ -50,6 +50,7 @@ export const PosTerminalPage = () => {
     clearCart,
     completeCheckout,
     posOrders,
+    posCategories,
     currentOrg,
     currentUser,
     selectedBranch,
@@ -188,8 +189,9 @@ export const PosTerminalPage = () => {
     addToCart(product);
   };
 
-  // Categories
-  const categories = ['All', '★ Quick-Keys', ...Array.from(new Set(posCatalog.map(p => p.category)))];
+  // Categories (FR-804 Category Governance)
+  const allCats = Array.from(new Set([...(posCategories || []), ...posCatalog.map(p => p.category)]));
+  const categories = ['All', '★ Quick-Keys', ...allCats];
 
   const filteredCatalog = posCatalog.filter(p => {
     if (selectedCategory === '★ Quick-Keys') {

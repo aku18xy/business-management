@@ -25,12 +25,15 @@ import {
   History,
   Lock,
   ArrowDownToLine,
-  UserCheck
+  UserCheck,
+  FolderPlus
 } from 'lucide-react';
 
 export const PosAdminPage = () => {
   const {
     posCatalog,
+    posCategories,
+    addPosCategory,
     updatePosItem,
     addPosItem,
     deletePosItem,
@@ -49,6 +52,11 @@ export const PosAdminPage = () => {
   const [activeTab, setActiveTab] = useState('catalog'); // 'catalog' | 'registers' | 'transactions'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+
+  // Category Management Modal State (FR-804)
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [categoryFeedback, setCategoryFeedback] = useState(null);
 
   // Edit Item Modal State
   const [editingItem, setEditingItem] = useState(null);
@@ -78,8 +86,8 @@ export const PosAdminPage = () => {
   // Selected Order for Receipt modal
   const [viewReceiptOrder, setViewReceiptOrder] = useState(null);
 
-  // Categories
-  const categories = ['All', ...Array.from(new Set(posCatalog.map(p => p.category)))];
+  // Categories (FR-804 Category Governance)
+  const categories = ['All', ...Array.from(new Set([...(posCategories || []), ...posCatalog.map(p => p.category)]))];
 
   const filteredItems = posCatalog.filter(item => {
     const matchCat = selectedCategory === 'All' || item.category === selectedCategory;
@@ -157,6 +165,25 @@ export const PosAdminPage = () => {
     });
   };
 
+  // FR-804: Handle Admin Add Category Submit
+  const handleCreateCategorySubmit = (e) => {
+    e.preventDefault();
+    if (!newCatName.trim()) return;
+
+    const res = addPosCategory(newCatName.trim());
+    if (res.success) {
+      setCategoryFeedback({ type: 'success', message: res.message });
+      setSelectedCategory(newCatName.trim());
+      setNewCatName('');
+      setTimeout(() => {
+        setCategoryModalOpen(false);
+        setCategoryFeedback(null);
+      }, 1000);
+    } else {
+      setCategoryFeedback({ type: 'error', message: res.message });
+    }
+  };
+
   const lowStockCount = posCatalog.filter(p => p.stock < 10).length;
 
   return (
@@ -186,13 +213,24 @@ export const PosAdminPage = () => {
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-2.5">
           {userPermissions?.canManageCatalog ? (
-            <button
-              onClick={() => setAddModalOpen(true)}
-              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition flex items-center gap-1.5"
-            >
-              <Plus className="w-4 h-4 text-indigo-400" />
-              <span>New POS Item</span>
-            </button>
+            <>
+              <button
+                onClick={() => setAddModalOpen(true)}
+                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4 text-indigo-400" />
+                <span>New POS Item</span>
+              </button>
+
+              <button
+                onClick={() => setCategoryModalOpen(true)}
+                className="px-3.5 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 text-xs font-semibold border border-indigo-500/40 transition flex items-center gap-1.5 shadow-sm"
+                title="Add New Product Category (FR-804)"
+              >
+                <FolderPlus className="w-4 h-4 text-indigo-400" />
+                <span>+ Add Category</span>
+              </button>
+            </>
           ) : (
             <span className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-500 text-xs font-mono">
               Catalog: Read-Only (FR-101)
@@ -354,15 +392,27 @@ export const PosAdminPage = () => {
                 />
               </div>
 
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white"
-              >
-                {categories.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
+              <div className="flex items-center gap-1.5">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white"
+                >
+                  {categories.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+
+                {userPermissions?.canManageCatalog && (
+                  <button
+                    onClick={() => setCategoryModalOpen(true)}
+                    className="p-1.5 bg-slate-800 hover:bg-slate-700 text-indigo-400 border border-slate-700 rounded-xl transition"
+                    title="Add New Product Category (FR-804)"
+                  >
+                    <FolderPlus className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="text-xs text-slate-400">
@@ -697,12 +747,15 @@ export const PosAdminPage = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-slate-400 block mb-1">Category</label>
-                <input
-                  type="text"
+                <select
                   value={editForm.category}
                   onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
                   className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
-                />
+                >
+                  {categories.filter(c => c !== 'All').map(c => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -821,13 +874,25 @@ export const PosAdminPage = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs text-slate-400 block mb-1">Category</label>
-                <input
-                  type="text"
-                  placeholder="Hardware / Accessories"
-                  value={newForm.category}
-                  onChange={(e) => setNewForm({ ...newForm, category: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
-                />
+                <div className="flex gap-1.5">
+                  <select
+                    value={newForm.category}
+                    onChange={(e) => setNewForm({ ...newForm, category: e.target.value })}
+                    className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
+                  >
+                    {categories.filter(c => c !== 'All').map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setCategoryModalOpen(true)}
+                    className="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-400 border border-slate-700 text-xs font-bold shrink-0"
+                    title="Add New Category (FR-804)"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
 
               <div>
@@ -955,6 +1020,110 @@ export const PosAdminPage = () => {
                 Close Receipt
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODAL: ADD NEW PRODUCT CATEGORY (FR-804)
+          ========================================================================= */}
+      {categoryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold">
+                  <FolderPlus className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Add Product Category (FR-804)</h3>
+                  <p className="text-[11px] text-slate-400">Classify retail SKUs for POS terminal and catalog filters</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setCategoryModalOpen(false);
+                  setCategoryFeedback(null);
+                }}
+                className="text-slate-400 hover:text-white transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            {categoryFeedback && (
+              <div className={`p-3 rounded-xl text-xs font-semibold flex items-center gap-2 ${
+                categoryFeedback.type === 'success'
+                  ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                  : 'bg-rose-500/15 text-rose-300 border border-rose-500/30'
+              }`}>
+                {categoryFeedback.type === 'success' ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                )}
+                <span>{categoryFeedback.message}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleCreateCategorySubmit} className="space-y-4">
+              <div>
+                <label className="text-xs text-slate-400 block mb-1">New Category Name *</label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  placeholder="e.g., Telecommunications, Beverages, Depot Peripherals"
+                  value={newCatName}
+                  onChange={(e) => setNewCatName(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-medium"
+                />
+              </div>
+
+              <div>
+                <span className="text-[11px] uppercase tracking-wider text-slate-500 block mb-2 font-semibold">
+                  Existing Categories ({categories.filter(c => c !== 'All').length})
+                </span>
+                <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1">
+                  {categories.filter(c => c !== 'All').map((cat) => (
+                    <span
+                      key={cat}
+                      className="px-2 py-1 rounded-lg bg-slate-800/80 border border-slate-700/80 text-[11px] text-slate-300 font-mono"
+                    >
+                      {cat}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px] text-slate-400 space-y-1">
+                <div className="font-semibold text-slate-300">Category Governance (FR-804):</div>
+                <div>&bull; Automatically synchronizes across POS Desktop Terminal (`/pos`).</div>
+                <div>&bull; Available immediately in catalog creation & quick-sale filters.</div>
+                <div>&bull; Subject to statutory 8% Malaysian SST standard rate.</div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCategoryModalOpen(false);
+                    setCategoryFeedback(null);
+                  }}
+                  className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition shadow-lg shadow-indigo-600/30 flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Create Category</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
