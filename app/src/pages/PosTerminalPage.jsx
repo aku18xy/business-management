@@ -105,7 +105,7 @@ export const PosTerminalPage = () => {
 
   const [openShiftModal, setOpenShiftModal] = useState(false);
   const [openFloatInput, setOpenFloatInput] = useState('250.00');
-  const [openRegisterId, setOpenRegisterId] = useState('REG-01-FLAGSHIP');
+  const [openRegisterId, setOpenRegisterId] = useState('REG-01-KL-SENTRAL');
   const [openNotes, setOpenNotes] = useState('Opening float verified in bills and coin rolls.');
 
   const [selectedShiftReport, setSelectedShiftReport] = useState(null);
@@ -147,7 +147,7 @@ export const PosTerminalPage = () => {
         if (!isShiftActive) {
           setOpenShiftModal(true);
         } else if (posCart.length > 0) {
-          setSelectedPayment('Cash Drawer');
+          setSelectedPayment('Cash (RM - 5¢ Rounding)');
           setCheckoutModal(true);
         }
       } else if (e.key === 'F2') {
@@ -158,7 +158,7 @@ export const PosTerminalPage = () => {
         if (!isShiftActive) {
           setOpenShiftModal(true);
         } else if (posCart.length > 0) {
-          setSelectedPayment('QR Pay');
+          setSelectedPayment('DuitNow QR');
           setCheckoutModal(true);
         }
       } else if (e.key === 'F4') {
@@ -166,7 +166,7 @@ export const PosTerminalPage = () => {
         if (!isShiftActive) {
           setOpenShiftModal(true);
         } else if (posCart.length > 0) {
-          setSelectedPayment('Card Terminal');
+          setSelectedPayment('MyDebit / Visa Card');
           setCheckoutModal(true);
         }
       } else if (e.key === 'F8') {
@@ -216,9 +216,9 @@ export const PosTerminalPage = () => {
 
   const totalCartUnits = posCart.reduce((sum, item) => sum + item.qty, 0);
 
-  // Currency helper
+  // Currency helper (Malaysian Ringgit)
   const formatMoney = (amount) => {
-    return `$${Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `RM ${Number(amount || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   // Tender checkout (Enforcing FR-802: Orders blocked if shift is closed)
@@ -237,8 +237,8 @@ export const PosTerminalPage = () => {
       paymentMethod: selectedPayment,
       customerName,
       discountPercent,
-      cashTendered: selectedPayment === 'Cash Drawer' ? tenderedVal : null,
-      changeDue: selectedPayment === 'Cash Drawer' ? changeDue : 0,
+      cashTendered: (selectedPayment === 'Cash (RM - 5¢ Rounding)' || selectedPayment === 'Cash Drawer') ? tenderedVal : null,
+      changeDue: (selectedPayment === 'Cash (RM - 5¢ Rounding)' || selectedPayment === 'Cash Drawer') ? changeDue : 0,
       subtotal: cartSubtotal,
       tax: cartTax,
       total: cartTotal,
@@ -341,7 +341,7 @@ export const PosTerminalPage = () => {
                 )}
               </div>
               <span className="text-[10px] text-slate-400 hidden md:inline truncate">
-                {selectedBranch?.name || 'Flagship Megastore'} • USD ($)
+                {selectedBranch?.name || 'Kuala Lumpur HQ (KL Sentral)'} • RM (MYR)
               </span>
             </div>
           </div>
@@ -843,7 +843,7 @@ export const PosTerminalPage = () => {
                     setOpenShiftModal(true);
                     return;
                   }
-                  setSelectedPayment('Cash Drawer');
+                  setSelectedPayment('Cash (RM - 5¢ Rounding)');
                   setCheckoutModal(true);
                 }}
                 className={`py-2.5 px-2 rounded-xl text-white font-bold text-xs flex flex-col items-center justify-center gap-1 shadow-lg transition active:scale-[0.98] ${
@@ -864,7 +864,7 @@ export const PosTerminalPage = () => {
                     setOpenShiftModal(true);
                     return;
                   }
-                  setSelectedPayment('Card Terminal');
+                  setSelectedPayment('MyDebit / Visa Card');
                   setCheckoutModal(true);
                 }}
                 className={`py-2.5 px-2 rounded-xl text-white font-bold text-xs flex flex-col items-center justify-center gap-1 shadow-lg transition active:scale-[0.98] ${
@@ -885,7 +885,7 @@ export const PosTerminalPage = () => {
                     setOpenShiftModal(true);
                     return;
                   }
-                  setSelectedPayment('QR Pay');
+                  setSelectedPayment('DuitNow QR');
                   setCheckoutModal(true);
                 }}
                 className={`py-2.5 px-2 rounded-xl text-white font-bold text-xs flex flex-col items-center justify-center gap-1 shadow-lg transition active:scale-[0.98] ${
@@ -995,7 +995,7 @@ export const PosTerminalPage = () => {
 
             {/* Payment Method Selector */}
             <div className="grid grid-cols-3 gap-2">
-              {['Cash Drawer', 'Card Terminal', 'QR Pay'].map((method) => (
+              {['DuitNow QR', 'Touch \'n Go eWallet', 'MyDebit / Visa Card', 'Cash (RM - 5¢ Rounding)'].map((method) => (
                 <button
                   key={method}
                   onClick={() => setSelectedPayment(method)}
@@ -1013,11 +1013,11 @@ export const PosTerminalPage = () => {
               ))}
             </div>
 
-            {selectedPayment === 'Cash Drawer' && (
+            {(selectedPayment === 'Cash (RM - 5¢ Rounding)' || selectedPayment === 'Cash Drawer') && (
               <div className="space-y-3 bg-slate-950 p-3 rounded-xl border border-slate-800">
                 <label className="text-xs text-slate-400 block font-medium">Cash Tendered by Customer</label>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-400 font-mono font-bold">$</span>
+                  <span className="text-sm text-emerald-400 font-mono font-bold">RM</span>
                   <input
                     type="number"
                     step="0.01"
@@ -1028,22 +1028,22 @@ export const PosTerminalPage = () => {
                   />
                 </div>
 
-                {/* Quick Bills */}
-                <div className="flex gap-1.5 pt-1">
-                  {[20, 50, 100].map((bill) => (
+                {/* Quick Bills (Bank Negara Malaysia Ringgit Banknotes) */}
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {[10, 20, 50, 100, 200].map((bill) => (
                     <button
                       key={bill}
                       onClick={() => setCashTendered(String(bill))}
                       className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs font-bold transition"
                     >
-                      ${bill}
+                      RM {bill}
                     </button>
                   ))}
                   <button
                     onClick={() => setCashTendered(cartTotal.toFixed(2))}
                     className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-emerald-400 font-mono text-xs font-bold transition"
                   >
-                    Exact
+                    Exact (RM {cartTotal.toFixed(2)})
                   </button>
                 </div>
 
@@ -1083,10 +1083,11 @@ export const PosTerminalPage = () => {
         <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4">
           <div className="max-w-sm w-full bg-white text-slate-900 rounded-2xl p-6 shadow-2xl font-mono text-xs space-y-4">
             <div className="text-center border-b border-dashed border-slate-300 pb-3">
-              <h2 className="text-base font-bold font-sans tracking-wide">NEXUS RETAIL STORE</h2>
-              <p className="text-[10px] text-slate-500">{selectedBranch?.name || 'Flagship Megastore'}</p>
-              <p className="text-[10px] text-slate-500">Tax ID: 88-1920-BMS • Receipt #{lastReceipt.orderNumber}</p>
-              <p className="text-[10px] text-slate-500">{lastReceipt.date} • Cashier: {lastReceipt.cashier}</p>
+              <h2 className="text-base font-bold font-sans tracking-wide">NEXUS ENTERPRISE SOLUTIONS SDN. BHD.</h2>
+              <p className="text-[10px] text-slate-600 font-bold">{selectedBranch?.name || 'Kuala Lumpur HQ (KL Sentral)'}</p>
+              <p className="text-[10px] text-slate-500">SSM: 202401038291 (1543820-K) • SST: W10-2401-32000088</p>
+              <p className="text-[10px] text-slate-500">LHDN TIN: C25893010020 • MSIC: 62021</p>
+              <p className="text-[10px] text-slate-500">{lastReceipt.date} • Cashier: {lastReceipt.cashier} • #{lastReceipt.orderNumber}</p>
             </div>
 
             {/* Line items */}
@@ -1094,7 +1095,7 @@ export const PosTerminalPage = () => {
               {lastReceipt.items?.map((it, idx) => (
                 <div key={idx} className="flex justify-between">
                   <span>{it.qty}x {it.name}</span>
-                  <span className="font-bold">${(it.price * it.qty).toFixed(2)}</span>
+                  <span className="font-bold">{formatMoney(it.price * it.qty)}</span>
                 </div>
               ))}
             </div>
@@ -1103,15 +1104,15 @@ export const PosTerminalPage = () => {
             <div className="space-y-1 pt-1 border-b border-dashed border-slate-300 pb-2">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>${lastReceipt.subtotal?.toFixed(2)}</span>
+                <span>{formatMoney(lastReceipt.subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Tax</span>
-                <span>${lastReceipt.tax?.toFixed(2)}</span>
+                <span>{formatMoney(lastReceipt.tax)}</span>
               </div>
               <div className="flex justify-between text-sm font-bold pt-1">
                 <span>TOTAL PAID</span>
-                <span>${lastReceipt.total?.toFixed(2)}</span>
+                <span>{formatMoney(lastReceipt.total)}</span>
               </div>
               <div className="flex justify-between text-[11px] text-slate-600">
                 <span>Payment Tender</span>
@@ -1120,7 +1121,7 @@ export const PosTerminalPage = () => {
               {lastReceipt.changeDue > 0 && (
                 <div className="flex justify-between text-emerald-700 font-bold">
                   <span>Change Given</span>
-                  <span>${lastReceipt.changeDue?.toFixed(2)}</span>
+                  <span>{formatMoney(lastReceipt.changeDue)}</span>
                 </div>
               )}
             </div>
@@ -1160,8 +1161,8 @@ export const PosTerminalPage = () => {
                 <h3 className="text-base font-bold text-white">Register Shift Drawer & Z-Report (FR-802)</h3>
                 <span className="text-xs text-slate-400">
                   {isShiftActive
-                    ? `${posShift?.registerId || 'REG-01-FLAGSHIP'} • Cashier: ${posShift?.cashier || currentUser.name}`
-                    : 'REG-01-FLAGSHIP • Status: Shift Closed'}
+                    ? `${posShift?.registerId || 'REG-01-KL-SENTRAL'} • Cashier: ${posShift?.cashier || currentUser.name}`
+                    : 'REG-01-KL-SENTRAL • Status: Shift Closed'}
                 </span>
               </div>
               <button onClick={() => setReconcileModal(false)} className="text-slate-400 hover:text-white">✕</button>
@@ -1395,15 +1396,15 @@ export const PosTerminalPage = () => {
                 onChange={(e) => setOpenRegisterId(e.target.value)}
                 className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white"
               >
-                <option value="REG-01-FLAGSHIP">REG-01-FLAGSHIP (Main Counter)</option>
-                <option value="REG-02-EXPRESS">REG-02-EXPRESS (Express Lane)</option>
+                <option value="REG-01-KL-SENTRAL">REG-01-KL-SENTRAL (Main Counter)</option>
+                <option value="REG-02-PENANG">REG-02-PENANG (Express Lane)</option>
               </select>
             </div>
 
             <div>
-              <label className="text-xs text-slate-300 block mb-1 font-bold">Opening Cash Float ($ USD) *</label>
+              <label className="text-xs text-slate-300 block mb-1 font-bold">Opening Cash Float (RM) *</label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-slate-400 font-bold">$</span>
+                <span className="absolute left-3 top-2 text-emerald-400 font-bold text-xs">RM</span>
                 <input
                   type="number"
                   step="0.01"
@@ -1411,7 +1412,7 @@ export const PosTerminalPage = () => {
                   required
                   value={openFloatInput}
                   onChange={(e) => setOpenFloatInput(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-7 pr-3 py-2 text-white font-mono font-bold text-sm"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-3 py-2 text-white font-mono font-bold text-sm"
                 />
               </div>
 
@@ -1424,7 +1425,7 @@ export const PosTerminalPage = () => {
                     onClick={() => setOpenFloatInput(val)}
                     className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs font-bold transition"
                   >
-                    ${val}
+                    RM {val}
                   </button>
                 ))}
               </div>

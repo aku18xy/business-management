@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatRM } from '../utils/format';
 import { useApp } from '../context/AppContext';
 import {
   Users,
@@ -9,7 +10,7 @@ import {
   Plus,
   Search,
   Filter,
-  DollarSign,
+  Banknote,
   TrendingUp,
   FileText,
   ChevronRight,
@@ -297,7 +298,7 @@ export const CrmPage = () => {
                         </p>
 
                         <div className="flex items-center justify-between text-xs font-mono font-extrabold text-emerald-400 pt-1">
-                          <span>${deal.value.toLocaleString()}</span>
+                          <span>{formatRM(deal.value)}</span>
                           <span className="text-[10px] text-slate-500 font-sans font-normal">
                             {deal.owner}
                           </span>
@@ -719,7 +720,7 @@ export const CrmPage = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-slate-300 font-semibold block mb-1">Credit Limit ($ USD)</label>
+                  <label className="text-slate-300 font-semibold block mb-1">Credit Limit (RM)</label>
                   <input
                     type="number"
                     step="100"

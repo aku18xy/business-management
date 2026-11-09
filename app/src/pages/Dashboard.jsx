@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
+import { formatRM } from '../utils/format';
 import { useApp } from '../context/AppContext';
 import { REVENUE_CHART_DATA } from '../data/mockData';
 import {
   TrendingUp,
   TrendingDown,
-  DollarSign,
+  Banknote,
   Briefcase,
   AlertTriangle,
   ArrowUpRight,
@@ -77,11 +78,11 @@ export const Dashboard = () => {
           <div className="flex items-center justify-between text-slate-400 mb-2">
             <span className="text-xs font-medium uppercase tracking-wider">Gross Revenue ({dateRange})</span>
             <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-              <DollarSign className="w-4 h-4" />
+              <Banknote className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl font-black text-white tracking-tight">
-            ${kpis.revenue.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {formatRM(kpis.revenue.value)}
           </div>
           
           {kpis.revenue.posContribution > 0 ? (
@@ -90,7 +91,7 @@ export const Dashboard = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span>+${kpis.revenue.posContribution.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} from POS</span>
+              <span>+{formatRM(kpis.revenue.posContribution)} from POS</span>
               <span className="text-emerald-300/70">({kpis.revenue.posOrdersCount} sales)</span>
             </div>
           ) : (
@@ -111,7 +112,7 @@ export const Dashboard = () => {
             </div>
           </div>
           <div className="text-2xl font-black text-white tracking-tight">
-            ${kpis.netProfit.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {formatRM(kpis.netProfit.value)}
           </div>
           <div className="flex items-center gap-1.5 text-xs text-emerald-400 mt-2 font-medium">
             <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 font-bold">
@@ -130,10 +131,10 @@ export const Dashboard = () => {
             </div>
           </div>
           <div className="text-2xl font-black text-white tracking-tight">
-            ${kpis.cashflow.cashOnHand.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {formatRM(kpis.cashflow.cashOnHand)}
           </div>
           <div className="flex items-center justify-between text-xs text-slate-400 mt-2">
-            <span>AR: <strong className="text-amber-400">${kpis.cashflow.receivables.toLocaleString()}</strong></span>
+            <span>AR: <strong className="text-amber-400">{formatRM(kpis.cashflow.receivables)}</strong></span>
             <span>POS Inflow: <strong className="text-purple-400">+${kpis.cashflow.posCashCollected?.toFixed(0) || 0}</strong></span>
           </div>
         </div>
@@ -169,7 +170,7 @@ export const Dashboard = () => {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm font-bold text-white">Financial Velocity (Revenue vs Expenses)</h3>
-              <p className="text-xs text-slate-400">Monthly double-entry cashflow performance ({currentOrg.currency})</p>
+              <p className="text-xs text-slate-400">Monthly double-entry cashflow performance (RM - Ringgit Malaysia)</p>
             </div>
             <div className="flex items-center gap-4 text-xs font-medium">
               <span className="flex items-center gap-1.5 text-slate-300">
@@ -329,7 +330,7 @@ export const Dashboard = () => {
                   </span>
                 </div>
                 <div className="text-lg font-black text-white mb-1">
-                  ${order.total.toFixed(2)}
+                  {formatRM(order.total)}
                 </div>
                 <p className="text-xs text-slate-400 line-clamp-1">
                   {order.items.map(i => `${i.qty}x ${i.name}`).join(', ')}

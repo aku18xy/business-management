@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatRM } from '../utils/format';
 import { useApp } from '../context/AppContext';
 import {
   Boxes,
@@ -13,7 +14,7 @@ import {
   CheckCircle2,
   Clock,
   FileText,
-  DollarSign,
+  Banknote,
   TrendingDown,
   ShieldCheck,
   Barcode,
@@ -300,7 +301,7 @@ export const InventoryPage = () => {
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-2xl font-black font-mono text-white">
-              ${totalValuation.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatRM(totalValuation)}
             </span>
             <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded font-bold border border-emerald-500/20">
               FIFO Costed
@@ -553,8 +554,8 @@ export const InventoryPage = () => {
 
                         {/* Cost & Retail */}
                         <td className="py-3.5 px-4 font-mono">
-                          <div className="text-white font-bold">${item.costPrice.toFixed(2)} cost</div>
-                          <div className="text-slate-400 text-[11px]">${item.retailPrice.toFixed(2)} retail ({marginPct}%)</div>
+                          <div className="text-white font-bold">{formatRM(item.costPrice)} cost</div>
+                          <div className="text-slate-400 text-[11px]">{formatRM(item.retailPrice)} retail ({marginPct}%)</div>
                         </td>
 
                         {/* Status */}
@@ -727,7 +728,7 @@ export const InventoryPage = () => {
                     <th className="py-3 px-4">Vendor Supplier</th>
                     <th className="py-3 px-4">Destination Hub</th>
                     <th className="py-3 px-4">Line Items</th>
-                    <th className="py-3 px-4 font-mono">Total (USD)</th>
+                    <th className="py-3 px-4 font-mono">Total (RM)</th>
                     <th className="py-3 px-4 text-center">Lifecycle Status</th>
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
@@ -770,7 +771,7 @@ export const InventoryPage = () => {
                         </td>
 
                         <td className="py-3.5 px-4 font-mono font-bold text-sm text-emerald-400">
-                          ${po.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {formatRM(po.total)}
                         </td>
 
                         <td className="py-3.5 px-4 text-center">
@@ -1004,7 +1005,7 @@ export const InventoryPage = () => {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Cost Price ($) *</label>
+                <label className="text-xs text-slate-400 block mb-1">Cost Price (RM) *</label>
                 <input
                   type="number"
                   step="0.01"
@@ -1016,7 +1017,7 @@ export const InventoryPage = () => {
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Retail Price ($) *</label>
+                <label className="text-xs text-slate-400 block mb-1">Retail Price (RM) *</label>
                 <input
                   type="number"
                   step="0.01"

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { formatRM } from '../utils/format';
 import { useApp } from '../context/AppContext';
 import {
-  DollarSign,
+  Banknote,
   Receipt,
   CreditCard,
   Building,
@@ -279,7 +280,7 @@ export const FinancePage = () => {
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-2xl font-black font-mono text-white">
-              ${cashAccount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatRM(cashAccount)}
             </span>
             <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded font-bold border border-emerald-500/20">
               Liquid
@@ -296,7 +297,7 @@ export const FinancePage = () => {
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-2xl font-black font-mono text-white">
-              ${totalAr.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatRM(totalAr)}
             </span>
             {overdueAr > 0 && (
               <span className="text-[10px] text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded font-bold border border-rose-500/20">
@@ -315,7 +316,7 @@ export const FinancePage = () => {
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-2xl font-black font-mono text-white">
-              ${totalAp.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatRM(totalAp)}
             </span>
             <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded font-bold border border-amber-500/20">
               Trade Creditors
@@ -332,7 +333,7 @@ export const FinancePage = () => {
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-2xl font-black font-mono text-white">
-              ${netIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatRM(netIncome)}
             </span>
             <span className="text-[10px] text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded font-bold border border-purple-500/20">
               {Math.round((netIncome / totalRevenue) * 100)}% Margin
@@ -677,8 +678,8 @@ export const FinancePage = () => {
                       <thead>
                         <tr className="text-slate-500 text-[10px] uppercase">
                           <th className="py-1 px-3">Account Code & Title</th>
-                          <th className="py-1 px-3 text-right">Debit ($)</th>
-                          <th className="py-1 px-3 text-right">Credit ($)</th>
+                          <th className="py-1 px-3 text-right">Debit (RM)</th>
+                          <th className="py-1 px-3 text-right">Credit (RM)</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800/40">
@@ -763,7 +764,7 @@ export const FinancePage = () => {
                         {acc.normal}
                       </td>
                       <td className="py-3 px-4 text-right font-mono font-bold text-white">
-                        ${acc.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatRM(acc.balance)}
                       </td>
                     </tr>
                   ))}
@@ -965,7 +966,7 @@ export const FinancePage = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Subtotal Amount ($) *</label>
+                <label className="text-xs text-slate-400 block mb-1">Subtotal Amount (RM) *</label>
                 <input
                   type="number"
                   step="0.01"
@@ -1117,7 +1118,7 @@ export const FinancePage = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Pre-Tax Amount ($) *</label>
+                <label className="text-xs text-slate-400 block mb-1">Pre-Tax Amount (RM) *</label>
                 <input
                   type="number"
                   step="0.01"
@@ -1261,7 +1262,7 @@ export const FinancePage = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Balanced Transaction Amount ($) *</label>
+                <label className="text-xs text-slate-400 block mb-1">Balanced Transaction Amount (RM) *</label>
                 <input
                   type="number"
                   step="0.01"

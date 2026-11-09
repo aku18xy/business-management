@@ -363,19 +363,31 @@ export const OrgSettingsPage = () => {
             <div className="divide-y divide-slate-800 text-xs">
               <div className="py-2.5 flex items-center justify-between">
                 <span className="text-slate-400">Base Reporting Currency</span>
-                <span className="font-mono font-bold text-emerald-400">{currentOrg.currency}</span>
+                <span className="font-mono font-bold text-emerald-400">{currentOrg.currency} (MYR)</span>
+              </div>
+              <div className="py-2.5 flex items-center justify-between">
+                <span className="text-slate-400">Tax Regime (SST)</span>
+                <span className="text-slate-200 font-semibold">{currentOrg.taxName || 'SST'} ({currentOrg.taxRate}%)</span>
+              </div>
+              <div className="py-2.5 flex items-center justify-between">
+                <span className="text-slate-400">SSM Registration No.</span>
+                <span className="font-mono text-slate-200">{currentOrg.companyReg || '202401038291 (1543820-K)'}</span>
+              </div>
+              <div className="py-2.5 flex items-center justify-between">
+                <span className="text-slate-400">SST License (JKDM)</span>
+                <span className="font-mono text-slate-200">{currentOrg.sstNumber || 'W10-2401-32000088'}</span>
+              </div>
+              <div className="py-2.5 flex items-center justify-between">
+                <span className="text-slate-400">LHDN TIN (e-Invoicing)</span>
+                <span className="font-mono text-slate-200">{currentOrg.tinNumber || 'C25893010020'}</span>
               </div>
               <div className="py-2.5 flex items-center justify-between">
                 <span className="text-slate-400">Default Timezone</span>
-                <span className="text-slate-200">{currentOrg.timezone}</span>
+                <span className="text-slate-200">{currentOrg.timezone} (UTC+8)</span>
               </div>
               <div className="py-2.5 flex items-center justify-between">
                 <span className="text-slate-400">Fiscal Year Start</span>
                 <span className="text-slate-200">{currentOrg.fiscalYearStart}</span>
-              </div>
-              <div className="py-2.5 flex items-center justify-between">
-                <span className="text-slate-400">Corporate Tax Rate</span>
-                <span className="text-slate-200">{currentOrg.taxRate}%</span>
               </div>
             </div>
           </div>

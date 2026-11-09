@@ -93,7 +93,7 @@ export const PosAdminPage = () => {
   });
 
   const formatMoney = (amount) => {
-    return `$${Number(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `RM ${Number(amount || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   // Open Edit Item Modal
@@ -844,7 +844,7 @@ export const PosAdminPage = () => {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="text-xs text-slate-400 block mb-1">Retail Price ($) *</label>
+                <label className="text-xs text-slate-400 block mb-1">Retail Price (RM) *</label>
                 <input
                   type="number"
                   step="0.01"
@@ -916,9 +916,10 @@ export const PosAdminPage = () => {
         <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4">
           <div className="max-w-sm w-full bg-white text-slate-900 rounded-2xl p-6 shadow-2xl font-mono text-xs space-y-4">
             <div className="text-center border-b border-dashed border-slate-300 pb-3">
-              <h2 className="text-base font-bold font-sans tracking-wide">NEXUS RETAIL STORE</h2>
-              <p className="text-[10px] text-slate-500">{selectedBranch?.name || 'Flagship Store'}</p>
-              <p className="text-[10px] text-slate-500">Tax ID: 88-1920-BMS • Receipt #{viewReceiptOrder.orderNumber}</p>
+              <h2 className="text-base font-bold font-sans tracking-wide">NEXUS ENTERPRISE SOLUTIONS SDN. BHD.</h2>
+              <p className="text-[10px] text-slate-600 font-bold">{selectedBranch?.name || 'Kuala Lumpur HQ (KL Sentral)'}</p>
+              <p className="text-[10px] text-slate-500">SSM: 202401038291 (1543820-K) • SST: W10-2401-32000088</p>
+              <p className="text-[10px] text-slate-500">LHDN TIN: C25893010020 • Receipt #{viewReceiptOrder.orderNumber}</p>
               <p className="text-[10px] text-slate-500">{viewReceiptOrder.date} • Tender: {viewReceiptOrder.paymentMethod}</p>
             </div>
 
@@ -926,7 +927,7 @@ export const PosAdminPage = () => {
               {viewReceiptOrder.items?.map((it, idx) => (
                 <div key={idx} className="flex justify-between">
                   <span>{it.qty}x {it.name}</span>
-                  <span className="font-bold">${(it.price * it.qty).toFixed(2)}</span>
+                  <span className="font-bold">{formatMoney(it.price * it.qty)}</span>
                 </div>
               ))}
             </div>
@@ -934,15 +935,15 @@ export const PosAdminPage = () => {
             <div className="space-y-1 pt-1 border-b border-dashed border-slate-300 pb-2">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span>${viewReceiptOrder.subtotal?.toFixed(2)}</span>
+                <span>{formatMoney(viewReceiptOrder.subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Tax</span>
-                <span>${viewReceiptOrder.tax?.toFixed(2)}</span>
+                <span>{formatMoney(viewReceiptOrder.tax)}</span>
               </div>
               <div className="flex justify-between text-sm font-bold pt-1">
                 <span>TOTAL PAID</span>
-                <span>${viewReceiptOrder.total?.toFixed(2)}</span>
+                <span>{formatMoney(viewReceiptOrder.total)}</span>
               </div>
             </div>
 

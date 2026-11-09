@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { formatRM, formatCurrency, roundTo5Sen } from '../utils/format';
 import {
   INITIAL_ORGS,
   INITIAL_USERS,
@@ -28,9 +29,13 @@ import {
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
+  const DATA_VERSION = 'nexus_v3_malaysia_rm_edition';
+
+  // Check if saved state is older version
+  const isMigrated = typeof window !== 'undefined' && localStorage.getItem('nexus_system_version') === DATA_VERSION;
   // Current user state (simulating RBAC active session)
   const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem('nexus_user');
+    const saved = isMigrated ? localStorage.getItem('nexus_user') : null;
     return saved ? JSON.parse(saved) : INITIAL_USERS[0];
   });
 
@@ -40,13 +45,13 @@ export const AppProvider = ({ children }) => {
 
   // Approvals workflow state
   const [approvals, setApprovals] = useState(() => {
-    const saved = localStorage.getItem('nexus_approvals');
+    const saved = isMigrated ? localStorage.getItem('nexus_approvals') : null;
     return saved ? JSON.parse(saved) : INITIAL_APPROVALS;
   });
 
   // Audit logs state
   const [auditLogs, setAuditLogs] = useState(() => {
-    const saved = localStorage.getItem('nexus_audit_logs');
+    const saved = isMigrated ? localStorage.getItem('nexus_audit_logs') : null;
     return saved ? JSON.parse(saved) : INITIAL_AUDIT_LOGS;
   });
 
@@ -54,17 +59,17 @@ export const AppProvider = ({ children }) => {
   // PHASE 2 STATE: CRM & PIPELINE
   // ==========================================
   const [customers, setCustomers] = useState(() => {
-    const saved = localStorage.getItem('nexus_customers');
+    const saved = isMigrated ? localStorage.getItem('nexus_customers') : null;
     return saved ? JSON.parse(saved) : INITIAL_CUSTOMERS;
   });
 
   const [deals, setDeals] = useState(() => {
-    const saved = localStorage.getItem('nexus_deals');
+    const saved = isMigrated ? localStorage.getItem('nexus_deals') : null;
     return saved ? JSON.parse(saved) : INITIAL_DEALS;
   });
 
   const [quotations, setQuotations] = useState(() => {
-    const saved = localStorage.getItem('nexus_quotations');
+    const saved = isMigrated ? localStorage.getItem('nexus_quotations') : null;
     return saved ? JSON.parse(saved) : INITIAL_QUOTATIONS;
   });
 
@@ -72,12 +77,12 @@ export const AppProvider = ({ children }) => {
   // PHASE 2 STATE: POS TERMINAL & INVENTORY
   // ==========================================
   const [posCatalog, setPosCatalog] = useState(() => {
-    const saved = localStorage.getItem('nexus_pos_catalog');
+    const saved = isMigrated ? localStorage.getItem('nexus_pos_catalog') : null;
     return saved ? JSON.parse(saved) : POS_CATALOG;
   });
 
   const [posOrders, setPosOrders] = useState(() => {
-    const saved = localStorage.getItem('nexus_pos_orders');
+    const saved = isMigrated ? localStorage.getItem('nexus_pos_orders') : null;
     return saved ? JSON.parse(saved) : INITIAL_POS_ORDERS;
   });
 
@@ -87,12 +92,12 @@ export const AppProvider = ({ children }) => {
   // FR-802: REGISTER SHIFT & CASH DRAWER RECONCILIATION
   // ==========================================
   const [posShift, setPosShift] = useState(() => {
-    const saved = localStorage.getItem('nexus_pos_shift');
+    const saved = isMigrated ? localStorage.getItem('nexus_pos_shift') : null;
     return saved ? JSON.parse(saved) : INITIAL_ACTIVE_SHIFT;
   });
 
   const [posShiftHistory, setPosShiftHistory] = useState(() => {
-    const saved = localStorage.getItem('nexus_pos_shift_history');
+    const saved = isMigrated ? localStorage.getItem('nexus_pos_shift_history') : null;
     return saved ? JSON.parse(saved) : INITIAL_SHIFT_HISTORY;
   });
 
@@ -103,27 +108,27 @@ export const AppProvider = ({ children }) => {
   // PHASE 3 STATE: ERP INVENTORY & SCM (FR-401, FR-402, FR-403)
   // ==========================================
   const [warehouses, setWarehouses] = useState(() => {
-    const saved = localStorage.getItem('nexus_warehouses');
+    const saved = isMigrated ? localStorage.getItem('nexus_warehouses') : null;
     return saved ? JSON.parse(saved) : INITIAL_WAREHOUSES;
   });
 
   const [inventoryItems, setInventoryItems] = useState(() => {
-    const saved = localStorage.getItem('nexus_inventory_items');
+    const saved = isMigrated ? localStorage.getItem('nexus_inventory_items') : null;
     return saved ? JSON.parse(saved) : INITIAL_INVENTORY_ITEMS;
   });
 
   const [vendors, setVendors] = useState(() => {
-    const saved = localStorage.getItem('nexus_vendors');
+    const saved = isMigrated ? localStorage.getItem('nexus_vendors') : null;
     return saved ? JSON.parse(saved) : INITIAL_VENDORS;
   });
 
   const [purchaseOrders, setPurchaseOrders] = useState(() => {
-    const saved = localStorage.getItem('nexus_purchase_orders');
+    const saved = isMigrated ? localStorage.getItem('nexus_purchase_orders') : null;
     return saved ? JSON.parse(saved) : INITIAL_PURCHASE_ORDERS;
   });
 
   const [stockMovements, setStockMovements] = useState(() => {
-    const saved = localStorage.getItem('nexus_stock_movements');
+    const saved = isMigrated ? localStorage.getItem('nexus_stock_movements') : null;
     return saved ? JSON.parse(saved) : INITIAL_STOCK_MOVEMENTS;
   });
 
@@ -131,22 +136,22 @@ export const AppProvider = ({ children }) => {
   // PHASE 4 STATE: FINANCE, INVOICING & GENERAL LEDGER (FR-501, FR-502, FR-503)
   // ==========================================
   const [chartOfAccounts, setChartOfAccounts] = useState(() => {
-    const saved = localStorage.getItem('nexus_accounts');
+    const saved = isMigrated ? localStorage.getItem('nexus_accounts') : null;
     return saved ? JSON.parse(saved) : INITIAL_ACCOUNTS;
   });
 
   const [invoices, setInvoices] = useState(() => {
-    const saved = localStorage.getItem('nexus_invoices');
+    const saved = isMigrated ? localStorage.getItem('nexus_invoices') : null;
     return saved ? JSON.parse(saved) : INITIAL_INVOICES;
   });
 
   const [vendorBills, setVendorBills] = useState(() => {
-    const saved = localStorage.getItem('nexus_vendor_bills');
+    const saved = isMigrated ? localStorage.getItem('nexus_vendor_bills') : null;
     return saved ? JSON.parse(saved) : INITIAL_VENDOR_BILLS;
   });
 
   const [journalEntries, setJournalEntries] = useState(() => {
-    const saved = localStorage.getItem('nexus_journal_entries');
+    const saved = isMigrated ? localStorage.getItem('nexus_journal_entries') : null;
     return saved ? JSON.parse(saved) : INITIAL_JOURNAL_ENTRIES;
   });
 
@@ -157,6 +162,12 @@ export const AppProvider = ({ children }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Current URL path tracking (supports dedicated /pos terminal route)
+    useEffect(() => {
+    if (localStorage.getItem('nexus_system_version') !== DATA_VERSION) {
+      localStorage.setItem('nexus_system_version', DATA_VERSION);
+    }
+  }, []);
+
   const [currentPath, setCurrentPath] = useState(() => {
     if (typeof window !== 'undefined') {
       return window.location.pathname || '/';
@@ -337,7 +348,7 @@ export const AppProvider = ({ children }) => {
       ...dealData
     };
     setDeals(prev => [newDeal, ...prev]);
-    addAuditLog('CRM_DEAL_CREATED', `Created sales opportunity: "${newDeal.title}" valued at $${newDeal.value.toLocaleString()}`);
+    addAuditLog('CRM_DEAL_CREATED', `Created sales opportunity: "${newDeal.title}" valued at RM ${newDeal.value.toLocaleString()}`);
   };
 
   const updateDealStage = (dealId, newStage) => {
@@ -358,7 +369,7 @@ export const AppProvider = ({ children }) => {
       ...quoteData
     };
     setQuotations(prev => [newQuote, ...prev]);
-    addAuditLog('QUOTATION_GENERATED', `Created quotation ${newQuote.id} for ${newQuote.customerName} ($${newQuote.total.toFixed(2)})`);
+    addAuditLog('QUOTATION_GENERATED', `Created quotation ${newQuote.id} for ${newQuote.customerName} (RM ${newQuote.total.toFixed(2)})`);
     return newQuote;
   };
 
@@ -420,7 +431,7 @@ export const AppProvider = ({ children }) => {
       id: `ord_${Date.now()}`,
       orderNumber,
       shiftId: posShift?.id,
-      registerId: posShift?.registerId || 'REG-01-FLAGSHIP',
+      registerId: posShift?.registerId || 'REG-01-KL-SENTRAL',
       cashier: currentUser.name,
       customerName: customer,
       date: "Just now",
@@ -451,7 +462,7 @@ export const AppProvider = ({ children }) => {
 
     addAuditLog(
       'POS_ORDER_COMPLETED',
-      `Processed checkout ${orderNumber} for $${total.toFixed(2)} via ${paymentMethod} on shift ${posShift?.id || 'N/A'}`
+      `Processed checkout ${orderNumber} for RM ${total.toFixed(2)} via ${paymentMethod} on shift ${posShift?.id || 'N/A'}`
     );
 
     return newOrder;
@@ -488,7 +499,7 @@ export const AppProvider = ({ children }) => {
 
     addAuditLog(
       'POS_ORDER_VOIDED',
-      `Voided order ${target.orderNumber} ($${target.total.toFixed(2)}). Restocked items to inventory. Reason: ${reason}`
+      `Voided order ${target.orderNumber} (RM ${target.total.toFixed(2)}). Restocked items to inventory. Reason: ${reason}`
     );
 
     return updatedOrder;
@@ -545,7 +556,7 @@ export const AppProvider = ({ children }) => {
 
     addAuditLog(
       'POS_ORDER_REFUNDED',
-      `Issued Credit Note ${creditNoteId} for $${refundTotal.toFixed(2)} on ${target.orderNumber} via ${refundMethod}. Reason: ${reason}`
+      `Issued Credit Note ${creditNoteId} for RM ${refundTotal.toFixed(2)} on ${target.orderNumber} via ${refundMethod}. Reason: ${reason}`
     );
 
     return refundReceipt;
@@ -564,7 +575,7 @@ export const AppProvider = ({ children }) => {
 
     addAuditLog(
       'POS_ITEM_UPDATED',
-      `Updated retail item ${existing.sku} - "${updatedData.name || existing.name}" (Price: $${Number(updatedData.price ?? existing.price).toFixed(2)}, Stock: ${updatedData.stock ?? existing.stock})`
+      `Updated retail item ${existing.sku} - "${updatedData.name || existing.name}" (Price: RM {Number(updatedData.price ?? existing.price).toFixed(2)}, Stock: ${updatedData.stock ?? existing.stock})`
     );
   };
 
@@ -589,7 +600,7 @@ export const AppProvider = ({ children }) => {
 
     addAuditLog(
       'POS_ITEM_CREATED',
-      `Added new POS retail item ${itemWithId.sku} - "${itemWithId.name}" ($${itemWithId.price.toFixed(2)})`
+      `Added new POS retail item ${itemWithId.sku} - "${itemWithId.name}" (RM ${itemWithId.price.toFixed(2)})`
     );
 
     return itemWithId;
@@ -645,7 +656,7 @@ export const AppProvider = ({ children }) => {
     setPosShift(newShift);
     addAuditLog(
       'POS_SHIFT_OPENED',
-      `Opened register shift ${newShift.id} on ${registerId} with float $${floatNum.toFixed(2)}`
+      `Opened register shift ${newShift.id} on ${registerId} with float RM {floatNum.toFixed(2)}`
     );
     return newShift;
   };
@@ -666,7 +677,7 @@ export const AppProvider = ({ children }) => {
     }));
     addAuditLog(
       'POS_CASH_DROP',
-      `Processed cash drop of $${dropNum.toFixed(2)} to vault. Authorizer: ${newDrop.authorizer}`
+      `Processed cash drop of RM {dropNum.toFixed(2)} to vault. Authorizer: ${newDrop.authorizer}`
     );
     return newDrop;
   };
@@ -697,7 +708,7 @@ export const AppProvider = ({ children }) => {
     setPosShift(null);
     addAuditLog(
       'POS_SHIFT_CLOSED',
-      `Closed shift ${posShift.id}. Counted $${countedNum.toFixed(2)}, Expected $${shiftExpectedCash.toFixed(2)}, Variance: ${variance >= 0 ? '+' : ''}$${variance.toFixed(2)} (${status})`
+      `Closed shift ${posShift.id}. Counted RM {countedNum.toFixed(2)}, Expected RM {shiftExpectedCash.toFixed(2)}, Variance: ${variance >= 0 ? '+' : ''}RM {variance.toFixed(2)} (${status})`
     );
     return closedShiftSummary;
   };
@@ -867,10 +878,10 @@ export const AppProvider = ({ children }) => {
       const approvalCard = {
         id: `appr_po_${Date.now()}`,
         type: 'Purchase Order',
-        title: `${poNum}: ${vendor.name} ($${total.toLocaleString(undefined, { minimumFractionDigits: 2 })})`,
+        title: `${poNum}: ${vendor.name} (RM ${total.toLocaleString(undefined, { minimumFractionDigits: 2 })})`,
         requester: `${currentUser.name} (${currentUser.role})`,
         department: 'Procurement & Supply Chain',
-        amount: `$${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+        amount: `RM ${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
         status: 'Pending',
         date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
         priority: total > 20000 ? 'High' : 'Medium'
@@ -880,7 +891,7 @@ export const AppProvider = ({ children }) => {
 
     addAuditLog(
       'PURCHASE_ORDER_CREATED',
-      `Generated ${poNum} for ${vendor.name} totaling $${total.toFixed(2)} (${initialStatus})`
+      `Generated ${poNum} for ${vendor.name} totaling RM {total.toFixed(2)} (${initialStatus})`
     );
     return newPo;
   };
@@ -1008,13 +1019,13 @@ export const AppProvider = ({ children }) => {
       lines: [
         { accountCode: "1100", accountName: "Accounts Receivable (Trade Debtors)", debit: total, credit: 0.00 },
         { accountCode: "4010", accountName: "Commercial B2B Enterprise Revenue", debit: 0.00, credit: subtotal },
-        { accountCode: "2020", accountName: "Sales Tax Collected Payable", debit: 0.00, credit: tax }
+        { accountCode: "2020", accountName: "SST Payable (Sales & Service Tax to JKDM / Customs)", debit: 0.00, credit: tax }
       ],
       totalAmount: total
     };
     setJournalEntries(prev => [newJrn, ...prev]);
 
-    addAuditLog('INVOICE_ISSUED', `Issued AR invoice ${invNum} to ${newInvoice.customerName} for $${total.toFixed(2)}`);
+    addAuditLog('INVOICE_ISSUED', `Issued AR invoice ${invNum} to ${newInvoice.customerName} for RM ${total.toFixed(2)}`);
     return newInvoice;
   };
 
@@ -1034,7 +1045,7 @@ export const AppProvider = ({ children }) => {
           paidAmount: newPaidTotal,
           balanceDue: newBalance,
           status: newStatus,
-          notes: `${i.notes || ''} [Payment of $${payNum.toFixed(2)} received via ${method} on ${new Date().toLocaleDateString()}]`.trim()
+          notes: `${i.notes || ''} [Payment of RM {payNum.toFixed(2)} received via ${method} on ${new Date().toLocaleDateString()}]`.trim()
         };
       }
       return i;
@@ -1049,7 +1060,7 @@ export const AppProvider = ({ children }) => {
       reference: inv.invoiceNumber,
       actor: `${currentUser.name} (${currentUser.role})`,
       lines: [
-        { accountCode: "1010", accountName: "Operating Cash & Bank (JPMorgan Chase)", debit: payNum, credit: 0.00 },
+        { accountCode: "1010", accountName: "Maybank Corporate Current Account (5140 1122 3344)", debit: payNum, credit: 0.00 },
         { accountCode: "1100", accountName: "Accounts Receivable (Trade Debtors)", debit: 0.00, credit: payNum }
       ],
       totalAmount: payNum
@@ -1063,7 +1074,7 @@ export const AppProvider = ({ children }) => {
       return acc;
     }));
 
-    addAuditLog('INVOICE_PAYMENT_RECORDED', `Recorded payment of $${payNum.toFixed(2)} on ${inv.invoiceNumber} via ${method}. Status: ${newStatus}`);
+    addAuditLog('INVOICE_PAYMENT_RECORDED', `Recorded payment of RM {payNum.toFixed(2)} on ${inv.invoiceNumber} via ${method}. Status: ${newStatus}`);
     return true;
   };
 
@@ -1112,7 +1123,7 @@ export const AppProvider = ({ children }) => {
     };
     setJournalEntries(prev => [jrn, ...prev]);
 
-    addAuditLog('VENDOR_BILL_CREATED', `Entered vendor bill ${billNum} from ${newBill.vendorName} for $${total.toFixed(2)}`);
+    addAuditLog('VENDOR_BILL_CREATED', `Entered vendor bill ${billNum} from ${newBill.vendorName} for RM ${total.toFixed(2)}`);
     return newBill;
   };
 
@@ -1141,7 +1152,7 @@ export const AppProvider = ({ children }) => {
       actor: `${currentUser.name} (${currentUser.role})`,
       lines: [
         { accountCode: "2010", accountName: "Accounts Payable (Trade Creditors)", debit: bill.amount, credit: 0.00 },
-        { accountCode: "1010", accountName: "Operating Cash & Bank (JPMorgan Chase)", debit: 0.00, credit: bill.amount }
+        { accountCode: "1010", accountName: "Maybank Corporate Current Account (5140 1122 3344)", debit: 0.00, credit: bill.amount }
       ],
       totalAmount: bill.amount
     };
@@ -1154,7 +1165,7 @@ export const AppProvider = ({ children }) => {
       return acc;
     }));
 
-    addAuditLog('VENDOR_BILL_PAID', `Paid vendor bill ${bill.billNumber} ($${bill.amount.toFixed(2)}) to ${bill.vendorName} via ${paymentMethod}`);
+    addAuditLog('VENDOR_BILL_PAID', `Paid vendor bill ${bill.billNumber} (RM {bill.amount.toFixed(2)}) to ${bill.vendorName} via ${paymentMethod}`);
     return true;
   };
 
@@ -1164,7 +1175,7 @@ export const AppProvider = ({ children }) => {
     const totalCredit = (entryData.lines || []).reduce((s, l) => s + (Number(l.credit) || 0), 0);
 
     if (Math.abs(totalDebit - totalCredit) > 0.01) {
-      return { success: false, message: `Debits ($${totalDebit.toFixed(2)}) must equal Credits ($${totalCredit.toFixed(2)}).` };
+      return { success: false, message: `Debits (RM {totalDebit.toFixed(2)}) must equal Credits (RM {totalCredit.toFixed(2)}).` };
     }
 
     const newJrn = {
@@ -1192,7 +1203,7 @@ export const AppProvider = ({ children }) => {
       return acc;
     }));
 
-    addAuditLog('JOURNAL_ENTRY_POSTED', `Posted balanced double-entry voucher ${entryNum} for $${totalDebit.toFixed(2)}`);
+    addAuditLog('JOURNAL_ENTRY_POSTED', `Posted balanced double-entry voucher ${entryNum} for RM {totalDebit.toFixed(2)}`);
     return { success: true, entry: newJrn };
   };
 
@@ -1315,6 +1326,9 @@ export const AppProvider = ({ children }) => {
         quotations,
         createQuotation,
         pipelineStages: PIPELINE_STAGES,
+        formatRM,
+        formatCurrency,
+        roundTo5Sen,
         // Phase 3 exports: ERP Inventory, Warehouse & Procurement (FR-401, FR-402, FR-403)
         warehouses,
         inventoryItems,
